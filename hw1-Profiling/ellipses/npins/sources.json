@@ -1,0 +1,11 @@
+{
+  "pins": {
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixos-23.11",
+      "url": "https://releases.nixos.org/nixos/23.11/nixos-23.11.4621.3cb4ae6689d2/nixexprs.tar.xz",
+      "hash": "0c2kkl9sqbjdm8jfxafdbg8yzvzilz782ybadsxry02shn6akh5c"
+    }
+  },
+  "version": 3
+}

@@ -1,0 +1,9 @@
+image: docker.nix-community.org/nixpkgs/cachix-flakes
+
+build:
+  variables:
+    CACHIX_CACHE_NAME: esw
+  before_script:
+    - cachix use "$CACHIX_CACHE_NAME"
+  script:
+    - cachix watch-exec $CACHIX_CACHE_NAME -- nix-build shell.nix
