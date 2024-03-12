@@ -1,0 +1,224 @@
+diff --git a/Dockerfile b/Dockerfile
+new file mode 100644
+index 0000000..dbf628d
+--- /dev/null
++++ b/Dockerfile
+@@ -0,0 +1,9 @@
++# Use a base image with Nix installed
++FROM nixos/nix
++
++# Add timezone info and that we are not interactive
++# so that cmake installs without prompts.
++ENV TZ=Europe/Prague
++ENV DEBIAN_FRONTEND=noninteractive
++
++WORKDIR /home/dev
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..32fcff9
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,10 @@
++
++.PHONY: docker-build docker-run
++
++## Build the docker image
++docker-build:
++	docker build -t esw/rcu .
++
++## Mount host file system and run the docker image
++docker-run:
++	docker run --rm -it -v "$(PWD):/home/dev" --name eswDir esw/rcu:latest
+diff --git a/README b/README
+index ab17ff8..5ea6fbd 100644
+--- a/README
++++ b/README
+@@ -4,20 +4,20 @@ To build the project, install dependencies or use Nix shell:
+ 
+ Then build the project with meson:
+ 
+-    meson setup builddir
+-    meson compile --verbose -C builddir
++    meson setup build
++    meson compile --verbose -C build
+ 
+ NOTE: Using --verbose prints commands used to build the project to the terminal.
+ 
+ And finally measure performance of list traversal when mutex, rwlock,
+ or RCU are used:
+ 
+-	./builddir/list_mutex 4
+-	./builddir/list_rwlock 4
+-	./builddir/list_rcu 4
++	./build/list_mutex 4
++	./build/list_rwlock 4
++	./build/list_rcu 4
+ 
+ Debug messages demonstrating the functionality of the program can be
+ enabled by runningL
+ 
+-    meson configure builddir -Dcpp_args="-DDEBUG"
+-    meson compile --verbose -C builddir
++    meson configure build -Dcpp_args="-DDEBUG"
++    meson compile --verbose -C build
+diff --git a/list.cpp b/list.cpp
+index 13f14cc..0d56832 100644
+--- a/list.cpp
++++ b/list.cpp
+@@ -5,18 +5,18 @@
+ #include <string.h>
+ 
+ #if defined (USE_MUTEX)
+-#  define rd_lock(lock) pthread_mutex_lock(lock)
+-#  define rd_unlock(lock) pthread_mutex_unlock(lock)
+-#  define wr_lock(lock) pthread_mutex_lock(lock)
+-#  define wr_unlock(lock) pthread_mutex_unlock(lock)
++#  define rd_lock(lock)         pthread_mutex_lock(lock)
++#  define rd_unlock(lock)       pthread_mutex_unlock(lock)
++#  define wr_lock(lock)         pthread_mutex_lock(lock)
++#  define wr_unlock(lock)       pthread_mutex_unlock(lock)
+ #elif defined (USE_RWLOCK)
+-#  define rd_lock(lock) // TODO
+-#  define rd_unlock(lock) // TODO
+-#  define wr_lock(lock) // TODO
+-#  define wr_unlock(lock) // TODO
++#  define rd_lock(lock)         pthread_rwlock_rdlock(lock)
++#  define rd_unlock(lock)       pthread_rwlock_unlock(lock)
++#  define wr_lock(lock)         pthread_rwlock_wrlock(lock)
++#  define wr_unlock(lock)       pthread_rwlock_unlock(lock)
+ #elif defined (USE_RCU)
+-#  define rd_lock(lock) // TODO
+-#  define rd_unlock(lock) // TODO
++#  define rd_lock(lock)         rcu_read_lock()
++#  define rd_unlock(lock)       rcu_read_unlock()
+ #  define wr_lock(lock) // TODO
+ #  define wr_unlock(lock) //TODO
+ #else
+@@ -43,9 +43,16 @@ void esw_list_init(LIST_TYPE *list)
+     CHECK(pthread_mutex_init(&list->lock, NULL));
+     list->head = NULL;
+ #elif defined (USE_RWLOCK)
+-    // TODO
++    CHECK(pthread_rwlockattr_init(&list->attr));
++    CHECK(
++        pthread_rwlockattr_setkind_np(
++            &list->attr,
++            PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP)
++        );
++    CHECK(pthread_rwlock_init(&list->lock, &list->attr));
++    list->head = NULL;
+ #elif defined (USE_RCU)
+-    // TODO
++    CDS_INIT_LIST_HEAD(list);
+ #else
+ #error "No lock type defined"
+ #endif
+@@ -66,10 +73,19 @@ void esw_list_push(LIST_TYPE *list, const char *const key, const char *const val
+     list->head = node;
+     wr_unlock(&list->lock);
+ #elif defined (USE_RCU)
+-    // TODO
++    cds_list_add_tail_rcu(&node->node, list);
+ #endif
+ }
+ 
++#if defined (USE_RCU)
++void free_node_rcu(struct rcu_head *head)
++{
++	struct esw_node *node = caa_container_of(head, struct esw_node, rcu_head);
++
++	esw_list_free_node(node);
++}
++#endif
++
+ void esw_list_update(LIST_TYPE *list, const char *const key, const char *const value)
+ {
+     assert(list);
+@@ -91,7 +107,15 @@ void esw_list_update(LIST_TYPE *list, const char *const key, const char *const v
+     }
+     wr_unlock(&list->lock);
+ #elif defined (USE_RCU)
+-    // TODO
++    struct esw_node *current, *temp;
++    cds_list_for_each_entry_safe(current, temp, list, node) {
++		if (strcmp(current->key, key) == 0) {
++            struct esw_node* new_node = esw_list_create_node(key, value);
++            cds_list_replace_rcu(&current->node, &new_node->node);
++            call_rcu(&current->rcu_head, free_node_rcu);
++            break;
++        }
++	}
+ #endif
+ }
+ 
+@@ -122,7 +146,21 @@ bool esw_list_find(LIST_TYPE *list, const char *const key, char *value, const si
+         current = current->next;
+     }
+ #elif defined (USE_RCU)
+-    // TODO
++    struct esw_node *current;
++    cds_list_for_each_entry_rcu(current, list, node) {
++		if (strcmp(current->key, key) == 0) {
++            if (strlen(current->value) < max_len) {
++                strcpy(value, current->value);
++                if(calc_checksum(value) != current->checksum) err(1, "%s:%d wrong checksum", __FILE__, __LINE__);
++            } else {
++                strncpy(value, current->value, max_len - 1);
++                value[max_len - 1] = '\0';
++                if(calc_checksum(value) != current->checksum) err(1, "%s:%d wrong checksum", __FILE__, __LINE__);
++            }
++            found = true;
++            break;
++        }
++	}
+ #endif
+     rd_unlock(&list->lock);
+ 
+diff --git a/list.hpp b/list.hpp
+index 07831a4..33f1640 100644
+--- a/list.hpp
++++ b/list.hpp
+@@ -25,7 +25,8 @@ typedef struct esw_node {
+     struct esw_node * next;
+     struct esw_node * prev;
+ #elif defined (USE_RCU)
+-    // TODO
++    struct cds_list_head node;
++	struct rcu_head rcu_head;
+ #else
+ #error "No lock type defined"
+ #endif
+@@ -37,6 +38,7 @@ typedef struct esw_list {
+     pthread_mutex_t lock;
+ #elif defined (USE_RWLOCK)
+     pthread_rwlock_t lock;
++    pthread_rwlockattr_t attr;
+ #endif
+ } esw_list_t;
+ 
+diff --git a/main.cpp b/main.cpp
+index 0120aa2..85ef78f 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -93,7 +93,9 @@ void *reader_thread(void *arg)
+     long hits = 0;
+     long miss = 0;
+ 
+-    // TODO - RCU should have someting here
++#if defined(USE_RCU)
++    rcu_register_thread();
++#endif
+ 
+     while (!terminate_req.load(relaxed)) {
+         generate_random_string(key, sizeof(key));
+@@ -109,6 +111,10 @@ void *reader_thread(void *arg)
+         stats.reads.store(stats.reads.load(relaxed) + 1, relaxed);
+     }
+     printf("Hits: %ld, Misses: %ld\n", hits, miss);
++
++#if defined(USE_RCU)
++    rcu_unregister_thread();
++#endif
+     return NULL;
+ }
+ 

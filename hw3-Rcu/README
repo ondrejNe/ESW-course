@@ -1,0 +1,23 @@
+To build the project, install dependencies or use Nix shell:
+
+    nix-shell
+
+Then build the project with meson:
+
+    meson setup build
+    meson compile --verbose -C build
+
+NOTE: Using --verbose prints commands used to build the project to the terminal.
+
+And finally measure performance of list traversal when mutex, rwlock,
+or RCU are used:
+
+	./build/list_mutex 4
+	./build/list_rwlock 4
+	./build/list_rcu 4
+
+Debug messages demonstrating the functionality of the program can be
+enabled by runningL
+
+    meson configure build -Dcpp_args="-DDEBUG"
+    meson compile --verbose -C build
