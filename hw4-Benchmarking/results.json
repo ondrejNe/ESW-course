@@ -1,0 +1,66 @@
+{
+    "performance": [
+        {
+            "impl_name": "measureMultiply",
+            "average": 271.85224439999996,
+            "cf_lb": 259.79700100843564,
+            "cf_ub": 283.9074877915643
+        },
+        {
+            "impl_name": "measureMultiply1D",
+            "average": 307.9949006,
+            "cf_lb": 301.7583017712383,
+            "cf_ub": 314.2314994287617
+        },
+        {
+            "impl_name": "measureMultiplyTrans",
+            "average": 187.3280538,
+            "cf_lb": 180.09711987832915,
+            "cf_ub": 194.55898772167083
+        }
+    ],
+    "comparisons": [
+        {
+            "impl_1_name": "measureMultiply",
+            "impl_2_name": "measureMultiply1D",
+            "ratio": 1.1329496332824833,
+            "cf_lb": 1.079852066753857,
+            "cf_ub": 1.1905117898376933
+        },
+        {
+            "impl_1_name": "measureMultiply1D",
+            "impl_2_name": "measureMultiply",
+            "ratio": 0.8826517707611682,
+            "cf_lb": 0.8399748818416436,
+            "cf_ub": 0.9260527722154571
+        },
+        {
+            "impl_1_name": "measureMultiply",
+            "impl_2_name": "measureMultiplyTrans",
+            "ratio": 0.6890804017949098,
+            "cf_lb": 0.6498633609404575,
+            "cf_ub": 0.7310128868306311
+        },
+        {
+            "impl_1_name": "measureMultiplyTrans",
+            "impl_2_name": "measureMultiply",
+            "ratio": 1.451209463213886,
+            "cf_lb": 1.3679649401744278,
+            "cf_ub": 1.5387850125183826
+        },
+        {
+            "impl_1_name": "measureMultiply1D",
+            "impl_2_name": "measureMultiplyTrans",
+            "ratio": 0.6082180368410943,
+            "cf_lb": 0.5819492146949545,
+            "cf_ub": 0.6349858307436342
+        },
+        {
+            "impl_1_name": "measureMultiplyTrans",
+            "impl_2_name": "measureMultiply1D",
+            "ratio": 1.6441472291642418,
+            "cf_lb": 1.5748382902164861,
+            "cf_ub": 1.7183630027307089
+        }
+    ]
+}
