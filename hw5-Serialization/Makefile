@@ -7,4 +7,4 @@ docker-build:
 
 ## Mount host file system and run the docker image
 docker-run:
-	docker run --rm -it -v "$(PWD):/home/dev" --name eswDir esw/serialization:latest
+	docker run --rm -it -v "$(PWD):/home/dev" --name esw-serialization esw/serialization:latest
