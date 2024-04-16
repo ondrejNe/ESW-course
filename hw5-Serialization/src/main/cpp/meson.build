@@ -4,29 +4,28 @@ thread_dep = dependency('threads')
 protobuf_dep = dependency('protobuf')
 jsoncpp_dep = dependency('jsoncpp')
 
+# Generate files
+protoc = find_program('protoc', required : true)
+gen = generator(protoc,
+                output    : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
+                arguments : ['--proto_path=@CURRENT_SOURCE_DIR@', '--cpp_out=@BUILD_DIR@', '@INPUT@'])
+generated = gen.process('measurements.proto')
+
 # All sources
 srcs = [
   'dataset.cpp',
   'main.cpp',
   'measurementinfo.cpp',
   'result.cpp',
-  'measurements.pb.cc'
+  generated,
 ]
-
-# Specify libavrocpp library and include paths
-avrocpp_lib_dir = '/nix/store/0zihsc1dzpbdzidm052zl765hg3rc3hz-avro-c++-1.11.0/lib/'
-avrocpp_include_dir = '/nix/store/0zihsc1dzpbdzidm052zl765hg3rc3hz-avro-c++-1.11.0/include/'
 
 # Server executable
 executable(
   'server',
   srcs,
-  include_directories: [
-    avrocpp_include_dir,
-  ],
   link_args: [
-    '-L/usr/local/lib/',
-    '-lavrocpp_s'
+    '-lavrocpp'
   ],
   dependencies: [
     thread_dep,

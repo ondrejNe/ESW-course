@@ -18,7 +18,7 @@ To build the C++ part of the project, install dependencies or use nix shell:
 
 Then build the project with meson:
 
-	meson setup builddir
+	meson --buildtype=plain builddir
 
     cd builddir
     ninja
