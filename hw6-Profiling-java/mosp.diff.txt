@@ -1,0 +1,21 @@
+diff --git a/src/main/java/cz/cvut/fel/esw/shortestpath/search/MultiObjectiveAStar.java b/src/main/java/cz/cvut/fel/esw/shortestpath/search/MultiObjectiveAStar.java
+index 0aa9755..471c051 100644
+--- a/src/main/java/cz/cvut/fel/esw/shortestpath/search/MultiObjectiveAStar.java
++++ b/src/main/java/cz/cvut/fel/esw/shortestpath/search/MultiObjectiveAStar.java
+@@ -87,8 +87,6 @@ public class MultiObjectiveAStar {
+             Heap.Entry<SearchState> minEntry = heap.extractMinimum();
+             SearchState minState = minEntry.getValue();
+ 
+-            logger.trace("Extracted state in " + iterationCounter + ". iteration: " + minState);
+-
+             opened.remove(minEntry);
+ 
+             //checks if the extracted state is not already dominated by some of the found solutions
+@@ -98,7 +96,6 @@ public class MultiObjectiveAStar {
+             if (isGoal(minState)) {
+                 results.add(minState);
+                 solutions.addWithoutChecks(minEntry);
+-                logger.trace(minState);
+                 if (results.size() >= numberOfResults) return results;
+                 continue;
+             }
