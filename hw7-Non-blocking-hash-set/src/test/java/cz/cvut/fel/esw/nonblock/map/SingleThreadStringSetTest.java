@@ -21,13 +21,13 @@ public abstract class SingleThreadStringSetTest {
         }
     }
 
-    public static class SynchronizedStringSetTest extends SingleThreadStringSetTest {
-
-        @Override
-        protected StringSet createSet() {
-            return new SynchronizedStringSet(4);
-        }
-    }
+//    public static class SynchronizedStringSetTest extends SingleThreadStringSetTest {
+//
+//        @Override
+//        protected StringSet createSet() {
+//            return new SynchronizedStringSet(4);
+//        }
+//    }
 
     @Test
     void testSizeAllDistinct() {

@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <javac.target>11</javac.target>
+        <javac.target>21</javac.target>
         <junit.version>5.8.2</junit.version>
         <uberjar.name>jcstress</uberjar.name>
         <vmlens.version>1.1.5</vmlens.version>
