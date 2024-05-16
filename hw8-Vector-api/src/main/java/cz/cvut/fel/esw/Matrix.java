@@ -20,6 +20,10 @@ public record Matrix(int[][] rowBased, int[][] columnBased) {
         return rowBased[0].length;
     }
 
+    public int getValueAt(int row, int column) {
+        return rowBased[row][column];
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -7,7 +7,15 @@ import jdk.incubator.vector.*;
  */
 public class Utils {
     private static final VectorSpecies<Integer> SPECIES = IntVector.SPECIES_PREFERRED;
-    public static int sum(int[] array) {
+    public static int sumSequential(int[] array) {
+        int sum = 0;
+        for (int i : array) {
+            sum += i;
+        }
+        return sum;
+    }
+
+    public static int sumVector(int[] array) {
         int vectorSize = SPECIES.length();
         int arrayLength = array.length;
         int sum = 0;
@@ -21,7 +29,19 @@ public class Utils {
         return sum;
     }
 
-    public static int dot(int[] v1, int[] v2) {
+    public static int dotSequential(int[] v1, int[] v2) {
+        if (v1.length != v2.length) {
+            throw new IllegalArgumentException("Vectors must be of the same length.");
+        }
+
+        int sum = 0;
+        for (int i = 0; i < v1.length; i++) {
+            sum += v1[i] * v2[i];
+        }
+        return sum;
+    }
+
+    public static int dotVector(int[] v1, int[] v2) {
         if (v1.length != v2.length) {
             throw new IllegalArgumentException("Vectors must be of the same length.");
         }
@@ -41,7 +61,28 @@ public class Utils {
         return sum;
     }
 
-    public static Matrix multiply(Matrix left, Matrix right) {
+    public static Matrix multiplySequential(Matrix left, Matrix right) {
+        int[][] a = left.rowBased();
+        int[][] bt = right.columnBased();
+        int n = left.rows();
+        int p = right.columns();
+        int leftArrayLength = left.columns();
+
+        int[][] res = new int[n][p];
+
+        for (int i = 0; i < n; i++) { // for each left row
+            for (int j = 0; j < p; j++) { // for each right column
+                var sum = 0;
+                for (int k = 0; k < leftArrayLength; k++) {
+                    sum += a[i][k] * bt[j][k];
+                }
+                res[i][j] = sum;
+            }
+        }
+        return new Matrix(res);
+    }
+
+    public static Matrix multiplyVector(Matrix left, Matrix right) {
         int[][] a = left.rowBased();
         int[][] bt = right.columnBased();
         int n = left.rows();

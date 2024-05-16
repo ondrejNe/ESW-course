@@ -14,10 +14,10 @@ public class Main {
 
         int[] arr1 = {1, 1, 1, 1, 1, 3};
         System.out.println("Array1 " + Arrays.toString(arr1));
-        System.out.println("Sum " + Utils.sum(arr1));
+        System.out.println("Sum " + Utils.sumVector(arr1));
         int[] arr2 = {2, 2, 2, 1, 1, 5};
         System.out.println("Array2 " + Arrays.toString(arr2));
-        System.out.println("Dot " + Utils.dot(arr1, arr2));
+        System.out.println("Dot " + Utils.dotVector(arr1, arr2));
 
         int n = 5;
         int m = 10;
@@ -28,6 +28,8 @@ public class Main {
         System.out.println(left);
         Matrix right = Matrix.generateMatrix(rnd, m, p, ub);
         System.out.println(right);
-        System.out.println(Utils.multiply(left, right));
+        System.out.println(Utils.multiplyVector(left, right));
+
+        System.out.println();
     }
 }
