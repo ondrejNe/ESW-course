@@ -18,19 +18,19 @@ clean-build: clean build
 
 ## Run the project ------------------------------------------------------------
 run-server:
-	./build/server-src/efficient_server 1234
+	./build/server-src/efficient_server 4321
 
 run-test-one:
-	nc localhost 1234 < test/walk1nodes3-2.pbf
+	nc localhost 4321 < test/walk1nodes3-2.pbf
 
 run-test-two:
-	nc localhost 1234 < test/walk1nodes100-2.pbf
+	nc localhost 4321 < test/walk1nodes100-2.pbf
 
 run-test-three:
-	nc localhost 1234 < test/walk2nodes6.pbf
+	nc localhost 4321 < test/walk2nodes6.pbf
 
 run-test-four:
-	nc localhost 1234 < test/walk3000.pbf
+	nc localhost 4321 < test/walk3000.pbf
 
 ## Project environment --------------------------------------------------------
 ## Build the docker image
