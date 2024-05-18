@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include <chrono>
 
 #include "protobuf/scheme.pb.h"
 
@@ -38,11 +40,17 @@ int main(int argc, char *argv[]) {
     streambuf *originalBuffer = cout.rdbuf();  // Save the original buffer
     cout.rdbuf(outputFile.rdbuf());  // Redirect cout to the file
 
+    // For logging purposes perform suspensions
+    this_thread::sleep_for(chrono::milliseconds(1));
+
     /* Prepare server resources */
     ThreadPool resourcePool(RESOURCE_POOL_SIZE);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;
+
+    // For logging purposes perform suspensions
+    this_thread::sleep_for(chrono::milliseconds(1));
 
     // Connection events
     resourcePool.enqueue([&epollConnectInstance]() {

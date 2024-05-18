@@ -69,7 +69,7 @@ public:
 #endif
         if (level < currentLevel) return;
         ostringstream stream;
-        stream << getCurrentTimestamp() << " " << getFullPrefix() << toString(level) << ": " << formatMessage(formatString, args...);
+        stream << getCurrentTimestamp() << " " << getFullPrefix(level) << ": " << formatMessage(formatString, args...);
         output << stream.str() << endl;
     }
 
@@ -116,7 +116,7 @@ private:
     }
 
     // Helper to get the full prefix including additional prefixes
-    string getFullPrefix() {
+    string getFullPrefix(LogLevel level) {
         ostringstream fullPrefix;
         fullPrefix << prefix;
 #ifdef ENABLE_LOGGER_THREAD
@@ -124,6 +124,7 @@ private:
         size_t hash_id = hash<thread::id>{}(this_id);
         fullPrefix << "[TID: " << hash_id << "]";
 #endif
+        fullPrefix << toString(level);
         for (auto& p : additionalPrefixes) {
             fullPrefix << p;
         }

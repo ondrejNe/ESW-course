@@ -12,6 +12,7 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <functional>
+#include <chrono>
 
 #include "Logger.hh"
 
@@ -29,9 +30,14 @@ public:
     ThreadPool(size_t numThreads) : stop(false) {
         for (size_t i = 0; i < numThreads; ++i) {
             threads.emplace_back([this, i]() { // lambda function
+
+                // Thread ID logging
                 thread::id this_id = this_thread::get_id();
                 size_t hash_id = hash<thread::id>{}(this_id);
                 threadpoolLogger.info("Thread (%d) created with ID: %d", i, hash_id);
+                // For logging purposes perform suspensions
+                this_thread::sleep_for(chrono::milliseconds(1));
+
                 while (true) {
                     function<void()> task;
 
