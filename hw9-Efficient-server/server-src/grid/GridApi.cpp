@@ -15,7 +15,7 @@ string Grid::getPointCellId(Point &point) {
     pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
     string probableCellId = valuesToCellId(probableCellCoords.first, probableCellCoords.second);
     // Search whether there isn't a better match
-    locker.sharedLock();
+    locker.uniqueLock();
 
     for (auto &comb: precomputedNeighbourPairs) {
         string neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
@@ -28,7 +28,7 @@ string Grid::getPointCellId(Point &point) {
             // Add the point to the cell
             cells[neighborCellId].points.insert(point);
 
-            locker.sharedUnlock();
+            locker.uniqueUnlock();
             return neighborCellId;
         }
     }
@@ -38,7 +38,7 @@ string Grid::getPointCellId(Point &point) {
     newCell.points.insert(point);
     cells[probableCellId] = newCell;
 
-    locker.sharedUnlock();
+    locker.uniqueUnlock();
 
     return probableCellId;
 }
