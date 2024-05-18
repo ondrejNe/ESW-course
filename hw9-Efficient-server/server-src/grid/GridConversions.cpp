@@ -4,10 +4,6 @@ string Grid::pointToCellId(Point &point) {
     return to_string(point.x / 500) + ',' + to_string(point.y / 500);
 }
 
-pair<uint64_t, uint64_t> Grid::pointToCellCoords(Point &point) {
-    return make_pair(point.x / 500, point.y / 500);
-}
-
 string Grid::valuesToCellId(uint64_t x, uint64_t y) {
     return to_string(x) + ',' + to_string(y);
 }

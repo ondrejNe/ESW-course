@@ -144,35 +144,35 @@ bool EpollConnectEntry::readEvent() {
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
-        connectLogger.debug("Walk message received");
+        connectLogger.info("Walk message received");
         const esw::Walk &walk = request.walk();
         // Process the Walk message accordingly
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
         // The message is of type OneToOne
-        connectLogger.debug("OneToOne message received");
+        connectLogger.info("OneToOne message received");
         const esw::OneToOne &oneToOne = request.onetoone();
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
 
-        connectLogger.debug("OneToOne response %d", val);
+        connectLogger.info("OneToOne response %d", val);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
         // The message is of type OneToAll
-        connectLogger.debug("OneToAll message received");
+        connectLogger.info("OneToAll message received");
         const esw::OneToAll &oneToAll = request.onetoall();
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        connectLogger.debug("OneToAll response %d", val);
+        connectLogger.info("OneToAll response %d", val);
         response.set_total_length(val);
 
 
     } else if (request.has_reset()) {
         // The message is of type Reset
-        connectLogger.debug("Reset message received");
+        connectLogger.info("Reset message received");
         const esw::Reset &reset = request.reset();
         // Process the Reset message accordingly
         grid.processReset(reset);

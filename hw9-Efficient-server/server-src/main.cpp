@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     cout.rdbuf(outputFile.rdbuf());  // Redirect cout to the file
 
     /* Prepare server resources */
-    ThreadPool resourcePool(2);
+    ThreadPool resourcePool(RESOURCE_POOL_SIZE);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;

@@ -1,9 +1,11 @@
-# Option for enabling debug logging
-option(ENABLE_DEBUG_LOG "Enable debug logging level" ON)
+# Option for the resource pool size
+add_definitions(-DRESOURCE_POOL_SIZE=2)
+# Option for enabling logging
+option(ENABLE_DEBUG_LOG "Enable debug logging level" OFF)
 option(ENABLE_INFO_LOG "Enable info logging level" ON)
 option(ENABLE_WARN_LOG "Enable warn logging level" ON)
 option(ENABLE_ERROR_LOG "Enable error logging level" ON)
-
+# Option for enabling locking
 option(ENABLE_LOCKING "Enable grid locking" ON)
 
 # Conditionally add definitions based on the configuration option

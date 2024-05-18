@@ -31,7 +31,7 @@ void Grid::addPoint(Point &point, string &cellId) {
 }
 
 string Grid::getPointCellId(Point &point) {
-    pair <uint64_t, uint64_t> probableCellCoords = pointToCellCoords(point);
+    pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
 
     // Search whether there isn't a better match
     locker.sharedLock();
