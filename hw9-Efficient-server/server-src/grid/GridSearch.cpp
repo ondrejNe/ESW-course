@@ -1,12 +1,7 @@
 
 #include "GridModel.hh"
 
-uint64_t Grid::dijkstra(Point &origin, Point &destination) {
-    // Find the cells where the points belong
-    string originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
-    string destinationCellId = getPointCellId(destination);
-    addPoint(destination, destinationCellId);
+uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
     searchLogger.debug("Shortest path from [%s] to [%s]", originCellId.c_str(), destinationCellId.c_str());
 
     // Priority queue to store cells to be processed based on their distances
@@ -63,45 +58,42 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
         }
     }
 
+    searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
+    uint64_t shortestPath = distances[destinationCellId];
+
     locker.sharedUnlock();
 
-    searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
-
-    return distances[destinationCellId];
+    return shortestPath;
 }
 
-uint64_t Grid::allDijkstra(Point &origin) {
-    // Find the cells where the points belong
-    string originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
-
+uint64_t Grid::allDijkstra(string &originCellId) {
     uint64_t sum = 0;
-
-    vector <Point> examplePoints;
+    vector<future<uint64_t>> futures;
 
     locker.sharedLock();
+    searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
-    // Get all example points
     for (const auto &entry: cells) {
-        Point retrievedPoint = *entry.second.points.begin();
-        examplePoints.push_back(retrievedPoint);
+        string id = entry.first;
+        futures.emplace_back(resourcePool.run([this, originCellId, id]() -> uint64_t {
+            string originId = originCellId;
+            string destinationId = id;
+            this->searchLogger.debug("Processing [%s] -> [%s]", originId.c_str(), destinationId.c_str());
+            uint64_t shortestPath = this->dijkstra(originId, destinationId);
+            if (shortestPath == numeric_limits<uint64_t>::max()) {
+                return 0;
+            }
+            return shortestPath;
+        }));
+    }
+
+    for (auto &f : futures) {
+        searchLogger.debug("Waiting for future");
+        sum += f.get();
+        searchLogger.debug("Partial sum: %d", sum);
     }
 
     locker.sharedUnlock();
-
-    for (Point examplePoint: examplePoints) {
-        searchLogger.debug("Processing cell [%s]", getPointCellId(examplePoint).c_str());
-        uint64_t shortestPath = dijkstra(origin, examplePoint);
-        if (shortestPath == numeric_limits<uint64_t>::max()) {
-            searchLogger.debug("Shortest distance is: INFINITY");
-            continue;
-        }
-        sum += shortestPath;
-
-        searchLogger.debug("Current sum: %d", sum);
-    }
-
-    searchLogger.debug("Total sum: %d", sum);
 
     return sum;
 }

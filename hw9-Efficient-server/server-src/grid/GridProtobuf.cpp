@@ -15,7 +15,10 @@ void Grid::processWalk(const esw::Walk &walk) {
         const auto &length = lengths.Get(i);
 
         Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
+        string originCellId = getPointCellId(origin);
+
         Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
+        string destinationCellId = getPointCellId(destination);
 
         addEdge(origin, destination, length);
     }
@@ -26,17 +29,21 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     const auto &location2 = oneToOne.destination();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-    Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
+    string originCellId = getPointCellId(origin);
 
-    return dijkstra(origin, destination);
+    Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
+    string destinationCellId = getPointCellId(destination);
+
+    return dijkstra(originCellId, destinationCellId);
 }
 
 uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     const auto &location1 = oneToAll.origin();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
+    string originCellId = getPointCellId(origin);
 
-    return allDijkstra(origin);
+    return allDijkstra(originCellId);
 }
 
 void Grid::processReset(const esw::Reset &reset) {

@@ -6,19 +6,14 @@
 #include "protobuf/scheme.pb.h"
 
 #include "EpollModel.hh"
-
 #include "GridModel.hh"
-
 #include "ThreadPool.hh"
-
-#include "Locker.hh"
 #include "Logger.hh"
 
 using namespace std;
 using boost::asio::ip::tcp;
 
 // Global variables -------------------------------------------------------------------------------
-Grid grid = Grid();
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", INFO);
 
 // Main function -----------------------------------------------------------------------------------
@@ -54,15 +49,16 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(chrono::milliseconds(1));
 
     // Connection events
-    resourcePool.enqueue([&epollConnectInstance]() {
+    resourcePool.run([&epollConnectInstance]() {
         while (true) epollConnectInstance.waitAndHandleEvents();
     });
     // Socket events
-    resourcePool.enqueue([&epollSocketInstance]() {
+    resourcePool.run([&epollSocketInstance]() {
         while (true) epollSocketInstance.waitAndHandleEvents();
     });
 
     /* Start the server */
+    Grid grid = Grid(resourcePool);
     EpollSocketEntry serverSocket(port, epollSocketInstance, epollConnectInstance, grid, resourcePool);
     epollSocketInstance.registerEpollEntry(serverSocket);
 

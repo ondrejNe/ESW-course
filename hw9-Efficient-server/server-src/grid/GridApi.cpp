@@ -11,28 +11,9 @@ const vector <pair<uint64_t, uint64_t>> precomputedNeighbourPairs{
         { 1,  1}
 };
 
-void Grid::addPoint(Point &point, string &cellId) {
-    // Add the point to the cell
-    apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
-    locker.uniqueLock();
-
-    if (cells.count(cellId) == 0) {
-        // Create a new cell
-        Cell newCell = pointToCell(point);
-        newCell.points.insert(point);
-        cells[cellId] = newCell;
-
-    } else {
-        // Add point to existing cell
-        cells[cellId].points.insert(point);
-    }
-
-    locker.uniqueUnlock();
-}
-
 string Grid::getPointCellId(Point &point) {
     pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
-
+    string probableCellId = valuesToCellId(probableCellCoords.first, probableCellCoords.second);
     // Search whether there isn't a better match
     locker.sharedLock();
 
@@ -44,24 +25,28 @@ string Grid::getPointCellId(Point &point) {
 
         Point neighborPoint = *cells[neighborCellId].points.begin();
         if (euclideanDistance(point, neighborPoint) <= 250000) {
+            // Add the point to the cell
+            cells[neighborCellId].points.insert(point);
 
             locker.sharedUnlock();
             return neighborCellId;
         }
     }
 
+    // Add a new cell and point to it
+    Cell newCell = pointToCell(point);
+    newCell.points.insert(point);
+    cells[probableCellId] = newCell;
+
     locker.sharedUnlock();
 
-    return valuesToCellId(probableCellCoords.first, probableCellCoords.second);
+    return probableCellId;
 }
 
 void Grid::addEdge(Point &origin, Point &destination, uint64_t length) {
     // Find the cells where the points belong
     string originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
-
     string destinationCellId = getPointCellId(destination);
-    addPoint(destination, destinationCellId);
 
     apiLogger.debug("Add edge [%s] -> [%s] with length %d", originCellId.c_str(), destinationCellId.c_str(), length);
 

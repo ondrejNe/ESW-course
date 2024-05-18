@@ -16,11 +16,13 @@
 #include <shared_mutex>
 #include <string>
 #include <iostream>
+#include <future>
 
 #include "scheme.pb.h"
 
-#include "Locker.hh"
+#include "ReentrantSharedLocker.hh"
 #include "Logger.hh"
+#include "ThreadPool.hh"
 
 #define UNUSED(x) (void)(x)
 
@@ -58,11 +60,9 @@ struct Cell {
  */
 class Grid {
 public:
-    Grid() : searchLogger("[GRID-DIJKSTRA] ", DEBUG), protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG) {}
+    Grid(ThreadPool &resourcePool) : searchLogger("[GRIDSEARCH]", DEBUG), protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG), resourcePool(resourcePool) {}
 
     /* Point API */
-    void addPoint(Point &point, string &cellId);
-
     string getPointCellId(Point &point);
 
     string searchNeighbourCells(string &probableId, Point &point);
@@ -72,9 +72,9 @@ public:
     /* Grid API */
     void resetGrid();
 
-    uint64_t dijkstra(Point &origin, Point &destination);
+    uint64_t dijkstra(string &originCellId, string &destinationCellId);
 
-    uint64_t allDijkstra(Point &origin);
+    uint64_t allDijkstra(string &originCellId);
     
     /* Input processing API */
     
@@ -90,11 +90,13 @@ private:
     // Basic data structures
     unordered_map <string, Cell> cells;
     // RW lock
-    SharedLocker locker;
+    ReentrantSharedLocker locker;
     // Logging
     PrefixedLogger searchLogger;
     PrefixedLogger protoLogger;
     PrefixedLogger apiLogger;
+    // Workers
+    ThreadPool &resourcePool;
 
     // Point-based conversions
     string pointToCellId(Point &point);
