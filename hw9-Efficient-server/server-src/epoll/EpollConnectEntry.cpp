@@ -166,7 +166,7 @@ bool EpollConnectEntry::readEvent() {
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        connectLogger.info("OneToAll response %d", val);
+        connectLogger.info("OneToAll response %u", val);
         response.set_total_length(val);
 
 
