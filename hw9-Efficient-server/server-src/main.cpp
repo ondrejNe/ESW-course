@@ -19,26 +19,27 @@ using boost::asio::ip::tcp;
 
 // Global variables -------------------------------------------------------------------------------
 Grid grid = Grid();
-PrefixedLogger logger = PrefixedLogger("[App]", INFO);
+PrefixedLogger logger = PrefixedLogger("[SERVER APP]", INFO);
 
 // Main function -----------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        logger.error("One argument required <port>");
+        cout << "[ERROR] One argument required <port>" << endl;
         return 1;
     }
 
     /* Server parameters */
     unsigned short int port = atoi(argv[1]);
+    cout << "Server started on port " << port << endl;
+#ifdef ENABLE_LOGGER_FILE
+    ofstream outputFile("log.txt");  // Open the file for writing
+    cout.rdbuf(outputFile.rdbuf());  // Redirect cout to the file
+#endif
+
     uint64_t numThreads = thread::hardware_concurrency();
     logger.info("Available threads: " + to_string(numThreads));
     logger.info("Running w threads: %d", RESOURCE_POOL_SIZE);
     logger.info("Listening on port: " + to_string(port));
-
-    /* Output logging */
-    ofstream outputFile("log.txt");  // Open the file for writing
-    streambuf *originalBuffer = cout.rdbuf();  // Save the original buffer
-    cout.rdbuf(outputFile.rdbuf());  // Redirect cout to the file
 
     // For logging purposes perform suspensions
     this_thread::sleep_for(chrono::milliseconds(1));
@@ -67,8 +68,5 @@ int main(int argc, char *argv[]) {
 
     /* Wait */
     resourcePool.waitAllThreads();
-
-    /* Close the file */
-    cout.rdbuf(originalBuffer);  // Restore the original buffer
     return 0;
 }

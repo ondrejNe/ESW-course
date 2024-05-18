@@ -17,6 +17,7 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -24,6 +25,7 @@
 #include <chrono>
 #include <thread>
 #include <functional>
+#include <unordered_map>
 
 using namespace std;
 
@@ -34,6 +36,11 @@ enum LogLevel {
     WARN,
     ERROR
 };
+
+// Global logger settings
+static unordered_map<thread::id, size_t> threadIDMap;
+static size_t nextThreadID = 1;
+static mutex mapMutex;
 
 class PrefixedLogger {
 private:
@@ -121,8 +128,13 @@ private:
         fullPrefix << prefix;
 #ifdef ENABLE_LOGGER_THREAD
         thread::id this_id = this_thread::get_id();
-        size_t hash_id = hash<thread::id>{}(this_id);
-        fullPrefix << "[TID: " << hash_id << "]";
+        {
+            lock_guard<mutex> lock(mapMutex);
+            if (threadIDMap.find(this_id) == threadIDMap.end()) {
+                threadIDMap[this_id] = nextThreadID++;
+            }
+        }
+        fullPrefix << "[TID: " << threadIDMap[this_id] << "]";
 #endif
         fullPrefix << toString(level);
         for (auto& p : additionalPrefixes) {

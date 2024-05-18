@@ -7,7 +7,7 @@ void Grid::processWalk(const esw::Walk &walk) {
     
     if (locations.size() < 2 || lengths.size() < 1) return;
 
-    protoLogger.debug("Processing walk with %d locations and %d lengths", locations.size(), lengths.size());
+    protoLogger.info("Walk message - %d locations - %d lengths", locations.size(), lengths.size());
 
     for (int i = 0; i < locations.size() - 1; ++i) {
         const auto &location1 = locations.Get(i);

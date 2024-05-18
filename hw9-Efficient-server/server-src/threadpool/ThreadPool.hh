@@ -29,15 +29,11 @@ private:
 public:
     ThreadPool(size_t numThreads) : stop(false) {
         for (size_t i = 0; i < numThreads; ++i) {
-            threads.emplace_back([this, i]() { // lambda function
+            // For logging purposes perform suspensions
+            this_thread::sleep_for(chrono::milliseconds(1));
 
-                // Thread ID logging
-                thread::id this_id = this_thread::get_id();
-                size_t hash_id = hash<thread::id>{}(this_id);
-                threadpoolLogger.info("Thread (%d) created with ID: %d", i, hash_id);
-                // For logging purposes perform suspensions
-                this_thread::sleep_for(chrono::milliseconds(1));
-
+            threads.emplace_back([this]() { // lambda function
+                threadpoolLogger.info("Thread created");
                 while (true) {
                     function<void()> task;
 
