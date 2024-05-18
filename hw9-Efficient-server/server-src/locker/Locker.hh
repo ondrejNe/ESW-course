@@ -14,13 +14,13 @@ public:
 
     void uniqueLock() {
 #ifdef ENABLE_LOCKING
-        uniqueLock.lock();
+        uniqueLockable.lock();
 #endif
     }
 
     void uniqueUnlock() {
 #ifdef ENABLE_LOCKING
-        uniqueLock.unlock();
+        uniqueLockable.unlock();
 #endif
     }
 
