@@ -15,15 +15,14 @@
 using namespace std;
 using boost::asio::ip::tcp;
 
-// Global variables -----------------------------------------------------
+// Global variables -------------------------------------------------------------------------------
 Grid grid = Grid();
 PrefixedLogger logger = PrefixedLogger("[App]", INFO);
 
-// Main function --------------------------------------------------------
+// Main function -----------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
-    /* Parameter check */
     if (argc != 2) {
-        logger.error("Error: one arguments required - ./server <port>");
+        logger.error("One argument required <port>");
         return 1;
     }
 
@@ -35,33 +34,29 @@ int main(int argc, char *argv[]) {
 
     /* Output logging */
     ofstream outputFile("log.txt");  // Open the file for writing
-    // Redirect cout to the file stream
     streambuf *originalBuffer = cout.rdbuf();  // Save the original buffer
     cout.rdbuf(outputFile.rdbuf());  // Redirect cout to the file
 
     /* Prepare server resources */
-    ThreadPool writerPool(1);
-    ThreadPool readerPool(1);
-
-    EpollInstance connectionsEpoll;
-    EpollInstance socketEpoll;
-
     ThreadPool resourcePool(2);
 
-    resourcePool.enqueue([&connectionsEpoll]() {
-        while (true) connectionsEpoll.waitAndHandleEvents();
+    EpollInstance epollConnectInstance;
+    EpollInstance epollSocketInstance;
+
+    // Connection events
+    resourcePool.enqueue([&epollConnectInstance]() {
+        while (true) epollConnectInstance.waitAndHandleEvents();
     });
-    resourcePool.enqueue([&socketEpoll]() {
-        while (true) socketEpoll.waitAndHandleEvents();
+    // Socket events
+    resourcePool.enqueue([&epollSocketInstance]() {
+        while (true) epollSocketInstance.waitAndHandleEvents();
     });
 
     /* Start the server */
-    EpollSocket serverSocket(port, socketEpoll, connectionsEpoll, grid, resourcePool);
-    socketEpoll.registerEpollEntry(serverSocket);
+    EpollSocketEntry serverSocket(port, epollSocketInstance, epollConnectInstance, grid, resourcePool);
+    epollSocketInstance.registerEpollEntry(serverSocket);
 
     /* Wait */
-    writerPool.waitAllThreads();
-    readerPool.waitAllThreads();
     resourcePool.waitAllThreads();
 
     /* Close the file */

@@ -1,13 +1,13 @@
-#include "EpollModel.hh"
 
-// #define DEBUG_CONNECTION
+#include "EpollModel.hh"
 
 #define KEEP_CONNECTION true
 #define CLOSE_CONNECTION false
 
-EpollConnection::EpollConnection(int fd, Grid &grid, ThreadPool &resourcePool)
+EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool)
         : grid(grid),
           resourcePool(resourcePool),
+          connectLogger("[CONNECTION]", DEBUG),
           messageInProgress(false),
           messageBuffer(nullptr),
           inProgressMessageSize(0),
@@ -15,42 +15,34 @@ EpollConnection::EpollConnection(int fd, Grid &grid, ThreadPool &resourcePool)
     // Assign the file descriptor of the accepted connection
     this->set_fd(fd);
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
+    // Add logging
+    string fdPrefix = fmt::format("[fd: {}]", fd);
+    connectLogger.addPrefix(fdPrefix);
+    connectLogger.info("Created connection with file descriptor: %d", fd);
 }
 
-void EpollConnection::Cleanup() {
-#ifdef DEBUG_CONNECTION
-    cout << "[CONNECTION " << this->get_fd() << "]  Deallocating buffer" << endl;
-#endif
+void EpollConnectEntry::Cleanup() {
+    connectLogger.debug("Cleaning up connection and deallocating buffer");
     if (messageBuffer != nullptr) delete[] messageBuffer;
 }
 
-bool EpollConnection::handleEvent(uint32_t events) {
-#ifdef DEBUG_CONNECTION
-    cout << "[CONNECTION " << this->get_fd() << "]  Handling events num " << events << " --------- NEW EPOLL EVENT -----------" << endl;
-#endif
+bool EpollConnectEntry::handleEvent(uint32_t events) {
+    connectLogger.debug("Handling events num %d", events);
 
     bool returnValue = CLOSE_CONNECTION;
     // Checking for errors or the connection being closed
     if (events & EPOLLERR) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  EPOLLERR" << endl;
-#endif
+        connectLogger.error("EPOLLERR");
     } else if (events & EPOLLHUP) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  EPOLLHUP" << endl;
-#endif
+        connectLogger.error("EPOLLHUP");
     } else if (events & EPOLLRDHUP) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  EPOLLRDHUP" << endl;
-#endif
+        connectLogger.error("EPOLLRDHUP");
     } else if (events & EPOLLIN) {
         try {
             returnValue = readEvent();
         }
         catch (exception &e) {
-#ifdef DEBUG_CONNECTION
-            cout << "[CONNECTION " << this->get_fd() << "][ERROR]  readEvent(): " << e.what() << endl;
-#endif
+            connectLogger.error("readEvent(): %s", e.what());
         }
     }
 
@@ -58,23 +50,18 @@ bool EpollConnection::handleEvent(uint32_t events) {
     return returnValue;
 }
 
-int EpollConnection::readMessageSize() {
+int EpollConnectEntry::readMessageSize() {
     int msgSize;
     char sizeBytes[4];
     int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
 
     if (received == 0) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  Closed from client" << endl;
-#endif
-        return -1; // signyfing that the connection should be closed
+        connectLogger.debug("Connection closed by client");
+        return -1; // signifying that the connection should be closed
     }
 
     if (received != 4) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  On size read (expected 4) got: " << received << endl;
-#endif
-
+        connectLogger.error("On size read (expected 4) got: %d", received);
         esw::Response response;
         response.set_status(esw::Response_Status_OK);
         writeResponse(response);
@@ -84,21 +71,17 @@ int EpollConnection::readMessageSize() {
     memcpy(&msgSize, sizeBytes, sizeof(int));
     // Converts u_long from TCP/IP network order to host byte order
     msgSize = ntohl(msgSize);
-#ifdef DEBUG_CONNECTION
-    cout << "[CONNECTION " << this->get_fd() << "]  Message size: " << msgSize << endl;
-#endif
+    connectLogger.debug("Message size: %d", msgSize);
     return msgSize;
 }
 
-void EpollConnection::writeResponse(esw::Response &response) {
+void EpollConnectEntry::writeResponse(esw::Response &response) {
     // Get the size of the serialized response
     size_t size;
     size = response.ByteSizeLong();
 
-#ifdef DEBUG_CONNECTION
-    cout << "[CONNECTION " << this->get_fd() << "]  Response size: " << size << endl;
-    cout << "[CONNECTION " << this->get_fd() << "]  Resposne status: " << response.status() << endl;
-#endif
+    connectLogger.debug("Response size: %d", size);
+    connectLogger.debug("Response status: %d", response.status());
 
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);
@@ -113,7 +96,7 @@ void EpollConnection::writeResponse(esw::Response &response) {
     fsync(this->get_fd());
 }
 
-bool EpollConnection::readEvent() {
+bool EpollConnectEntry::readEvent() {
     // Read the message size
     if (!messageInProgress) {
         // New message
@@ -131,29 +114,21 @@ bool EpollConnection::readEvent() {
                         inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);\
 
     if (received == 0) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  Connection closed by client" << endl;
-#endif
+        connectLogger.debug("Connection closed by client");
         return CLOSE_CONNECTION;
     }
 
     if (received < 0) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  Failed to read message: " << string(strerror(errno)) << endl;
-#endif
+        connectLogger.error("Failed to read message: %s", string(strerror(errno)));
         return CLOSE_CONNECTION;
     }
 
     inProgressMessageRead += received;
-#ifdef DEBUG_CONNECTION
-    cout << "[CONNECTION " << this->get_fd() << "]  Received: " << received << endl;
-#endif
+    connectLogger.debug("Received: %d", received);
 
     // Was everything read from the socket?
     if (inProgressMessageRead != inProgressMessageSize) {
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  Message in progress (recieved " << inProgressMessageRead << " out of " << inProgressMessageSize << " )" << endl;
-#endif
+        connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead, inProgressMessageSize);
         messageInProgress = true;
         return KEEP_CONNECTION;
     }
@@ -167,57 +142,43 @@ bool EpollConnection::readEvent() {
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  Walk message" << endl;
-#endif
+        connectLogger.debug("Walk message received");
         const esw::Walk &walk = request.walk();
         // Process the Walk message accordingly
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
         // The message is of type OneToOne
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  OneToOne message" << endl;
-#endif
+        connectLogger.debug("OneToOne message received");
         const esw::OneToOne &oneToOne = request.onetoone();
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
 
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  OneToOne response " << val << endl;
-#endif
+        connectLogger.debug("OneToOne response %d", val);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
         // The message is of type OneToAll
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  OneToAll message" << endl;
-#endif
+        connectLogger.debug("OneToAll message received");
         const esw::OneToAll &oneToAll = request.onetoall();
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  OneToAll response " << val << endl;
-#endif
+        connectLogger.debug("OneToAll response %d", val);
         response.set_total_length(val);
 
 
     } else if (request.has_reset()) {
         // The message is of type Reset
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "]  Reset message" << endl;
-#endif
+        connectLogger.debug("Reset message received");
         const esw::Reset &reset = request.reset();
         // Process the Reset message accordingly
         grid.processReset(reset);
 
     } else {
-        // None of the fields in the oneof msg are set
+        // None of the fields in the one of msg are set
         // Handle the case where no valid message type is detected
-#ifdef DEBUG_CONNECTION
-        cout << "[CONNECTION " << this->get_fd() << "][ERROR]  No valid message type detected" << endl;
-#endif
+        connectLogger.error("No valid message type detected");
         response.set_status(esw::Response_Status_ERROR);
     }
 

@@ -2,25 +2,28 @@
 #ifndef EPOLL_MODEL_HH
 #define EPOLL_MODEL_HH
 
-#include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <cstring>
+#include <fmt/core.h>
+#include <fmt/format.h>
 #include <iostream>
 #include <mutex>
-#include <unistd.h>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <cstring>
-#include <stdexcept>
-#include <netinet/in.h>
-#include <string>
+#include <unistd.h>
 
-#include "Logger.hh"
 #include "GridModel.hh"
+#include "Logger.hh"
 #include "ThreadPool.hh"
 
 #define EPOLL_MAX_EVENTS 1024
 
 using namespace std;
+using namespace fmt;
 
 /** -------------------------------------------------------------------------------------------- */
 class EpollEntry
@@ -58,20 +61,22 @@ private:
     PrefixedLogger epollLogger;
 
 public:
-    EpollInstance() : epollLogger("[EPOLL]", DEBUG) {
+    EpollInstance() : epollLogger("[EPOLL INSTANCE]", DEBUG) {
         this->fd = epoll_create1(0);
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));
         }
+        string fdPrefix = fmt::format("[fd: {}]", this->fd);
+        epollLogger.addPrefix(fdPrefix);
     }
 
     ~EpollInstance() {
         close(this->fd);
     }
 
-    void registerEpollEntry(EpollEntry &e) const;
+    void registerEpollEntry(EpollEntry &e);
 
-    void unregisterEpollEntry(EpollEntry &e) const;
+    void unregisterEpollEntry(EpollEntry &e);
 
     void waitAndHandleEvents();
 
@@ -85,11 +90,11 @@ public:
 };
 
 /** -------------------------------------------------------------------------------------------- */
-class EpollSocket : public EpollEntry
+class EpollSocketEntry : public EpollEntry
 {
 public:
     // Constructor creates the listening socket
-    EpollSocket(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
+    EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
 
     // Accept connections and create epoll connection entries
     bool handleEvent(uint32_t events);
@@ -99,14 +104,14 @@ private:
     EpollInstance &eConnections; // Reference to the epoll instance
     Grid &grid;
     ThreadPool &resourcePool;
-    PrefixedLogger epollLogger;
+    PrefixedLogger socketLogger;
 };
 
 /** -------------------------------------------------------------------------------------------- */
-class EpollConnection : public EpollEntry {
+class EpollConnectEntry : public EpollEntry {
 public:
     // A proper constructor for an accepted connection
-    EpollConnection(int fd, Grid &grid, ThreadPool &resourcePool);
+    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool);
 
     // Cleanup on disconnect
     void Cleanup();
@@ -126,6 +131,7 @@ private:
     // Shared resource pointer
     Grid &grid;
     ThreadPool &resourcePool;
+    PrefixedLogger connectLogger;
     // Single message variables
     bool messageInProgress;
     char *messageBuffer;

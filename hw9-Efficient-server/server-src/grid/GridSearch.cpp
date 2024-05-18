@@ -7,7 +7,7 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
     addPoint(origin, originCellId);
     string destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
-    searchLogger.debug("Shortest path from (%d,%d) to (%d,%d)", origin.x, origin.y, destination.x, destination.y);
+    searchLogger.debug("Shortest path from [%s] to [%s]", originCellId.c_str(), destinationCellId.c_str());
 
     // Priority queue to store cells to be processed based on their distances
     priority_queue < pair < uint64_t, string >, vector < pair < uint64_t, string >>, greater<>> pq;
@@ -25,7 +25,7 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
     // Add the source cell to the priority queue
     pq.push(make_pair(distances[originCellId], originCellId));
 
-    searchLogger.debug("pq added entry <%d,%s>", distances[originCellId], originCellId);
+    searchLogger.debug("pq added entry <%d,[%s]>", distances[originCellId], originCellId.c_str());
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
@@ -33,22 +33,23 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
         string currentCellId = pq.top().second;
         pq.pop();
 
-        searchLogger.debug("pq retrieved currnt Cell ID: %s", currentCellId);
+        searchLogger.debug("pq retrieved currnt Cell ID: [%s]", currentCellId.c_str());
 
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;
 
         Cell &currentCellData = cells.at(currentCellId);
-
+        searchLogger.debug("currnt Cell edge count: %d", currentCellData.edges.size());
         for (const auto &neighborEntry: currentCellData.edges) {
             const auto &neighborCellId = neighborEntry.first;
+            searchLogger.debug("neighbour Cell ID: [%s]", neighborCellId.c_str());
             // Calculate the new distance from the source to the neighbor cell
             const uint64_t newDistance = distances[currentCellId] + cells[currentCellId].edges[neighborCellId];
 
-            searchLogger.debug("neighbour Cell ID: %s", neighborCellId);
-            searchLogger.debug("distance from source to currnt: %d", distances[currentCellId]);
-            searchLogger.debug("distance from source to  neigh: %d", distances[neighborCellId]);
-            searchLogger.debug("distance from currnt to  neigh: %d", cells[currentCellId].edges[neighborCellId]);
+            searchLogger.debug("known distance from source to   curr: %d", distances[currentCellId]);
+            searchLogger.debug("known distance from source to  neigh: %d", distances[neighborCellId]);
+            searchLogger.debug("known distance from currnt to  neigh: %d", cells[currentCellId].edges[neighborCellId]);
+
             searchLogger.debug("distance from source to  neigh: %d (new possible)", newDistance);
 
             // Update the distance and previous cell if the new distance is shorter
@@ -56,8 +57,8 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
                 distances[neighborCellId] = newDistance;
                 pq.push(make_pair(newDistance, neighborCellId));
 
-                searchLogger.debug("distance from source to  neigh: %d (updated)", newDistance);
-                searchLogger.debug("pq added entry <%d,%s>", newDistance, neighborCellId);
+                searchLogger.debug("new distance from source to  neigh: %d (updated)", newDistance);
+                searchLogger.debug("new pq added entry <%d,[%s]>", newDistance, neighborCellId.c_str());
             }
         }
     }
@@ -65,9 +66,6 @@ uint64_t Grid::dijkstra(Point &origin, Point &destination) {
     locker.sharedUnlock();
 
     searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
-    for (const auto &entry: distances) {
-        searchLogger.debug("Cell ID: %s Distance: %d", entry.first, entry.second);
-    }
 
     return distances[destinationCellId];
 }
@@ -92,17 +90,15 @@ uint64_t Grid::allDijkstra(Point &origin) {
     locker.sharedUnlock();
 
     for (Point examplePoint: examplePoints) {
+        searchLogger.debug("Processing cell [%s]", getPointCellId(examplePoint).c_str());
         uint64_t shortestPath = dijkstra(origin, examplePoint);
         if (shortestPath == numeric_limits<uint64_t>::max()) {
-            searchLogger.debug("Shortest distance from (%d,%d) to (%d,%d) is: INFINITY", origin.x, origin.y,
-                               examplePoint.x, examplePoint.y);
+            searchLogger.debug("Shortest distance is: INFINITY");
             continue;
         }
         sum += shortestPath;
 
-        searchLogger.debug("Shortest distance from (%d,%d) to (%d,%d) is: %d", origin.x, origin.y, examplePoint.x,
-                           examplePoint.y, shortestPath);
-        searchLogger.debug("Sum: %d", sum);
+        searchLogger.debug("Current sum: %d", sum);
     }
 
     searchLogger.debug("Total sum: %d", sum);

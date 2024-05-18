@@ -22,6 +22,8 @@
 #include "Locker.hh"
 #include "Logger.hh"
 
+#define UNUSED(x) (void)(x)
+
 using namespace std;
 
 /**
@@ -56,7 +58,7 @@ struct Cell {
  */
 class Grid {
 public:
-    Grid() : searchLogger("[Dijkstra] ", DEBUG) {}
+    Grid() : searchLogger("[GRID-DIJKSTRA] ", DEBUG), protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG) {}
 
     /* Point API */
     void addPoint(Point &point, string &cellId);
@@ -91,7 +93,9 @@ private:
     SharedLocker locker;
     // Logging
     PrefixedLogger searchLogger;
-    
+    PrefixedLogger protoLogger;
+    PrefixedLogger apiLogger;
+
     // Point-based conversions
     string pointToCellId(Point &point);
     

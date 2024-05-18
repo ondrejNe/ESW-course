@@ -13,6 +13,7 @@ const vector <pair<uint64_t, uint64_t>> precomputedNeighbourPairs{
 
 void Grid::addPoint(Point &point, string &cellId) {
     // Add the point to the cell
+    apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
     locker.uniqueLock();
 
     if (cells.count(cellId) == 0) {
@@ -61,6 +62,8 @@ void Grid::addEdge(Point &origin, Point &destination, uint64_t length) {
 
     string destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
+
+    apiLogger.debug("Add edge [%s] -> [%s] with length %d", originCellId.c_str(), destinationCellId.c_str(), length);
 
     // Insert length
     locker.uniqueLock();

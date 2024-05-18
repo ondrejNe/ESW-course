@@ -1,4 +1,4 @@
-PARALLEL := 1
+PARALLEL := 4
 
 ## Make driven command interface to simplify RPI Pico development in Docker
 .PHONY: docker-build docker-run
@@ -14,15 +14,24 @@ build: all
 clean:
 	rm -rf build
 
-build-clean: clean build
+clean-build: clean build
 
+## Run the project ------------------------------------------------------------
 run-server:
-	./build/src/efficient_server
+	./build/server-src/efficient_server 1234
 
-## Build the docker image -----------------------------------------------------
+run-test:
+	nc localhost 1234 < test/walk1nodes3-2.pbf
+
+## Project environment --------------------------------------------------------
+## Build the docker image
 docker-build:
 	docker build -t server/esw .
 
 ## Mount host file system and run the docker image
 docker-run:
 	docker run --rm -it -v "$(PWD):/home/dev" --name server-esw server/esw:latest
+
+## Connect to the running container in a separate bash session
+docker-connect:
+	docker exec -it server-esw /bin/bash

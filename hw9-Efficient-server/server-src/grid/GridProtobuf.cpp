@@ -6,7 +6,9 @@ void Grid::processWalk(const esw::Walk &walk) {
     const auto &lengths = walk.lengths();
     
     if (locations.size() < 2 || lengths.size() < 1) return;
-    
+
+    protoLogger.debug("Processing walk with %d locations and %d lengths", locations.size(), lengths.size());
+
     for (int i = 0; i < locations.size() - 1; ++i) {
         const auto &location1 = locations.Get(i);
         const auto &location2 = locations.Get(i + 1);
@@ -38,5 +40,6 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 }
 
 void Grid::processReset(const esw::Reset &reset) {
+    UNUSED(reset);
     resetGrid();
 }

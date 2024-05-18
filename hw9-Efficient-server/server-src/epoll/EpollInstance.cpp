@@ -1,7 +1,7 @@
 #include "EpollModel.hh"
 
-void EpollInstance::registerEpollEntry(EpollEntry &e) const {
-    epollLogger.debug("Register: %s", to_string(e.get_fd()));
+void EpollInstance::registerEpollEntry(EpollEntry &e) {
+    epollLogger.debug("Register: %d", e.get_fd());
 
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
@@ -14,8 +14,8 @@ void EpollInstance::registerEpollEntry(EpollEntry &e) const {
     }
 }
 
-void EpollInstance::unregisterEpollEntry(EpollEntry &e) const {
-    epollLogger.debug("Unregister: %s", to_string(e.get_fd()));
+void EpollInstance::unregisterEpollEntry(EpollEntry &e) {
+    epollLogger.debug("Unregister: %d", e.get_fd());
 
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
@@ -35,7 +35,7 @@ void EpollInstance::waitAndHandleEvents() {
 
     int n = epoll_wait(this->fd, events, EPOLL_MAX_EVENTS, -1);
 
-    epollLogger.debug("wait returned: " + to_string(n));
+    epollLogger.debug("wait returned: %d", n);
 
     if (n == -1) {
         throw runtime_error(string("epoll_wait: ") + strerror(errno));

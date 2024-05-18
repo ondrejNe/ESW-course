@@ -12,8 +12,9 @@ cmake_minimum_required (VERSION 3.25 FATAL_ERROR)
 project(server C CXX ASM)
 
 # Set the language standard
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add general compile options that apply to all configurations
 add_compile_options(
@@ -44,4 +45,4 @@ add_compile_options(
 # Targets
 #--------------------------------------------------------------------------------------------------
 # Subdirectories to compile (Projects)
-add_subdirectory(src)
+add_subdirectory(server-src)

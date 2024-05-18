@@ -3,7 +3,7 @@
 
 /**
  * In this specific case, the EpollInstance &epollInstance passed as a 
- * parameter to the EpollSocket constructor is used to initialize the 
+ * parameter to the EpollSocketEntry constructor is used to initialize the 
  * epollInstance member variable of the class.
  * Using an initialization list is a good practice because it allows 
  * the member variables to be directly initialized with their final 
@@ -11,8 +11,8 @@
  * This can lead to better performance and helps avoid potential issues
  *  with uninitialized variables.
 */
-EpollSocket::EpollSocket(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool)
-    : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), epollLogger("[SOCKET]", DEBUG)
+EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool)
+    : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), socketLogger("[EPOLL SOCKET]", DEBUG)
 {
     int fd;
     struct sockaddr_in addr;
@@ -29,6 +29,9 @@ EpollSocket::EpollSocket(uint16_t port, EpollInstance &eSocket, EpollInstance &e
     if (fd == -1) {
         throw runtime_error("Socket creation failed: " + string(strerror(errno)));
     }
+    string fdPrefix = fmt::format("[fd: {}]", fd);
+    socketLogger.addPrefix(fdPrefix);
+    socketLogger.info("Created socket with file descriptor: %d", fd);
 
     /**
      * Setting the socket to non-blocking mode
@@ -77,6 +80,7 @@ EpollSocket::EpollSocket(uint16_t port, EpollInstance &eSocket, EpollInstance &e
         close(fd);
         throw runtime_error("Socket binding failed: " + string(strerror(errno)));
     }
+    socketLogger.info("Bound socket to port: %d", port);
 
     /**
      * Listen for connections on the socket. n connections is queued before refusal of new ones.
@@ -85,13 +89,14 @@ EpollSocket::EpollSocket(uint16_t port, EpollInstance &eSocket, EpollInstance &e
         close(fd);
         throw runtime_error("Socket listen failed: " + string(strerror(errno)));
     }
+    socketLogger.info("Listening for connections");
 
     // Set the file descriptor and events for the epoll entry
     this->set_fd(fd);
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
-bool EpollSocket::handleEvent(uint32_t events)
+bool EpollSocketEntry::handleEvent(uint32_t events)
 {
     /**
      * EPOLLERR indicates that an error occurred on the associated file descriptor. 
@@ -114,22 +119,23 @@ bool EpollSocket::handleEvent(uint32_t events)
         // Accept the connection and make it non-blocking
         connFd = accept(this->get_fd(), (struct sockaddr *)&clientAddr, &clientAddrLen);
         if (connFd == -1) {
-            epollLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
+            socketLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
             return false;
         }
+        socketLogger.debug("Accepted connection: %d", connFd);
 
         // Set the fd to non-blocking mode
         int flags = fcntl(connFd, F_GETFL, 0);
         if (flags == -1 || fcntl(connFd, F_SETFL, flags | O_NONBLOCK) == -1) {
             close(connFd);
-            epollLogger.error("Failed to set connection non-blocking: %s", std::string(strerror(errno)));
+            socketLogger.error("Failed to set connection non-blocking: %s", std::string(strerror(errno)));
             return false;
         }
 
         // Create a new EpollConnection and register it
-        EpollConnection *conn = new EpollConnection(connFd, grid, resourcePool);
+        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool);
         eConnections.registerEpollEntry(*conn);
-        epollLogger.info("Accepted connection with file descriptor: %d", connFd);
+        socketLogger.debug("Registered connection: %d", connFd);
     }
 
     return true; // The listening socket should remain active
