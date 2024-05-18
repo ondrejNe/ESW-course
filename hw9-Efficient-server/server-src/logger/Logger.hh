@@ -22,6 +22,8 @@
 #include <iomanip>
 #include <ctime>
 #include <chrono>
+#include <thread>
+#include <functional>
 
 using namespace std;
 
@@ -85,11 +87,11 @@ private:
     // Helper to convert LogLevel to string
     string toString(LogLevel level) {
         switch(level) {
-            case DEBUG:  return "\033[36m[DEBUG]\033[0m";   // Cyan
-            case INFO:   return "\033[32m[INFO ]\033[0m";   // Green
-            case WARN:   return "\033[33m[WARN ]\033[0m";   // Yellow
-            case ERROR:  return "\033[31m[ERROR]\033[0m";   // Red
-            default:     return "\033[37m[UNKNOWN]\033[0m"; // White
+            case DEBUG:  return "\033[36m[DBUG]\033[0m"; // Cyan
+            case INFO:   return "\033[32m[INFO]\033[0m"; // Green
+            case WARN:   return "\033[33m[WARN]\033[0m"; // Yellow
+            case ERROR:  return "\033[31m[ERRR]\033[0m"; // Red
+            default:     return "\033[37m[UNKN]\033[0m"; // White
         }
     }
 
@@ -117,6 +119,11 @@ private:
     string getFullPrefix() {
         ostringstream fullPrefix;
         fullPrefix << prefix;
+#ifdef ENABLE_LOGGER_THREAD
+        thread::id this_id = this_thread::get_id();
+        size_t hash_id = hash<thread::id>{}(this_id);
+        fullPrefix << "[TID: " << hash_id << "]";
+#endif
         for (auto& p : additionalPrefixes) {
             fullPrefix << p;
         }

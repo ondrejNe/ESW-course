@@ -7,7 +7,7 @@
 EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool)
         : grid(grid),
           resourcePool(resourcePool),
-          connectLogger("[CONNECTION]", DEBUG),
+          connectLogger("[EPOLL CONN]", DEBUG),
           messageInProgress(false),
           messageBuffer(nullptr),
           inProgressMessageSize(0),
@@ -17,10 +17,10 @@ EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePoo
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
     // Add logging
     std::ostringstream oss;
-    oss << "[fd: " << fd << "]";
+    oss << "[FD: " << fd << "]";
     string fdPrefix = oss.str();
     connectLogger.addPrefix(fdPrefix);
-    connectLogger.info("Created connection with file descriptor: %d", fd);
+    connectLogger.info("Connection created (%d)", fd);
 }
 
 void EpollConnectEntry::Cleanup() {

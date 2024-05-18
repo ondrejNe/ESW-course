@@ -9,14 +9,29 @@
 #include <condition_variable>
 #include <iostream>
 #include <vector>
+#include <string>
+#include <bits/stdc++.h>
+#include <functional>
+
+#include "Logger.hh"
 
 using namespace std;
 
 class ThreadPool {
+private:
+    bool stop;
+    mutex synchMutex;
+    vector<thread> threads;
+    condition_variable condition;
+    queue<function<void()>> tasks;
+    PrefixedLogger threadpoolLogger = PrefixedLogger("[THREADPOOL]", DEBUG);
 public:
     ThreadPool(size_t numThreads) : stop(false) {
         for (size_t i = 0; i < numThreads; ++i) {
-            threads.emplace_back([this]() { // lambda function
+            threads.emplace_back([this, i]() { // lambda function
+                thread::id this_id = this_thread::get_id();
+                size_t hash_id = hash<thread::id>{}(this_id);
+                threadpoolLogger.info("Thread (%d) created with ID: %d", i, hash_id);
                 while (true) {
                     function<void()> task;
 
@@ -61,13 +76,6 @@ public:
             thread.join();
         }
     }
-
-private:
-    bool stop;
-    mutex synchMutex;
-    vector<thread> threads;
-    condition_variable condition;
-    queue<function<void()>> tasks;
 };
 
 #endif // THREADPOOL_HH

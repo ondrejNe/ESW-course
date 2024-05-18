@@ -2,7 +2,7 @@
 #include "EpollModel.hh"
 
 EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool)
-    : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), socketLogger("[EPOLL SOCKET]", DEBUG)
+    : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), socketLogger("[EPOLL SOCK]", DEBUG)
 {
     int fd;
     struct sockaddr_in addr;
@@ -20,10 +20,10 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
         throw runtime_error("Socket creation failed: " + string(strerror(errno)));
     }
     std::ostringstream oss;
-    oss << "[fd: " << fd << "]";
+    oss << "[FD: " << fd << "]";
     string fdPrefix = oss.str();
     socketLogger.addPrefix(fdPrefix);
-    socketLogger.info("Created socket with file descriptor: %d", fd);
+    socketLogger.info("Socket created (%d)", fd);
 
     /**
      * Setting the socket to non-blocking mode
@@ -72,7 +72,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
         close(fd);
         throw runtime_error("Socket binding failed: " + string(strerror(errno)));
     }
-    socketLogger.info("Bound socket to port: %d", port);
+    socketLogger.info("Socket bound to port: %d", port);
 
     /**
      * Listen for connections on the socket. n connections is queued before refusal of new ones.
@@ -81,7 +81,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
         close(fd);
         throw runtime_error("Socket listen failed: " + string(strerror(errno)));
     }
-    socketLogger.info("Listening for connections");
+    socketLogger.info("Socket listening for connections");
 
     // Set the file descriptor and events for the epoll entry
     this->set_fd(fd);
@@ -114,7 +114,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
             socketLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
             return false;
         }
-        socketLogger.debug("Accepted connection: %d", connFd);
+        socketLogger.info("Socket accepted connection (%d)", connFd);
 
         // Set the fd to non-blocking mode
         int flags = fcntl(connFd, F_GETFL, 0);
@@ -127,7 +127,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
         // Create a new EpollConnection and register it
         EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool);
         eConnections.registerEpollEntry(*conn);
-        socketLogger.debug("Registered connection: %d", connFd);
+        socketLogger.debug("Socket registered connection (%d)", connFd);
     }
 
     return true; // The listening socket should remain active

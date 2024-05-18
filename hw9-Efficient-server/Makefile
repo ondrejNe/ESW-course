@@ -1,4 +1,4 @@
-PARALLEL := 4
+PARALLEL := 8
 
 ## Make driven command interface to simplify RPI Pico development in Docker
 .PHONY: docker-build docker-run

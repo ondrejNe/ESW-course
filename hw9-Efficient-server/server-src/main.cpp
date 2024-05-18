@@ -29,7 +29,8 @@ int main(int argc, char *argv[]) {
     /* Server parameters */
     unsigned short int port = atoi(argv[1]);
     uint64_t numThreads = thread::hardware_concurrency();
-    logger.info("Number of threads: " + to_string(numThreads));
+    logger.info("Available threads: " + to_string(numThreads));
+    logger.info("Running w threads: %d", RESOURCE_POOL_SIZE);
     logger.info("Listening on port: " + to_string(port));
 
     /* Output logging */
