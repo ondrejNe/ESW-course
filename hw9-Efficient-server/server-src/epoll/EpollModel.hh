@@ -124,9 +124,6 @@ private:
     bool readEvent();
 
     int readMessageSize();
-
-    void saveRequestToFile(const esw::Request &request);
-
     // Writing functions
     void writeResponse(esw::Response &response);
 

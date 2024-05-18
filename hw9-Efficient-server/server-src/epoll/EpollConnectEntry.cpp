@@ -198,21 +198,3 @@ bool EpollConnectEntry::readEvent() {
     if (request.has_onetoall()) return CLOSE_CONNECTION;
     return KEEP_CONNECTION;
 }
-
-void EpollConnectEntry::saveRequestToFile(const esw::Request &request) {
-    static int requestCount = 0;
-    std::ostringstream filename;
-    filename << "request_" << requestCount++ << ".pbf";
-    std::ofstream outputFile(filename.str(), std::ios::binary);
-
-    if (!outputFile) {
-        connectLogger.error("Failed to open file for writing request");
-        return;
-    }
-
-    if (!request.SerializeToOstream(&outputFile)) {
-        connectLogger.error("Failed to serialize request to file");
-    } else {
-        connectLogger.info("Request saved to %s", filename.str().c_str());
-    }
-}
