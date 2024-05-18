@@ -63,6 +63,8 @@ public:
     Grid(ThreadPool &resourcePool) : searchLogger("[GRIDSEARCH]", DEBUG), protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG), resourcePool(resourcePool) {}
 
     /* Point API */
+    void addPoint(Point &point, string &cellId);
+
     string getPointCellId(Point &point);
 
     string searchNeighbourCells(string &probableId, Point &point);
