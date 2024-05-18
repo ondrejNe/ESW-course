@@ -140,7 +140,6 @@ bool EpollConnectEntry::readEvent() {
     esw::Response response;
     response.set_status(esw::Response_Status_OK);
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
-    saveRequestToFile(request);
 
     // Parse the message request
     if (request.has_walk()) {
@@ -157,7 +156,7 @@ bool EpollConnectEntry::readEvent() {
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
 
-        connectLogger.info("OneToOne response %d", val);
+        connectLogger.info("OneToOne response %llu", val);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
@@ -167,7 +166,7 @@ bool EpollConnectEntry::readEvent() {
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        connectLogger.info("OneToAll response %u", val);
+        connectLogger.info("OneToAll response %llu", val);
         response.set_total_length(val);
 
 
@@ -203,7 +202,7 @@ bool EpollConnectEntry::readEvent() {
 void EpollConnectEntry::saveRequestToFile(const esw::Request &request) {
     static int requestCount = 0;
     std::ostringstream filename;
-    filename << "request_" << requestCount++ << ".pb";
+    filename << "request_" << requestCount++ << ".pbf";
     std::ofstream outputFile(filename.str(), std::ios::binary);
 
     if (!outputFile) {
