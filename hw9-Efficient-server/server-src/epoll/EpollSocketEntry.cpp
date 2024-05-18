@@ -1,16 +1,6 @@
 
 #include "EpollModel.hh"
 
-/**
- * In this specific case, the EpollInstance &epollInstance passed as a 
- * parameter to the EpollSocketEntry constructor is used to initialize the 
- * epollInstance member variable of the class.
- * Using an initialization list is a good practice because it allows 
- * the member variables to be directly initialized with their final 
- * values, instead of being assigned later in the constructor's body. 
- * This can lead to better performance and helps avoid potential issues
- *  with uninitialized variables.
-*/
 EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool)
     : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), socketLogger("[EPOLL SOCKET]", DEBUG)
 {
