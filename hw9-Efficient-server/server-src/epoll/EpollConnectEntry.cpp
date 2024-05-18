@@ -16,7 +16,9 @@ EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePoo
     this->set_fd(fd);
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
     // Add logging
-    string fdPrefix = fmt::format("[fd: {}]", fd);
+    std::ostringstream oss;
+    oss << "[fd: " << fd << "]";
+    string fdPrefix = oss.str();
     connectLogger.addPrefix(fdPrefix);
     connectLogger.info("Created connection with file descriptor: %d", fd);
 }

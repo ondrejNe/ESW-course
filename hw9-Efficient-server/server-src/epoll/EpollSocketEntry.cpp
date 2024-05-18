@@ -19,7 +19,9 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
     if (fd == -1) {
         throw runtime_error("Socket creation failed: " + string(strerror(errno)));
     }
-    string fdPrefix = fmt::format("[fd: {}]", fd);
+    std::ostringstream oss;
+    oss << "[fd: " << fd << "]";
+    string fdPrefix = oss.str();
     socketLogger.addPrefix(fdPrefix);
     socketLogger.info("Created socket with file descriptor: %d", fd);
 

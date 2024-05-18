@@ -15,12 +15,8 @@ add_executable(efficient_server ${SERVER_FILES})
 # Ensure the library is built before the executable
 add_dependencies(efficient_server proto-lib)
 
-# Find the fmt library
-find_package(fmt REQUIRED)
-
 # Link the executable with the generated protobuf library
 target_link_libraries(efficient_server PRIVATE proto-lib)
-target_link_libraries(efficient_server PRIVATE fmt::fmt)
 
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/epoll)
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/grid)

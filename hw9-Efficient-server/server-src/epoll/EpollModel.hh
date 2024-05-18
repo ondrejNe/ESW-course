@@ -5,8 +5,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <cstring>
-#include <fmt/core.h>
-#include <fmt/format.h>
 #include <iostream>
 #include <mutex>
 #include <netinet/in.h>
@@ -15,6 +13,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sstream>
 
 #include "GridModel.hh"
 #include "Logger.hh"
@@ -23,7 +22,6 @@
 #define EPOLL_MAX_EVENTS 1024
 
 using namespace std;
-using namespace fmt;
 
 /** -------------------------------------------------------------------------------------------- */
 class EpollEntry
@@ -66,7 +64,9 @@ public:
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));
         }
-        string fdPrefix = fmt::format("[fd: {}]", this->fd);
+        std::ostringstream oss;
+        oss << "[fd: " << fd << "]";
+        string fdPrefix = oss.str();
         epollLogger.addPrefix(fdPrefix);
     }
 

@@ -19,7 +19,6 @@ RUN apt-get update && \
 # Download C++ support tools
 RUN apt install -y \
         cmake \
-        libfmt-dev \
         libboost-all-dev
 
 # Download Protobuf support tools
