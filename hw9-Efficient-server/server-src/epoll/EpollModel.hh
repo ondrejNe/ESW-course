@@ -122,7 +122,7 @@ private:
     bool            messageInProgress;
 
     // Reading functions
-    bool readEvent();
+    void readEvent();
 
     int readMessageSize();
     // Writing functions

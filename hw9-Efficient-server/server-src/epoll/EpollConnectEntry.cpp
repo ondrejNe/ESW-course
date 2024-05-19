@@ -4,33 +4,40 @@
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     connectLogger.debug("Handling events num %d", events);
 
-    bool returnValue = false;
     // Checking for errors or the connection being closed
     if (events & EPOLLERR) {
         connectLogger.error("EPOLLERR");
-    } else if (events & EPOLLHUP) {
+        return false;
+    }
+    if (events & EPOLLHUP) {
         connectLogger.error("EPOLLHUP");
-    } else if (events & EPOLLRDHUP) {
+        return false;
+    }
+    if (events & EPOLLRDHUP) {
         connectLogger.error("EPOLLRDHUP");
-    } else if (events & EPOLLIN) {
+        return false;
+    }
+    if (events & EPOLLIN) {
         try {
-            returnValue = readEvent();
+            readEvent();
         }
         catch (exception &e) {
             connectLogger.error("readEvent(): %s", e.what());
+            return false;
         }
     }
 
-    return returnValue;
+    return true; // Keep the connection going
 }
 
-bool EpollConnectEntry::readEvent() {
+void EpollConnectEntry::readEvent() {
     // Read the message size
     if (!messageInProgress) {
         // New message
         inProgressMessageSize = readMessageSize();
         if (inProgressMessageSize < 0) {
-            return false;
+            eConnections.unregisterEpollEntry(*this);
+            return;
         }
 
         inProgressMessageRead = 0;
@@ -38,17 +45,18 @@ bool EpollConnectEntry::readEvent() {
     }
 
     // Message in progress
-    int received = recv(this->get_fd(), messageBuffer + inProgressMessageRead,
-                        inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);\
+    int received = recv(this->get_fd(), messageBuffer + inProgressMessageRead, inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);
 
     if (received == 0) {
         connectLogger.debug("Connection closed by client");
-        return false;
+        eConnections.unregisterEpollEntry(*this);
+        return;
     }
 
     if (received < 0) {
         connectLogger.error("Failed to read message: %s", string(strerror(errno)));
-        return false;
+        eConnections.unregisterEpollEntry(*this);
+        return;
     }
 
     inProgressMessageRead += received;
@@ -58,7 +66,7 @@ bool EpollConnectEntry::readEvent() {
     if (inProgressMessageRead != inProgressMessageSize) {
         connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead, inProgressMessageSize);
         messageInProgress = true;
-        return true;
+        return;
     }
 
     // All the message was read
@@ -118,8 +126,9 @@ bool EpollConnectEntry::readEvent() {
     messageBuffer = nullptr;
 
     // Final request should close the connection
-    if (request.has_onetoall()) return false;
-    return true;
+    if (request.has_onetoall()) {
+        eConnections.unregisterEpollEntry(*this);
+    }
 }
 
 int EpollConnectEntry::readMessageSize() {
