@@ -28,6 +28,7 @@ void EpollInstance::unregisterEpollEntry(EpollEntry &e) {
     }
 
     close(e.get_fd());
+    delete &e;
 }
 
 void EpollInstance::waitAndHandleEvents() {
@@ -43,7 +44,7 @@ void EpollInstance::waitAndHandleEvents() {
 
     for (int i = 0; i < n; i++) {
         EpollEntry *e = static_cast<EpollEntry *>(events[i].data.ptr);
-        if (!e->handleEvent(events[i].events)) {
+        if (e->handleEvent(events[i].events) == false) {
             this->unregisterEpollEntry(*e);
         } else {
             epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &events[i]);

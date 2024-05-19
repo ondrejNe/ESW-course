@@ -59,7 +59,7 @@ private:
     PrefixedLogger epollLogger;
 
 public:
-    EpollInstance() : epollLogger("[EPOLL INSTANCE]", DEBUG) {
+    EpollInstance() : epollLogger("[EPOLL INST]", DEBUG) {
         this->fd = epoll_create1(0);
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));
@@ -116,10 +116,10 @@ private:
     EpollInstance   &eConnections;
     PrefixedLogger  connectLogger;
     // Single message variables
-    int inProgressMessageSize;
-    int inProgressMessageRead;
-    char *messageBuffer;
-    bool messageInProgress;
+    int             inProgressMessageSize;
+    int             inProgressMessageRead;
+    char            *messageBuffer;
+    bool            messageInProgress;
 
     // Reading functions
     bool readEvent();
@@ -144,7 +144,7 @@ public:
         this->set_fd(fd);
         this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         // Add logging
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "[FD: " << fd << "]";
         string fdPrefix = oss.str();
         connectLogger.addPrefix(fdPrefix);
@@ -152,8 +152,8 @@ public:
     }
 
     ~EpollConnectEntry() {
-        connectLogger.debug("Cleaning up connection and deallocating buffer");
         if (messageBuffer != nullptr) delete[] messageBuffer;
+        connectLogger.info("Connection closed (%d)", this->get_fd());
     }
 
     // Handle incoming data or errors for the connection

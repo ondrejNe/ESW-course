@@ -95,7 +95,6 @@ bool EpollConnectEntry::readEvent() {
         connectLogger.info("OneToAll response %llu", val);
         response.set_total_length(val);
 
-
     } else if (request.has_reset()) {
         // The message is of type Reset
         connectLogger.info("Reset message received");
@@ -104,8 +103,6 @@ bool EpollConnectEntry::readEvent() {
         grid.processReset(reset);
 
     } else {
-        // None of the fields in the one of msg are set
-        // Handle the case where no valid message type is detected
         connectLogger.error("No valid message type detected");
         response.set_status(esw::Response_Status_ERROR);
     }
