@@ -12,8 +12,9 @@ uint64_t Grid::allDijkstra(string &originCellId) {
         uint64_t shortestPath = this->dijkstra(originCellId, destinationCellId);
         if (shortestPath == numeric_limits<uint64_t>::max()) {
             sum += 0;
+        } else {
+            sum += shortestPath;
         }
-        sum += shortestPath;
     }
 
     locker.sharedUnlock();
