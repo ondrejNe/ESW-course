@@ -47,12 +47,40 @@ struct Point {
  * Represents a cell in the grid which is a collection of points
  * and edges to other cells.
  */
-struct Cell {
+class Cell {
+public:
     string                  id;
     uint64_t                coordX;
     uint64_t                coordY;
     set <Point>             points;
     map <string, uint64_t>  edges;
+    ReentrantSharedLocker   locker;
+
+    Cell() : coordX(0), coordY(0) {}
+
+    // Parameterized constructor
+    Cell(const std::string& id, uint64_t x, uint64_t y)
+            : id(id), coordX(x), coordY(y) {}
+
+    // Copy constructor
+    Cell(const Cell& other)
+            : id(other.id), coordX(other.coordX), coordY(other.coordY),
+              points(other.points), edges(other.edges) {
+        // Note: locker is not copied
+    }
+
+    // Copy assignment operator
+    Cell& operator=(const Cell& other) {
+        if (this != &other) {
+            id = other.id;
+            coordX = other.coordX;
+            coordY = other.coordY;
+            points = other.points;
+            edges = other.edges;
+            // Note: locker is not copied
+        }
+        return *this;
+    }
 };
 
 /**
@@ -63,7 +91,6 @@ class Grid
 private:
     // Basic data structures
     unordered_map <string, Cell>    cells;
-    // RW lock
     ReentrantSharedLocker           locker;
     // Logging
     PrefixedLogger                  searchLogger;

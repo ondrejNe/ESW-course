@@ -4,12 +4,12 @@ string Grid::valuesToCellId(uint64_t x, uint64_t y) {
     return to_string(x) + ',' + to_string(y);
 }
 
-Cell Grid::pointToCell(Point &point) {
-    Cell newCell;
-    newCell.coordX = point.x / 500;
-    newCell.coordY = point.y / 500;
-    newCell.id = valuesToCellId(newCell.coordX, newCell.coordY);
-    return newCell;
+Cell Grid::pointToCell(Point& point) {
+    uint64_t coordX = point.x / 500;
+    uint64_t coordY = point.y / 500;
+    std::string id = valuesToCellId(coordX, coordY);
+
+    return Cell(id, coordX, coordY);
 }
 
 uint64_t Grid::euclideanDistance(Point &p1, Point &p2) {

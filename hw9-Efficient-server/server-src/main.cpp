@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(chrono::milliseconds(1));
 
     /* Prepare server resources */
-    ThreadPool resourcePool(RESOURCE_POOL_ONE_SIZE);
-    ThreadPool gridPool(RESOURCE_POOL_TWO_SIZE);
+    ThreadPool resourcePool(RESOURCE_POOL_TWO_SIZE);
+//    ThreadPool gridPool(RESOURCE_POOL_TWO_SIZE);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     });
 
     /* Start the server */
-    Grid grid = Grid(gridPool);
+    Grid grid = Grid(resourcePool);
     EpollSocketEntry serverSocket(port, epollSocketInstance, epollConnectInstance, grid, resourcePool);
     epollSocketInstance.registerEpollEntry(serverSocket);
 

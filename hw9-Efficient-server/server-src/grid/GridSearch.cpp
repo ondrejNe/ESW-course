@@ -7,6 +7,7 @@ uint64_t Grid::allDijkstra(string &originCellId) {
 
     searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
+    locker.sharedLock();
     for (const auto &entry: cells) {
         string id = entry.first;
         futures.emplace_back(resourcePool.run([this, originCellId, id]() -> uint64_t {
@@ -20,6 +21,7 @@ uint64_t Grid::allDijkstra(string &originCellId) {
             return shortestPath;
         }));
     }
+    locker.sharedUnlock();
 
     for (auto &f : futures) {
         searchLogger.debug("Waiting for future");
@@ -38,10 +40,6 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
     // Map to store distances from the source to each cell
     unordered_map <string, uint64_t> distances;
 
-    // Set all distances to infinity except for the source cell (set to 0)
-    for (const auto &entry: cells) {
-        distances[entry.first] = numeric_limits<uint64_t>::max();
-    }
     distances[originCellId] = 0;
 
     // Add the source cell to the priority queue
@@ -60,29 +58,31 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;
 
+        locker.sharedLock();
         Cell &currentCellData = cells.at(currentCellId);
+        locker.sharedUnlock();
+        if (distances.find(currentCellId) == distances.end()) {
+            distances[currentCellId] = numeric_limits<uint64_t>::max();
+        }
+
         searchLogger.debug("currnt Cell edge count: %d", currentCellData.edges.size());
+        currentCellData.locker.uniqueLock();
         for (const auto &neighborEntry: currentCellData.edges) {
             const auto &neighborCellId = neighborEntry.first;
-            searchLogger.debug("neighbour Cell ID: [%s]", neighborCellId.c_str());
+            if (distances.find(neighborCellId) == distances.end()) {
+                distances[neighborCellId] = numeric_limits<uint64_t>::max();
+            }
+
             // Calculate the new distance from the source to the neighbor cell
-            const uint64_t newDistance = distances[currentCellId] + cells[currentCellId].edges[neighborCellId];
-
-            searchLogger.debug("known distance from source to   curr: %d", distances[currentCellId]);
-            searchLogger.debug("known distance from source to  neigh: %d", distances[neighborCellId]);
-            searchLogger.debug("known distance from currnt to  neigh: %d", cells[currentCellId].edges[neighborCellId]);
-
-            searchLogger.debug("distance from source to  neigh: %d (new possible)", newDistance);
+            const uint64_t newDistance = distances[currentCellId] + neighborEntry.second;
 
             // Update the distance and previous cell if the new distance is shorter
             if (newDistance < distances[neighborCellId]) {
                 distances[neighborCellId] = newDistance;
                 pq.push(make_pair(newDistance, neighborCellId));
-
-                searchLogger.debug("new distance from source to  neigh: %d (updated)", newDistance);
-                searchLogger.debug("new pq added entry <%d,[%s]>", newDistance, neighborCellId.c_str());
             }
         }
+        currentCellData.locker.uniqueUnlock();
     }
 
     searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
