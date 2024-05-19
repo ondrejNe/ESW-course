@@ -128,14 +128,14 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
-        connectLogger.info("Walk message received");
+        connectLogger.warn("Walk message received");
         const esw::Walk &walk = request.walk();
         // Process the Walk message accordingly
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
         // The message is of type OneToOne
-        connectLogger.info("OneToOne message received");
+        connectLogger.warn("OneToOne message received");
         const esw::OneToOne &oneToOne = request.onetoone();
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
@@ -145,7 +145,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
 
     } else if (request.has_onetoall()) {
         // The message is of type OneToAll
-        connectLogger.info("OneToAll message received");
+        connectLogger.warn("OneToAll message received");
         const esw::OneToAll &oneToAll = request.onetoall();
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
@@ -155,7 +155,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
 
     } else if (request.has_reset()) {
         // The message is of type Reset
-        connectLogger.info("Reset message received");
+        connectLogger.warn("Reset message received");
         const esw::Reset &reset = request.reset();
         // Process the Reset message accordingly
         grid.processReset(reset);

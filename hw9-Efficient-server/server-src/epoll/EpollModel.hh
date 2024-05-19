@@ -152,10 +152,10 @@ public:
         this->set_fd(fd);
         this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         // Add logging
-        ostringstream oss;
-        oss << "[FD: " << fd << "]";
-        string fdPrefix = oss.str();
-        connectLogger.addPrefix(fdPrefix);
+//        ostringstream oss;
+//        oss << "[FD: " << fd << "]";
+//        string fdPrefix = oss.str();
+//        connectLogger.addPrefix(fdPrefix);
         connectLogger.info("Connection created (%d)", fd);
     }
 
