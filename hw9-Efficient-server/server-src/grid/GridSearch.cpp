@@ -3,18 +3,29 @@
 
 uint64_t Grid::allDijkstra(string &originCellId) {
     uint64_t sum = 0;
+    vector<future<uint64_t>> futures;
 
     locker.sharedLock();
     searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
     for (const auto &entry: cells) {
-        string destinationCellId = entry.first;
-        uint64_t shortestPath = this->dijkstra(originCellId, destinationCellId);
-        if (shortestPath == numeric_limits<uint64_t>::max()) {
-            sum += 0;
-        } else {
-            sum += shortestPath;
-        }
+        string id = entry.first;
+        futures.emplace_back(resourcePool.run([this, originCellId, id]() -> uint64_t {
+            string originId = originCellId;
+            string destinationId = id;
+            this->searchLogger.debug("Processing [%s] -> [%s]", originId.c_str(), destinationId.c_str());
+            uint64_t shortestPath = this->dijkstra(originId, destinationId);
+            if (shortestPath == numeric_limits<uint64_t>::max()) {
+                return 0;
+            }
+            return shortestPath;
+        }));
+    }
+
+    for (auto &f : futures) {
+        searchLogger.debug("Waiting for future");
+        sum += f.get();
+        searchLogger.debug("Partial sum: %d", sum);
     }
 
     locker.sharedUnlock();

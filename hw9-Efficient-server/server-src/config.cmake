@@ -1,5 +1,6 @@
 # Option for the resource pool size
-add_definitions(-DRESOURCE_POOL_SIZE=3)
+add_definitions(-DRESOURCE_POOL_ONE_SIZE=3)
+add_definitions(-DRESOURCE_POOL_TWO_SIZE=28)
 # Option for enabling logging
 option(ENABLE_LOGGER_THREAD "Enable logger thread" ON)
 option(ENABLE_LOGGER_FILE "Enable logger file" OFF)

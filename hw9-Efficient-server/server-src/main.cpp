@@ -33,14 +33,16 @@ int main(int argc, char *argv[]) {
 
     uint64_t numThreads = thread::hardware_concurrency();
     logger.info("Available threads: " + to_string(numThreads));
-    logger.info("Running w threads: %d", RESOURCE_POOL_SIZE);
+    logger.info("Pool one  threads: %d", RESOURCE_POOL_ONE_SIZE);
+    logger.info("Pool two  threads: %d", RESOURCE_POOL_TWO_SIZE);
     logger.info("Listening on port: " + to_string(port));
 
     // For logging purposes perform suspensions
     this_thread::sleep_for(chrono::milliseconds(1));
 
     /* Prepare server resources */
-    ThreadPool resourcePool(RESOURCE_POOL_SIZE);
+    ThreadPool resourcePool(RESOURCE_POOL_ONE_SIZE);
+    ThreadPool gridPool(RESOURCE_POOL_TWO_SIZE);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;
@@ -58,7 +60,7 @@ int main(int argc, char *argv[]) {
     });
 
     /* Start the server */
-    Grid grid = Grid(resourcePool);
+    Grid grid = Grid(gridPool);
     EpollSocketEntry serverSocket(port, epollSocketInstance, epollConnectInstance, grid, resourcePool);
     epollSocketInstance.registerEpollEntry(serverSocket);
 

@@ -58,9 +58,44 @@ struct Cell {
 /**
  * Represents the grid data structure which is a collection of cells.
  */
-class Grid {
+class Grid
+{
+private:
+    // Basic data structures
+    unordered_map <string, Cell>    cells;
+    // RW lock
+    ReentrantSharedLocker           locker;
+    // Logging
+    PrefixedLogger                  searchLogger;
+    PrefixedLogger                  protoLogger;
+    PrefixedLogger                  apiLogger;
+    // Workers
+    ThreadPool                      &resourcePool;
+
+    // Point-based conversions
+    string pointToCellId(Point &point);
+
+    pair <uint64_t, uint64_t> pointToCellCoords(Point &point);
+
+    string pointToKey(Point &point);
+
+    Cell pointToCell(Point &point);
+
+    // String-based conversions
+    Point keyToPoint(string &key);
+
+    // Value based conversions
+    string valuesToCellId(uint64_t x, uint64_t y);
+
+    Cell valuesToCell(uint64_t &x, uint64_t &y);
+
+    // Distance metric between points
+    uint64_t euclideanDistance(Point &p1, Point &p2);
 public:
-    Grid(ThreadPool &resourcePool) : searchLogger("[GRIDSEARCH]", DEBUG), protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG), resourcePool(resourcePool) {}
+    Grid(ThreadPool &resourcePool) :
+        searchLogger("[GRIDSEARCH]", DEBUG),
+        protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG),
+        resourcePool(resourcePool) {}
 
     /* Point API */
     void addPoint(Point &point, string &cellId);
@@ -87,38 +122,6 @@ public:
     uint64_t processOneToAll(const esw::OneToAll &oneToAll);
 
     void processReset(const esw::Reset &reset);
-
-private:
-    // Basic data structures
-    unordered_map <string, Cell> cells;
-    // RW lock
-    ReentrantSharedLocker locker;
-    // Logging
-    PrefixedLogger searchLogger;
-    PrefixedLogger protoLogger;
-    PrefixedLogger apiLogger;
-    // Workers
-    ThreadPool &resourcePool;
-
-    // Point-based conversions
-    string pointToCellId(Point &point);
-    
-    pair <uint64_t, uint64_t> pointToCellCoords(Point &point);
-    
-    string pointToKey(Point &point);
-
-    Cell pointToCell(Point &point);
-
-    // String-based conversions
-    Point keyToPoint(string &key);
-
-    // Value based conversions
-    string valuesToCellId(uint64_t x, uint64_t y);
-
-    Cell valuesToCell(uint64_t &x, uint64_t &y);
-
-    // Distance metric between points
-    uint64_t euclideanDistance(Point &p1, Point &p2);
 };
 
 #endif //GRID_MODEL_HH
