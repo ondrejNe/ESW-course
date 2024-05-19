@@ -160,6 +160,11 @@ public:
     ~EpollConnectEntry() {
         if (messageBuffer != nullptr) delete[] messageBuffer;
         connectLogger.info("Connection closed (%d)", this->get_fd());
+        // Remove logging
+        ostringstream oss;
+        oss << "[FD: " << this->get_fd() << "]";
+        string fdPrefix = oss.str();
+        connectLogger.removePrefix(fdPrefix);
     }
 
     // Handle incoming data or errors for the connection

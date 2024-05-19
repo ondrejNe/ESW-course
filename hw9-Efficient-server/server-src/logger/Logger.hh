@@ -59,6 +59,10 @@ public:
         additionalPrefixes.push_back(newPrefix);
     }
 
+    void removePrefix(string prefix) {
+        additionalPrefixes.erase(remove(additionalPrefixes.begin(), additionalPrefixes.end(), prefix), additionalPrefixes.end());
+    }
+
     // Log a formatted message
     template<typename... Args>
     void log(LogLevel level, string formatString, Args... args) {
