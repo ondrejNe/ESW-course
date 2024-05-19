@@ -5,7 +5,6 @@ uint64_t Grid::allDijkstra(string &originCellId) {
     uint64_t sum = 0;
     vector<future<uint64_t>> futures;
 
-    locker.sharedLock();
     searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
     for (const auto &entry: cells) {
@@ -28,8 +27,6 @@ uint64_t Grid::allDijkstra(string &originCellId) {
         searchLogger.debug("Partial sum: %d", sum);
     }
 
-    locker.sharedUnlock();
-
     return sum;
 }
 
@@ -40,8 +37,6 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
     priority_queue < pair < uint64_t, string >, vector < pair < uint64_t, string >>, greater<>> pq;
     // Map to store distances from the source to each cell
     unordered_map <string, uint64_t> distances;
-
-    locker.sharedLock();
 
     // Set all distances to infinity except for the source cell (set to 0)
     for (const auto &entry: cells) {
@@ -92,8 +87,6 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
 
     searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
     uint64_t shortestPath = distances[destinationCellId];
-
-    locker.sharedUnlock();
 
     return shortestPath;
 }
