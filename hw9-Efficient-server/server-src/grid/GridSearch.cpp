@@ -65,8 +65,8 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
             distances[currentCellId] = numeric_limits<uint64_t>::max();
         }
 
+        currentCellData.locker.sharedLock();
         searchLogger.debug("currnt Cell edge count: %d", currentCellData.edges.size());
-        currentCellData.locker.uniqueLock();
         for (const auto &neighborEntry: currentCellData.edges) {
             const auto &neighborCellId = neighborEntry.first;
             if (distances.find(neighborCellId) == distances.end()) {
@@ -82,7 +82,7 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
                 pq.push(make_pair(newDistance, neighborCellId));
             }
         }
-        currentCellData.locker.uniqueUnlock();
+        currentCellData.locker.sharedUnlock();
     }
 
     searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
