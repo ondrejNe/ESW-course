@@ -18,13 +18,13 @@ PrefixedLogger logger = PrefixedLogger("[SERVER APP]", INFO);
 
 // Main function -----------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
+    unsigned short int port;
     if (argc != 2) {
         cout << "[ERROR] One argument required <port>" << endl;
-        return 1;
+        port = 4321;
+    } else {
+        port = atoi(argv[1]);
     }
-
-    /* Server parameters */
-    unsigned short int port = atoi(argv[1]);
     cout << "Server started on port " << port << endl;
 #ifdef ENABLE_LOGGER_FILE
     ofstream outputFile("log.txt");  // Open the file for writing

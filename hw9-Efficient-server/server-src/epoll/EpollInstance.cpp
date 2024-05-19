@@ -29,14 +29,13 @@ void EpollInstance::unregisterEpollEntry(EpollEntry &e) {
 
     close(e.get_fd());
     delete &e;
+    epollLogger.debug("Unregistered");
 }
 
 void EpollInstance::waitAndHandleEvents() {
     struct epoll_event events[EPOLL_MAX_EVENTS];
 
     int n = epoll_wait(this->fd, events, EPOLL_MAX_EVENTS, -1);
-
-    epollLogger.debug("wait returned: %d", n);
 
     if (n == -1) {
         throw runtime_error(string("epoll_wait: ") + strerror(errno));
@@ -47,7 +46,15 @@ void EpollInstance::waitAndHandleEvents() {
         if (e->handleEvent(events[i].events) == false) {
             this->unregisterEpollEntry(*e);
         } else {
-            epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &events[i]);
+            struct epoll_event ev;
+            memset(&ev, 0, sizeof(ev));
+
+            ev.events = e->get_events();
+            ev.data.ptr = e;
+
+            if (epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &ev) == -1) {
+                throw runtime_error(string("epoll_ctl: ") + strerror(errno));
+            }
         }
     }
 }

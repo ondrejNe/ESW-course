@@ -4,20 +4,23 @@
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     connectLogger.debug("Handling events num %d", events);
 
-    // Checking for errors or the connection being closed
-    if (events & EPOLLERR) {
+    if (!this->is_fd_valid()) {
+        connectLogger.error("Invalid file descriptor");
+        return false;
+    }
+    else if (events & EPOLLERR) {
         connectLogger.error("EPOLLERR");
         return false;
     }
-    if (events & EPOLLHUP) {
-        connectLogger.error("EPOLLHUP");
+    else if (events & EPOLLHUP) {
+        connectLogger.warn("EPOLLHUP");
         return false;
     }
-    if (events & EPOLLRDHUP) {
+    else if (events & EPOLLRDHUP) {
         connectLogger.error("EPOLLRDHUP");
         return false;
     }
-    if (events & EPOLLIN) {
+    else if (events & EPOLLIN) {
         try {
             readEvent();
         }
@@ -36,7 +39,7 @@ void EpollConnectEntry::readEvent() {
         // New message
         inProgressMessageSize = readMessageSize();
         if (inProgressMessageSize < 0) {
-            eConnections.unregisterEpollEntry(*this);
+            shutdown(this->get_fd(), SHUT_RDWR);
             return;
         }
 
@@ -45,17 +48,18 @@ void EpollConnectEntry::readEvent() {
     }
 
     // Message in progress
-    int received = recv(this->get_fd(), messageBuffer + inProgressMessageRead, inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);
+    int received = recv(this->get_fd(), messageBuffer + inProgressMessageRead,
+                        inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);
 
     if (received == 0) {
         connectLogger.debug("Connection closed by client");
-        eConnections.unregisterEpollEntry(*this);
+        shutdown(this->get_fd(), SHUT_RDWR);
         return;
     }
 
     if (received < 0) {
         connectLogger.error("Failed to read message: %s", string(strerror(errno)));
-        eConnections.unregisterEpollEntry(*this);
+        shutdown(this->get_fd(), SHUT_RDWR);
         return;
     }
 
@@ -64,7 +68,8 @@ void EpollConnectEntry::readEvent() {
 
     // Was everything read from the socket?
     if (inProgressMessageRead != inProgressMessageSize) {
-        connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead, inProgressMessageSize);
+        connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead,
+                            inProgressMessageSize);
         messageInProgress = true;
         return;
     }
@@ -75,6 +80,44 @@ void EpollConnectEntry::readEvent() {
     response.set_status(esw::Response_Status_OK);
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
 
+    resourcePool.run([this, request, response] {
+        processMessage(request, response);
+    });
+
+    // Clean up after successful message processing
+    messageInProgress = false;
+    inProgressMessageSize = 0;
+    inProgressMessageRead = 0;
+    delete[] messageBuffer;
+    messageBuffer = nullptr;
+}
+
+int EpollConnectEntry::readMessageSize() {
+    int msgSize;
+    char sizeBytes[4];
+    int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
+
+    if (received == 0) {
+        connectLogger.debug("Connection closed by client");
+        return -1; // signifying that the connection should be closed
+    }
+
+    if (received != 4) {
+        connectLogger.error("On size read (expected 4) got: %d", received);
+        esw::Response response;
+        response.set_status(esw::Response_Status_OK);
+        writeResponse(response);
+        return -1; // signifying that the connection should be closed
+    }
+
+    memcpy(&msgSize, sizeBytes, sizeof(int));
+    // Converts u_long from TCP/IP network order to host byte order
+    msgSize = ntohl(msgSize);
+    connectLogger.debug("Message size: %d", msgSize);
+    return msgSize;
+}
+
+void EpollConnectEntry::processMessage(esw::Request request, esw::Response response) {
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
@@ -118,48 +161,16 @@ void EpollConnectEntry::readEvent() {
     // Send the response
     writeResponse(response);
 
-    // Clean up after successful message processing
-    messageInProgress = false;
-    inProgressMessageSize = 0;
-    inProgressMessageRead = 0;
-    delete[] messageBuffer;
-    messageBuffer = nullptr;
-
     // Final request should close the connection
     if (request.has_onetoall()) {
-        eConnections.unregisterEpollEntry(*this);
+        shutdown(this->get_fd(), SHUT_RDWR);
+        connectLogger.info("Closing connection after OneToAll request");
     }
-}
-
-int EpollConnectEntry::readMessageSize() {
-    int msgSize;
-    char sizeBytes[4];
-    int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
-
-    if (received == 0) {
-        connectLogger.debug("Connection closed by client");
-        return -1; // signifying that the connection should be closed
-    }
-
-    if (received != 4) {
-        connectLogger.error("On size read (expected 4) got: %d", received);
-        esw::Response response;
-        response.set_status(esw::Response_Status_OK);
-        writeResponse(response);
-        return -1; // signifying that the connection should be closed
-    }
-
-    memcpy(&msgSize, sizeBytes, sizeof(int));
-    // Converts u_long from TCP/IP network order to host byte order
-    msgSize = ntohl(msgSize);
-    connectLogger.debug("Message size: %d", msgSize);
-    return msgSize;
 }
 
 void EpollConnectEntry::writeResponse(esw::Response &response) {
     // Get the size of the serialized response
-    size_t size;
-    size = response.ByteSizeLong();
+    size_t size = response.ByteSizeLong();
 
     connectLogger.debug("Response size: %d", size);
     connectLogger.debug("Response status: %d", response.status());

@@ -40,6 +40,10 @@ public:
         return this->fd;
     }
 
+    int is_fd_valid() {
+        return fcntl(this->fd, F_GETFD) != -1 || errno != EBADF;
+    }
+
     void set_events(uint32_t i) {
         this->events = i;
     }
@@ -93,11 +97,12 @@ public:
 class EpollSocketEntry : public EpollEntry
 {
 private:
-    EpollInstance &eSocket; // Reference to the epoll instance
-    EpollInstance &eConnections; // Reference to the epoll instance
-    Grid &grid;
-    ThreadPool &resourcePool;
-    PrefixedLogger socketLogger;
+    EpollInstance   &eSocket;
+    EpollInstance   &eConnections;
+    Grid            &grid;
+    ThreadPool      &resourcePool;
+    PrefixedLogger  socketLogger;
+    PrefixedLogger  connectLogger;
 public:
     // Constructor creates the listening socket
     EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
@@ -114,27 +119,28 @@ private:
     Grid            &grid;
     ThreadPool      &resourcePool;
     EpollInstance   &eConnections;
-    PrefixedLogger  connectLogger;
+    PrefixedLogger  &connectLogger;
     // Single message variables
     int             inProgressMessageSize;
     int             inProgressMessageRead;
     char            *messageBuffer;
     bool            messageInProgress;
 
-    // Reading functions
     void readEvent();
 
     int readMessageSize();
-    // Writing functions
+
+    void processMessage(esw::Request request, esw::Response response);
+
     void writeResponse(esw::Response &response);
 
 public:
     // A proper constructor for an accepted connection
-    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool, EpollInstance &eConnections) :
+    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool, EpollInstance &eConnections, PrefixedLogger &connectLogger) :
         grid(grid),
         resourcePool(resourcePool),
         eConnections(eConnections),
-        connectLogger("[EPOLL CONN]", DEBUG),
+        connectLogger(connectLogger),
         inProgressMessageSize(0),
         inProgressMessageRead(0),
         messageBuffer(nullptr),

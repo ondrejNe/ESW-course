@@ -6,9 +6,13 @@ PARALLEL := 8
 ## Build the project ----------------------------------------------------------
 all:
 	mkdir -p build
-	cmake -S ./ -B ./build/
 
 build: all
+	cmake -S ./ -B ./build/
+	cmake --build ./build --parallel $(PARALLEL)
+
+debug: all
+	cmake -DCMAKE_BUILD_TYPE=Debug -S ./ -B ./build/
 	cmake --build ./build --parallel $(PARALLEL)
 
 clean:
@@ -16,9 +20,14 @@ clean:
 
 clean-build: clean build
 
+clean-debug: clean debug
+
 ## Run the project ------------------------------------------------------------
 run-server:
 	./build/server-src/efficient_server 4321
+
+gdb-server:
+	gdb ./build/server-src/efficient_server
 
 run-test-one:
 	nc localhost 4321 < test/walk1nodes3-2.pbf

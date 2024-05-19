@@ -14,6 +14,7 @@ RUN apt-get update && \
         make  \
         wget \
         curl \
+        gdb \
         git
 
 # Download C++ support tools

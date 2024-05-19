@@ -1,8 +1,13 @@
 
 #include "EpollModel.hh"
 
-EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool)
-    : eSocket(eSocket), eConnections(eConnections), grid(grid), resourcePool(resourcePool), socketLogger("[EPOLL SOCK]", DEBUG)
+EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool) :
+    eSocket(eSocket),
+    eConnections(eConnections),
+    grid(grid),
+    resourcePool(resourcePool),
+    socketLogger("[EPOLL SOCK]", DEBUG),
+    connectLogger("[EPOLL CONN]", DEBUG)
 {
     int fd;
     struct sockaddr_in addr;
@@ -103,7 +108,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
         }
 
         // Create a new EpollConnection and register it
-        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections);
+        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections, connectLogger);
         eConnections.registerEpollEntry(*conn);
         socketLogger.debug("Socket registered connection (%d)", connFd);
     }
