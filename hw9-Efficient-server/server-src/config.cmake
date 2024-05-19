@@ -9,7 +9,7 @@ option(ENABLE_INFO_LOG "Enable info logging level" ON)
 option(ENABLE_WARN_LOG "Enable warn logging level" ON)
 option(ENABLE_ERROR_LOG "Enable error logging level" ON)
 # Option for enabling locking
-option(ENABLE_LOCKING "Enable grid locking" ON)
+option(ENABLE_LOCKING "Enable grid locking" OFF)
 
 # Conditionally add definitions based on the configuration option
 if (ENABLE_LOGGER_THREAD)
