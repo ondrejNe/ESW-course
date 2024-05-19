@@ -44,6 +44,9 @@ run-test-three:
 run-test-four:
 	nc localhost 4321 < test/walk3000.pbf
 
+run-test-five:
+	nc localhost 4321 < test/static.pbf
+
 ## Project environment --------------------------------------------------------
 ## Build the docker image
 docker-build:
