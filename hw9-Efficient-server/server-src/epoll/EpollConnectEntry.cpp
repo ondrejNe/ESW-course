@@ -80,6 +80,7 @@ void EpollConnectEntry::readEvent() {
     response.set_status(esw::Response_Status_OK);
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
 
+    connectLogger.info("Message handed to processing");
     resourcePool.run([this, request, response] {
         processMessage(request, response);
     });

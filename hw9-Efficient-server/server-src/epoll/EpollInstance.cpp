@@ -46,13 +46,7 @@ void EpollInstance::waitAndHandleEvents() {
         if (e->handleEvent(events[i].events) == false) {
             this->unregisterEpollEntry(*e);
         } else {
-            struct epoll_event ev;
-            memset(&ev, 0, sizeof(ev));
-
-            ev.events = e->get_events();
-            ev.data.ptr = e;
-
-            if (epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &ev) == -1) {
+            if (epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &events[i]) == -1) {
                 throw runtime_error(string("epoll_ctl: ") + strerror(errno));
             }
         }
