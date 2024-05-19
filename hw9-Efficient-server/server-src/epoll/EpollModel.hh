@@ -92,41 +92,24 @@ public:
 /** -------------------------------------------------------------------------------------------- */
 class EpollSocketEntry : public EpollEntry
 {
-public:
-    // Constructor creates the listening socket
-    EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
-
-    // Accept connections and create epoll connection entries
-    bool handleEvent(uint32_t events);
-
 private:
     EpollInstance &eSocket; // Reference to the epoll instance
     EpollInstance &eConnections; // Reference to the epoll instance
     Grid &grid;
     ThreadPool &resourcePool;
     PrefixedLogger socketLogger;
+public:
+    // Constructor creates the listening socket
+    EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
+
+    // Accept connections and create epoll connection entries
+    bool handleEvent(uint32_t events);
 };
 
 /** -------------------------------------------------------------------------------------------- */
-class EpollConnectEntry : public EpollEntry {
-public:
-    // A proper constructor for an accepted connection
-    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool);
-
-    // Cleanup on disconnect
-    void Cleanup();
-
-    // Handle incoming data or errors for the connection
-    bool handleEvent(uint32_t events);
-
+class EpollConnectEntry : public EpollEntry
+{
 private:
-    // Reading functions
-    bool readEvent();
-
-    int readMessageSize();
-    // Writing functions
-    void writeResponse(esw::Response &response);
-
     // Shared resource pointer
     Grid &grid;
     ThreadPool &resourcePool;
@@ -136,6 +119,28 @@ private:
     char *messageBuffer;
     int inProgressMessageSize;
     int inProgressMessageRead;
+
+    // Reading functions
+    bool readEvent();
+
+    int readMessageSize();
+    // Writing functions
+    void writeResponse(esw::Response &response);
+
+public:
+    // A proper constructor for an accepted connection
+    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool);
+
+    ~EpollConnectEntry() {
+        connectLogger.debug("Cleaning up connection and deallocating buffer");
+        if (messageBuffer != nullptr) delete[] messageBuffer;
+    }
+
+    // Handle incoming data or errors for the connection
+    bool handleEvent(uint32_t events);
+
+    // Cleanup on disconnect
+    void Cleanup();
 };
 
 #endif //EPOLL_MODEL_HH

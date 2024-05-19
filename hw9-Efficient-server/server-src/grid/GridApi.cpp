@@ -11,25 +11,6 @@ const vector <pair<uint64_t, uint64_t>> precomputedNeighbourPairs{
         { 1,  1}
 };
 
-void Grid::addPoint(Point &point, string &cellId) {
-    // Add the point to the cell
-    apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
-    locker.uniqueLock();
-
-    if (cells.count(cellId) == 0) {
-        // Create a new cell
-        Cell newCell = pointToCell(point);
-        newCell.points.insert(point);
-        cells[cellId] = newCell;
-
-    } else {
-        // Add point to existing cell
-        cells[cellId].points.insert(point);
-    }
-
-    locker.uniqueUnlock();
-}
-
 string Grid::getPointCellId(Point &point) {
     pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
 
@@ -53,6 +34,25 @@ string Grid::getPointCellId(Point &point) {
     locker.sharedUnlock();
 
     return valuesToCellId(probableCellCoords.first, probableCellCoords.second);
+}
+
+void Grid::addPoint(Point &point, string &cellId) {
+    // Add the point to the cell
+    apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
+    locker.uniqueLock();
+
+    if (cells.count(cellId) == 0) {
+        // Create a new cell
+        Cell newCell = pointToCell(point);
+        newCell.points.insert(point);
+        cells[cellId] = newCell;
+
+    } else {
+        // Add point to existing cell
+        cells[cellId].points.insert(point);
+    }
+
+    locker.uniqueUnlock();
 }
 
 void Grid::addEdge(Point &origin, Point &destination, uint64_t length) {

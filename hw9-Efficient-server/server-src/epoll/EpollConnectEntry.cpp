@@ -23,11 +23,6 @@ EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePoo
     connectLogger.info("Connection created (%d)", fd);
 }
 
-void EpollConnectEntry::Cleanup() {
-    connectLogger.debug("Cleaning up connection and deallocating buffer");
-    if (messageBuffer != nullptr) delete[] messageBuffer;
-}
-
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     connectLogger.debug("Handling events num %d", events);
 
@@ -48,54 +43,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
         }
     }
 
-    if (returnValue == CLOSE_CONNECTION) Cleanup();
     return returnValue;
-}
-
-int EpollConnectEntry::readMessageSize() {
-    int msgSize;
-    char sizeBytes[4];
-    int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
-
-    if (received == 0) {
-        connectLogger.debug("Connection closed by client");
-        return -1; // signifying that the connection should be closed
-    }
-
-    if (received != 4) {
-        connectLogger.error("On size read (expected 4) got: %d", received);
-        esw::Response response;
-        response.set_status(esw::Response_Status_OK);
-        writeResponse(response);
-        return -1; // signifying that the connection should be closed
-    }
-
-    memcpy(&msgSize, sizeBytes, sizeof(int));
-    // Converts u_long from TCP/IP network order to host byte order
-    msgSize = ntohl(msgSize);
-    connectLogger.debug("Message size: %d", msgSize);
-    return msgSize;
-}
-
-void EpollConnectEntry::writeResponse(esw::Response &response) {
-    // Get the size of the serialized response
-    size_t size;
-    size = response.ByteSizeLong();
-
-    connectLogger.debug("Response size: %d", size);
-    connectLogger.debug("Response status: %d", response.status());
-
-    // Convert the response size to network byte order
-    int networkByteOrderSize = htonl(size);
-
-    int bytesSent = send(this->get_fd(), (const char *) (&networkByteOrderSize), 4, 0);
-    if (bytesSent < 0) {
-        throw runtime_error("[CONNECTION " + to_string(this->get_fd()) + "][ERROR]  Failed to send response size: " +
-                            string(strerror(errno)));
-    }
-
-    response.SerializeToFileDescriptor(this->get_fd());
-    fsync(this->get_fd());
 }
 
 bool EpollConnectEntry::readEvent() {
@@ -197,4 +145,50 @@ bool EpollConnectEntry::readEvent() {
     // Final request should close the connection
     if (request.has_onetoall()) return CLOSE_CONNECTION;
     return KEEP_CONNECTION;
+}
+
+int EpollConnectEntry::readMessageSize() {
+    int msgSize;
+    char sizeBytes[4];
+    int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
+
+    if (received == 0) {
+        connectLogger.debug("Connection closed by client");
+        return -1; // signifying that the connection should be closed
+    }
+
+    if (received != 4) {
+        connectLogger.error("On size read (expected 4) got: %d", received);
+        esw::Response response;
+        response.set_status(esw::Response_Status_OK);
+        writeResponse(response);
+        return -1; // signifying that the connection should be closed
+    }
+
+    memcpy(&msgSize, sizeBytes, sizeof(int));
+    // Converts u_long from TCP/IP network order to host byte order
+    msgSize = ntohl(msgSize);
+    connectLogger.debug("Message size: %d", msgSize);
+    return msgSize;
+}
+
+void EpollConnectEntry::writeResponse(esw::Response &response) {
+    // Get the size of the serialized response
+    size_t size;
+    size = response.ByteSizeLong();
+
+    connectLogger.debug("Response size: %d", size);
+    connectLogger.debug("Response status: %d", response.status());
+
+    // Convert the response size to network byte order
+    int networkByteOrderSize = htonl(size);
+
+    int bytesSent = send(this->get_fd(), (const char *) (&networkByteOrderSize), 4, 0);
+    if (bytesSent < 0) {
+        throw runtime_error("[CONNECTION " + to_string(this->get_fd()) + "][ERROR]  Failed to send response size: " +
+                            string(strerror(errno)));
+    }
+
+    response.SerializeToFileDescriptor(this->get_fd());
+    fsync(this->get_fd());
 }
