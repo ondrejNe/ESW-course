@@ -90,8 +90,10 @@ class Grid
 {
 private:
     // Basic data structures
-    unordered_map <string, Cell>    cells;
-    ReentrantSharedLocker           locker;
+    unordered_map <string, Cell>                                cells;
+    unordered_map <string, unordered_map<string, uint64_t>>     distances;
+    ReentrantSharedLocker                                       distancesLocker;
+    ReentrantSharedLocker                                       locker;
     // Logging
     PrefixedLogger                  searchLogger;
     PrefixedLogger                  protoLogger;

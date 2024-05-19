@@ -37,15 +37,16 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
 
     // Priority queue to store cells to be processed based on their distances
     priority_queue < pair < uint64_t, string >, vector < pair < uint64_t, string >>, greater<>> pq;
-    // Map to store distances from the source to each cell
-    unordered_map <string, uint64_t> distances;
 
-    distances[originCellId] = 0;
+    distancesLocker.uniqueLock();
+    if (distances.find(originCellId) == distances.end()) {
+        distances[originCellId] = unordered_map<string, uint64_t>();
+        distances[originCellId][originCellId] = 0;
+    }
+    distancesLocker.uniqueUnlock();
 
     // Add the source cell to the priority queue
-    pq.push(make_pair(distances[originCellId], originCellId));
-
-    searchLogger.debug("pq added entry <%d,[%s]>", distances[originCellId], originCellId.c_str());
+    pq.push(make_pair(0, originCellId));
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
@@ -53,40 +54,43 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
         string currentCellId = pq.top().second;
         pq.pop();
 
-        searchLogger.debug("pq retrieved currnt Cell ID: [%s]", currentCellId.c_str());
-
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;
 
         locker.sharedLock();
         Cell &currentCellData = cells.at(currentCellId);
         locker.sharedUnlock();
-        if (distances.find(currentCellId) == distances.end()) {
-            distances[currentCellId] = numeric_limits<uint64_t>::max();
-        }
 
         currentCellData.locker.sharedLock();
-        searchLogger.debug("currnt Cell edge count: %d", currentCellData.edges.size());
         for (const auto &neighborEntry: currentCellData.edges) {
             const auto &neighborCellId = neighborEntry.first;
-            if (distances.find(neighborCellId) == distances.end()) {
-                distances[neighborCellId] = numeric_limits<uint64_t>::max();
+            const auto &neighborLength = neighborEntry.second;
+
+            distancesLocker.uniqueLock();
+            if (distances[originCellId].find(neighborCellId) == distances[originCellId].end()) {
+                distances[originCellId][neighborCellId] = numeric_limits<uint64_t>::max();
             }
+            uint64_t currentDistance = distances[originCellId][currentCellId];
+            uint64_t neighborDistance = distances[originCellId][neighborCellId];
+            distancesLocker.uniqueUnlock();
 
             // Calculate the new distance from the source to the neighbor cell
-            const uint64_t newDistance = distances[currentCellId] + neighborEntry.second;
+            const uint64_t newDistance = currentDistance + neighborLength;
 
             // Update the distance and previous cell if the new distance is shorter
-            if (newDistance < distances[neighborCellId]) {
-                distances[neighborCellId] = newDistance;
+            if (newDistance < neighborDistance) {
+                distancesLocker.uniqueLock();
+                distances[originCellId][neighborCellId] = newDistance;
+                distancesLocker.uniqueUnlock();
                 pq.push(make_pair(newDistance, neighborCellId));
             }
         }
         currentCellData.locker.sharedUnlock();
     }
 
-    searchLogger.debug("Shortest distance: %d", distances[destinationCellId]);
-    uint64_t shortestPath = distances[destinationCellId];
+    distancesLocker.sharedLock();
+    uint64_t shortestPath = distances[originCellId][destinationCellId];
+    distancesLocker.sharedUnlock();
 
     return shortestPath;
 }
