@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
 
     uint64_t numThreads = thread::hardware_concurrency();
     logger.info("Available threads: " + to_string(numThreads));
-    logger.info("Pool one  threads: %d", RESOURCE_POOL_ONE_SIZE);
     logger.info("Pool two  threads: %d", RESOURCE_POOL_TWO_SIZE);
     logger.info("Listening on port: " + to_string(port));
 
