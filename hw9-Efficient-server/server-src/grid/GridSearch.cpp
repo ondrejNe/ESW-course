@@ -7,7 +7,7 @@ uint64_t Grid::allDijkstra(string &originCellId) {
 
     searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
-    locker.sharedLock();
+//    locker.sharedLock();
     for (const auto &entry: cells) {
         string id = entry.first;
 //        futures.emplace_back(resourcePool.run([this, originCellId, id]() -> uint64_t {
@@ -22,7 +22,7 @@ uint64_t Grid::allDijkstra(string &originCellId) {
 //            return shortestPath;
 //        }));
     }
-    locker.sharedUnlock();
+//    locker.sharedUnlock();
 
 //    for (auto &f : futures) {
 //        searchLogger.debug("Waiting for future");
@@ -39,12 +39,12 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
     // Priority queue to store cells to be processed based on their distances
     priority_queue < pair < uint64_t, string >, vector < pair < uint64_t, string >>, greater<>> pq;
 
-    distancesLocker.uniqueLock();
+//    distancesLocker.uniqueLock();
     if (distances.find(originCellId) == distances.end()) {
         distances[originCellId] = unordered_map<string, uint64_t>();
         distances[originCellId][originCellId] = 0;
     }
-    distancesLocker.uniqueUnlock();
+//    distancesLocker.uniqueUnlock();
 
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
@@ -58,40 +58,40 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;
 
-        locker.sharedLock();
+//        locker.sharedLock();
         Cell &currentCellData = cells.at(currentCellId);
-        locker.sharedUnlock();
+//        locker.sharedUnlock();
 
-        currentCellData.locker.sharedLock();
+//        currentCellData.locker.sharedLock();
         for (const auto &neighborEntry: currentCellData.edges) {
             const auto &neighborCellId = neighborEntry.first;
             const auto &neighborLength = neighborEntry.second;
 
-            distancesLocker.uniqueLock();
+//            distancesLocker.uniqueLock();
             if (distances[originCellId].find(neighborCellId) == distances[originCellId].end()) {
                 distances[originCellId][neighborCellId] = numeric_limits<uint64_t>::max();
             }
             uint64_t currentDistance = distances[originCellId][currentCellId];
             uint64_t neighborDistance = distances[originCellId][neighborCellId];
-            distancesLocker.uniqueUnlock();
+//            distancesLocker.uniqueUnlock();
 
             // Calculate the new distance from the source to the neighbor cell
             const uint64_t newDistance = currentDistance + neighborLength;
 
             // Update the distance and previous cell if the new distance is shorter
             if (newDistance < neighborDistance) {
-                distancesLocker.uniqueLock();
+//                distancesLocker.uniqueLock();
                 distances[originCellId][neighborCellId] = newDistance;
-                distancesLocker.uniqueUnlock();
+//                distancesLocker.uniqueUnlock();
                 pq.push(make_pair(newDistance, neighborCellId));
             }
         }
-        currentCellData.locker.sharedUnlock();
+//        currentCellData.locker.sharedUnlock();
     }
 
-    distancesLocker.sharedLock();
+//    distancesLocker.sharedLock();
     uint64_t shortestPath = distances[originCellId][destinationCellId];
-    distancesLocker.sharedUnlock();
+//    distancesLocker.sharedUnlock();
 
     return shortestPath;
 }

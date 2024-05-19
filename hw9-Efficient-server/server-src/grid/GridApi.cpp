@@ -9,7 +9,7 @@ const std::vector<std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
 string Grid::getPointCellId(Point &point) {
     pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
 
-    locker.sharedLock();
+//    locker.sharedLock();
 
     // Search whether there isn't a better match
     for (const auto &comb : precomputedNeighbourPairs) {
@@ -20,12 +20,12 @@ string Grid::getPointCellId(Point &point) {
 
         Point neighborPoint = *cellIt->second.points.begin();
         if (euclideanDistance(point, neighborPoint) <= 250000) {
-            locker.sharedUnlock();
+//            locker.sharedUnlock();
             return neighborCellId;
         }
     }
 
-    locker.sharedUnlock();
+//    locker.sharedUnlock();
 
     return valuesToCellId(probableCellCoords.first, probableCellCoords.second);
 }
@@ -34,22 +34,22 @@ void Grid::addPoint(Point &point, string &cellId) {
     // Add the point to the cell
     apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
 
-    locker.sharedLock();
+//    locker.sharedLock();
     auto it = cells.find(cellId);
-    locker.sharedUnlock();
+//    locker.sharedUnlock();
 
     if (it == cells.end()) {
         // Create a new cell
         Cell newCell = pointToCell(point);
         newCell.points.insert(point);
-        locker.uniqueLock();
+//        locker.uniqueLock();
         cells[cellId] = newCell;
-        locker.uniqueUnlock();
+//        locker.uniqueUnlock();
     } else {
         auto &cell = it->second;
-        cell.locker.uniqueLock();
+//        cell.locker.uniqueLock();
         cell.points.insert(point);
-        cell.locker.uniqueUnlock();
+//        cell.locker.uniqueUnlock();
     }
 }
 
@@ -57,7 +57,7 @@ void Grid::addEdge(string &originCellId, string &destinationCellId, uint64_t len
     apiLogger.debug("Add edge [%s] -> [%s] with length %d", originCellId.c_str(), destinationCellId.c_str(), length);
 
     auto &cell = cells[originCellId];
-    cell.locker.uniqueLock();
+//    cell.locker.uniqueLock();
 
     if (cell.edges.count(destinationCellId) == 0) {
         // Add new edge
@@ -67,15 +67,15 @@ void Grid::addEdge(string &originCellId, string &destinationCellId, uint64_t len
         uint64_t stored = cell.edges[destinationCellId];
         cell.edges[destinationCellId] = (stored + length) / 2;
     }
-    cell.locker.uniqueUnlock();
+//    cell.locker.uniqueUnlock();
 }
 
 void Grid::resetGrid() {
-    locker.uniqueLock();
+//    locker.uniqueLock();
     for (auto &cell: cells) {
         cell.second.points.clear();
         cell.second.edges.clear();
     }
     cells.clear();
-    locker.uniqueUnlock();
+//    locker.uniqueUnlock();
 }
