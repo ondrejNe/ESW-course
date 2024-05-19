@@ -73,21 +73,12 @@ private:
     ThreadPool                      &resourcePool;
 
     // Point-based conversions
-    string pointToCellId(Point &point);
-
     pair <uint64_t, uint64_t> pointToCellCoords(Point &point);
-
-    string pointToKey(Point &point);
 
     Cell pointToCell(Point &point);
 
-    // String-based conversions
-    Point keyToPoint(string &key);
-
     // Value based conversions
     string valuesToCellId(uint64_t x, uint64_t y);
-
-    Cell valuesToCell(uint64_t &x, uint64_t &y);
 
     // Distance metric between points
     uint64_t euclideanDistance(Point &p1, Point &p2);

@@ -1,14 +1,9 @@
 #include "GridModel.hh"
 
-const vector <pair<uint64_t, uint64_t>> precomputedNeighbourPairs{
-        {-1, -1},
-        {-1,  0},
-        {-1,  1},
-        { 0, -1},
-        { 0,  1},
-        { 1, -1},
-        { 1,  0},
-        { 1,  1}
+const std::vector<std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
+        {-1, -1}, {-1,  0}, {-1,  1},
+        { 0, -1}, { 0,  1}, { 1, -1},
+        { 1,  0}, { 1,  1}
 };
 
 string Grid::getPointCellId(Point &point) {
@@ -17,15 +12,14 @@ string Grid::getPointCellId(Point &point) {
     // Search whether there isn't a better match
     locker.sharedLock();
 
-    for (auto &comb: precomputedNeighbourPairs) {
-        string neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
-                                               probableCellCoords.second + comb.second);
+    for (const auto &comb : precomputedNeighbourPairs) {
+        std::string neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
+                                                    probableCellCoords.second + comb.second);
+        auto cellIt = cells.find(neighborCellId);
+        if (cellIt == cells.end()) continue; // The searched cell does not exist
 
-        if (cells.count(neighborCellId) == 0) continue; // The searched cell does not exist
-
-        Point neighborPoint = *cells[neighborCellId].points.begin();
+        Point neighborPoint = *cellIt->second.points.begin();
         if (euclideanDistance(point, neighborPoint) <= 250000) {
-
             locker.sharedUnlock();
             return neighborCellId;
         }

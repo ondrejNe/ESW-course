@@ -17,6 +17,12 @@ RUN apt-get update && \
         gdb \
         git
 
+# Install dependencies and perf tools
+RUN apt-get update && \
+    apt-get install -y linux-tools-common linux-tools-generic && \
+    apt-get install -y linux-tools-$(uname -r | sed 's/-generic//') || true && \
+    apt-get clean
+
 # Download C++ support tools
 RUN apt install -y \
         cmake \
