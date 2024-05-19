@@ -111,14 +111,15 @@ class EpollConnectEntry : public EpollEntry
 {
 private:
     // Shared resource pointer
-    Grid &grid;
-    ThreadPool &resourcePool;
-    PrefixedLogger connectLogger;
+    Grid            &grid;
+    ThreadPool      &resourcePool;
+    EpollInstance   &eConnections;
+    PrefixedLogger  connectLogger;
     // Single message variables
-    bool messageInProgress;
-    char *messageBuffer;
     int inProgressMessageSize;
     int inProgressMessageRead;
+    char *messageBuffer;
+    bool messageInProgress;
 
     // Reading functions
     bool readEvent();
@@ -129,7 +130,26 @@ private:
 
 public:
     // A proper constructor for an accepted connection
-    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool);
+    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool, EpollInstance &eConnections) :
+        grid(grid),
+        resourcePool(resourcePool),
+        eConnections(eConnections),
+        connectLogger("[EPOLL CONN]", DEBUG),
+        inProgressMessageSize(0),
+        inProgressMessageRead(0),
+        messageBuffer(nullptr),
+        messageInProgress(false) {
+
+        // Assign the file descriptor of the accepted connection
+        this->set_fd(fd);
+        this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
+        // Add logging
+        std::ostringstream oss;
+        oss << "[FD: " << fd << "]";
+        string fdPrefix = oss.str();
+        connectLogger.addPrefix(fdPrefix);
+        connectLogger.info("Connection created (%d)", fd);
+    }
 
     ~EpollConnectEntry() {
         connectLogger.debug("Cleaning up connection and deallocating buffer");

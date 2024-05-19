@@ -1,32 +1,10 @@
 
 #include "EpollModel.hh"
 
-#define KEEP_CONNECTION true
-#define CLOSE_CONNECTION false
-
-EpollConnectEntry::EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool)
-        : grid(grid),
-          resourcePool(resourcePool),
-          connectLogger("[EPOLL CONN]", DEBUG),
-          messageInProgress(false),
-          messageBuffer(nullptr),
-          inProgressMessageSize(0),
-          inProgressMessageRead(0) {
-    // Assign the file descriptor of the accepted connection
-    this->set_fd(fd);
-    this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
-    // Add logging
-    std::ostringstream oss;
-    oss << "[FD: " << fd << "]";
-    string fdPrefix = oss.str();
-    connectLogger.addPrefix(fdPrefix);
-    connectLogger.info("Connection created (%d)", fd);
-}
-
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     connectLogger.debug("Handling events num %d", events);
 
-    bool returnValue = CLOSE_CONNECTION;
+    bool returnValue = false;
     // Checking for errors or the connection being closed
     if (events & EPOLLERR) {
         connectLogger.error("EPOLLERR");
@@ -52,7 +30,7 @@ bool EpollConnectEntry::readEvent() {
         // New message
         inProgressMessageSize = readMessageSize();
         if (inProgressMessageSize < 0) {
-            return CLOSE_CONNECTION;
+            return false;
         }
 
         inProgressMessageRead = 0;
@@ -65,12 +43,12 @@ bool EpollConnectEntry::readEvent() {
 
     if (received == 0) {
         connectLogger.debug("Connection closed by client");
-        return CLOSE_CONNECTION;
+        return false;
     }
 
     if (received < 0) {
         connectLogger.error("Failed to read message: %s", string(strerror(errno)));
-        return CLOSE_CONNECTION;
+        return false;
     }
 
     inProgressMessageRead += received;
@@ -80,7 +58,7 @@ bool EpollConnectEntry::readEvent() {
     if (inProgressMessageRead != inProgressMessageSize) {
         connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead, inProgressMessageSize);
         messageInProgress = true;
-        return KEEP_CONNECTION;
+        return true;
     }
 
     // All the message was read
@@ -143,8 +121,8 @@ bool EpollConnectEntry::readEvent() {
     messageBuffer = nullptr;
 
     // Final request should close the connection
-    if (request.has_onetoall()) return CLOSE_CONNECTION;
-    return KEEP_CONNECTION;
+    if (request.has_onetoall()) return false;
+    return true;
 }
 
 int EpollConnectEntry::readMessageSize() {

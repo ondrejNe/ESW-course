@@ -103,7 +103,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
         }
 
         // Create a new EpollConnection and register it
-        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool);
+        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections);
         eConnections.registerEpollEntry(*conn);
         socketLogger.debug("Socket registered connection (%d)", connFd);
     }
