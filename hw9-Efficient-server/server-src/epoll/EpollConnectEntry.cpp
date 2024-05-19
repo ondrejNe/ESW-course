@@ -34,6 +34,10 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
 }
 
 void EpollConnectEntry::readEvent() {
+    if (processingInProgress) {
+        return;
+    }
+
     // Read the message size
     if (!messageInProgress) {
         // New message
@@ -81,8 +85,10 @@ void EpollConnectEntry::readEvent() {
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
 
     connectLogger.info("Message handed to processing");
+    processingInProgress = true;
     resourcePool.run([this, request, response] {
         processMessage(request, response);
+        this->processingInProgress = false;
     });
 
     // Clean up after successful message processing

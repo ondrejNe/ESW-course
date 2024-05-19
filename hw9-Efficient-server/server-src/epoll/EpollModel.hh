@@ -125,6 +125,7 @@ private:
     int             inProgressMessageRead;
     char            *messageBuffer;
     bool            messageInProgress;
+    bool            processingInProgress;
 
     void readEvent();
 
@@ -144,7 +145,8 @@ public:
         inProgressMessageSize(0),
         inProgressMessageRead(0),
         messageBuffer(nullptr),
-        messageInProgress(false) {
+        messageInProgress(false),
+        processingInProgress(false) {
 
         // Assign the file descriptor of the accepted connection
         this->set_fd(fd);
