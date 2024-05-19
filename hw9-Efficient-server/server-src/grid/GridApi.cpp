@@ -59,13 +59,11 @@ void Grid::addEdge(string &originCellId, string &destinationCellId, uint64_t len
     auto &cell = cells[originCellId];
 //    cell.locker.uniqueLock();
 
-    if (cell.edges.count(destinationCellId) == 0) {
-        // Add new edge
-        cell.edges[destinationCellId] = length;
+    uint64_t &edgeLength = cell.edges[destinationCellId];
+    if (edgeLength == 0) {
+        edgeLength = length;
     } else {
-        // Update existing edge
-        uint64_t stored = cell.edges[destinationCellId];
-        cell.edges[destinationCellId] = (stored + length) / 2;
+        edgeLength = (edgeLength + length) / 2;
     }
 //    cell.locker.uniqueUnlock();
 }
