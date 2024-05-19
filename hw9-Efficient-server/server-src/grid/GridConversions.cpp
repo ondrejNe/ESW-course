@@ -1,7 +1,9 @@
 #include "GridModel.hh"
 
 string Grid::valuesToCellId(uint64_t x, uint64_t y) {
-    return to_string(x) + ',' + to_string(y);
+    std::ostringstream oss;
+    oss << x << ',' << y;
+    return oss.str();
 }
 
 Cell Grid::pointToCell(Point& point) {
@@ -13,8 +15,7 @@ Cell Grid::pointToCell(Point& point) {
 }
 
 uint64_t Grid::euclideanDistance(Point &p1, Point &p2) {
-    uint64_t dx = p1.x > p2.x ? p1.x - p2.x : p2.x - p1.x;
-    uint64_t dy = p1.y > p2.y ? p1.y - p2.y : p2.y - p1.y;
-    uint64_t dSquared = dx * dx + dy * dy;
-    return dSquared;
+    uint64_t dx = std::abs(static_cast<int64_t>(p1.x) - static_cast<int64_t>(p2.x));
+    uint64_t dy = std::abs(static_cast<int64_t>(p1.y) - static_cast<int64_t>(p2.y));
+    return dx * dx + dy * dy;
 }
