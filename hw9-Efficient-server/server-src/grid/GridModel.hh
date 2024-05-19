@@ -104,7 +104,7 @@ public:
 
     string searchNeighbourCells(string &probableId, Point &point);
 
-    void addEdge(Point &origin, Point &destination, uint64_t length);
+    void addEdge(string &originCellId, string &destinationCellId, uint64_t length);
 
     /* Grid API */
     void resetGrid();

@@ -55,13 +55,7 @@ void Grid::addPoint(Point &point, string &cellId) {
     locker.uniqueUnlock();
 }
 
-void Grid::addEdge(Point &origin, Point &destination, uint64_t length) {
-    // Find the cells where the points belong
-    string originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
-    string destinationCellId = getPointCellId(destination);
-    addPoint(destination, destinationCellId);
-
+void Grid::addEdge(string &originCellId, string &destinationCellId, uint64_t length) {
     apiLogger.debug("Add edge [%s] -> [%s] with length %d", originCellId.c_str(), destinationCellId.c_str(), length);
 
     // Insert length

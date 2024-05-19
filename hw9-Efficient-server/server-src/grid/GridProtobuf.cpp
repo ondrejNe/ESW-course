@@ -8,21 +8,32 @@ void Grid::processWalk(const esw::Walk &walk) {
     if (locations.size() < 2 || lengths.size() < 1) return;
 
     protoLogger.info("Walk message - %d locations - %d lengths", locations.size(), lengths.size());
+    vector<future<uint64_t>> futures;
 
     for (int i = 0; i < locations.size() - 1; ++i) {
         const auto &location1 = locations.Get(i);
         const auto &location2 = locations.Get(i + 1);
         const auto &length = lengths.Get(i);
 
-        Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-        string originCellId = getPointCellId(origin);
-        addPoint(origin, originCellId);
+        futures.emplace_back(resourcePool.run([this, location1, location2, length]() -> uint64_t {
 
-        Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
-        string destinationCellId = getPointCellId(destination);
-        addPoint(destination, destinationCellId);
+            Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
+            Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
 
-        addEdge(origin, destination, length);
+            string originCellId = getPointCellId(origin);
+            addPoint(origin, originCellId);
+
+            string destinationCellId = getPointCellId(destination);
+            addPoint(destination, destinationCellId);
+
+            addEdge(originCellId, destinationCellId, length);
+
+            return 0;
+        }));
+    }
+
+    for (auto &f : futures) {
+        f.get();
     }
 }
 
