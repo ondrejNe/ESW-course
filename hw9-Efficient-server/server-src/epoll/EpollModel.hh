@@ -64,7 +64,7 @@ private:
 
 public:
     EpollInstance() : epollLogger("[EPOLL INST]", DEBUG) {
-        this->fd = epoll_create1(0);
+        this->fd = epoll_create1(EPOLL_CLOEXEC);
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));
         }

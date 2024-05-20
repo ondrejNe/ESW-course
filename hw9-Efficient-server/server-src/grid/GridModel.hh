@@ -46,10 +46,10 @@ struct Point {
  * Hash function for pair<uint64_t, uint64_t>
  */
 struct PairHash {
-    template <class T1, class T2>
-    std::size_t operator()(const std::pair<T1, T2> &p) const {
-        auto hash1 = std::hash<T1>{}(p.first);
-        auto hash2 = std::hash<T2>{}(p.second);
+    template<class T1, class T2>
+    std::size_t operator()(const std::pair <T1, T2> &p) const {
+        auto hash1 = std::hash < T1 > {}(p.first);
+        auto hash2 = std::hash < T2 > {}(p.second);
         return hash1 ^ hash2;
     }
 };
@@ -60,28 +60,28 @@ struct PairHash {
  */
 class Cell {
 public:
-    pair<uint64_t, uint64_t>                  id;
-    uint64_t                coordX;
-    uint64_t                coordY;
-    set <Point>             points;
-    unordered_map <pair<uint64_t, uint64_t>, uint64_t, PairHash>  edges;
-    ReentrantSharedLocker   locker;
+    pair <uint64_t, uint64_t> id;
+    uint64_t coordX;
+    uint64_t coordY;
+    set <Point> points;
+    unordered_map <pair<uint64_t, uint64_t>, uint64_t, PairHash> edges;
+    ReentrantSharedLocker ocker;
 
     Cell() : coordX(0), coordY(0) {}
 
     // Parameterized constructor
-    Cell(const pair<uint64_t, uint64_t>& id, uint64_t x, uint64_t y)
+    Cell(const pair <uint64_t, uint64_t> &id, uint64_t x, uint64_t y)
             : id(id), coordX(x), coordY(y) {}
 
     // Copy constructor
-    Cell(const Cell& other)
+    Cell(const Cell &other)
             : id(other.id), coordX(other.coordX), coordY(other.coordY),
               points(other.points), edges(other.edges) {
         // Note: locker is not copied
     }
 
     // Copy assignment operator
-    Cell& operator=(const Cell& other) {
+    Cell &operator=(const Cell &other) {
         if (this != &other) {
             id = other.id;
             coordX = other.coordX;
@@ -97,20 +97,20 @@ public:
 /**
  * Represents the grid data structure which is a collection of cells.
  */
-class Grid
-{
+class Grid {
 private:
     // Basic data structures
-    unordered_map<pair<uint64_t, uint64_t>, Cell, PairHash> cells;
-    unordered_map<pair<uint64_t, uint64_t>, unordered_map<pair<uint64_t, uint64_t>, uint64_t, PairHash>, PairHash> distances;
-    ReentrantSharedLocker                                       distancesLocker;
-    ReentrantSharedLocker                                       locker;
+    unordered_map <pair<uint64_t, uint64_t>, Cell, PairHash> cells;
+    unordered_map <pair<uint64_t, uint64_t>, unordered_map<pair < uint64_t, uint64_t>, uint64_t, PairHash>, PairHash>
+    distances;
+    ReentrantSharedLocker distancesLocker;
+    ReentrantSharedLocker cellsLocker;
     // Logging
-    PrefixedLogger                  searchLogger;
-    PrefixedLogger                  protoLogger;
-    PrefixedLogger                  apiLogger;
+    PrefixedLogger searchLogger;
+    PrefixedLogger protoLogger;
+    PrefixedLogger apiLogger;
     // Workers
-    ThreadPool                      &resourcePool;
+    ThreadPool &resourcePool;
 
     // Point-based conversions
     pair <uint64_t, uint64_t> pointToCellCoords(Point &point);
@@ -118,32 +118,34 @@ private:
     Cell pointToCell(Point &point);
 
     // Value based conversions
-    pair<uint64_t, uint64_t> valuesToCellId(uint64_t x, uint64_t y);
+    pair <uint64_t, uint64_t> valuesToCellId(uint64_t x, uint64_t y);
 
     // Distance metric between points
     uint64_t euclideanDistance(Point &p1, Point &p2);
+
 public:
     Grid(ThreadPool &resourcePool) :
-        searchLogger("[GRIDSEARCH]", DEBUG),
-        protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG),
-        resourcePool(resourcePool) {}
+            searchLogger("[GRIDSEARCH]", DEBUG),
+            protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG),
+            resourcePool(resourcePool) {}
 
     /* Point API */
-    void addPoint(Point &point, pair<uint64_t, uint64_t> &cellId);
+    void addPoint(Point &point, pair <uint64_t, uint64_t> &cellId);
 
-    pair<uint64_t, uint64_t> getPointCellId(Point &point);
+    pair <uint64_t, uint64_t> getPointCellId(Point &point);
 
-    void addEdge(pair<uint64_t, uint64_t> &originCellId, pair<uint64_t, uint64_t> &destinationCellId, uint64_t length);
+    void
+    addEdge(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t, uint64_t> &destinationCellId, uint64_t length);
 
     /* Grid API */
     void resetGrid();
 
-    uint64_t dijkstra(pair<uint64_t, uint64_t> &originCellId, pair<uint64_t, uint64_t> &destinationCellId);
+    uint64_t dijkstra(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t, uint64_t> &destinationCellId);
 
-    uint64_t allDijkstra(pair<uint64_t, uint64_t> &originCellId);
-    
+    uint64_t allDijkstra(pair <uint64_t, uint64_t> &originCellId);
+
     /* Input processing API */
-    
+
     void processWalk(const esw::Walk &walk);
 
     uint64_t processOneToOne(const esw::OneToOne &oneToOne);

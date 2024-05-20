@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
 
     /* Prepare server resources */
     ThreadPool resourcePool(RESOURCE_POOL_TWO_SIZE);
-//    ThreadPool gridPool(RESOURCE_POOL_TWO_SIZE);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;
