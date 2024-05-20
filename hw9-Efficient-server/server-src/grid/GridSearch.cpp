@@ -1,7 +1,7 @@
 
 #include "GridModel.hh"
 
-uint64_t Grid::allDijkstra(string &originCellId) {
+uint64_t Grid::allDijkstra(pair<uint64_t, uint64_t> &originCellId) {
     uint64_t sum = 0;
 //    vector<future<uint64_t>> futures;
 
@@ -9,10 +9,10 @@ uint64_t Grid::allDijkstra(string &originCellId) {
 
 //    locker.sharedLock();
     for (const auto &entry: cells) {
-        string id = entry.first;
+        pair<uint64_t, uint64_t> id = entry.first;
 //        futures.emplace_back(resourcePool.run([this, originCellId, id]() -> uint64_t {
-            string originId = originCellId;
-            string destinationId = id;
+        pair<uint64_t, uint64_t> originId = originCellId;
+        pair<uint64_t, uint64_t> destinationId = id;
             uint64_t shortestPath = this->dijkstra(originId, destinationId);
             if (shortestPath == numeric_limits<uint64_t>::max()) {
                 sum += 0;
@@ -33,15 +33,14 @@ uint64_t Grid::allDijkstra(string &originCellId) {
     return sum;
 }
 
-uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
-    searchLogger.debug("Shortest path from [%s] to [%s]", originCellId.c_str(), destinationCellId.c_str());
+uint64_t Grid::dijkstra(pair<uint64_t, uint64_t> &originCellId, pair<uint64_t, uint64_t> &destinationCellId) {
 
     // Priority queue to store cells to be processed based on their distances
-    priority_queue < pair < uint64_t, string >, vector < pair < uint64_t, string >>, greater<>> pq;
+    priority_queue < pair < uint64_t, pair<uint64_t, uint64_t> >, vector < pair < uint64_t, pair<uint64_t, uint64_t> >>, greater<>> pq;
 
 //    distancesLocker.uniqueLock();
     if (distances.find(originCellId) == distances.end()) {
-        distances[originCellId] = unordered_map<string, uint64_t>();
+        distances[originCellId] = unordered_map<pair<uint64_t, uint64_t>, uint64_t, PairHash>();
         distances[originCellId][originCellId] = 0;
     }
 //    distancesLocker.uniqueUnlock();
@@ -52,7 +51,7 @@ uint64_t Grid::dijkstra(string &originCellId, string &destinationCellId) {
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
-        string currentCellId = pq.top().second;
+        pair<uint64_t, uint64_t> currentCellId = pq.top().second;
         pq.pop();
 
         // Break the loop if the destination cell is reached

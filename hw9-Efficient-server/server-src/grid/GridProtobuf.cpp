@@ -17,10 +17,10 @@ void Grid::processWalk(const esw::Walk &walk) {
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
 
-    string originCellId = getPointCellId(origin);
+    pair<uint64_t, uint64_t> originCellId = getPointCellId(origin);
     addPoint(origin, originCellId);
 
-    string destinationCellId = getPointCellId(destination);
+    pair<uint64_t, uint64_t> destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
 
     addEdge(originCellId, destinationCellId, length);
@@ -65,11 +65,11 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
 //
 //    futures.emplace_back(resourcePool.run([this, location1, location2]() -> uint64_t {
         Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-        string originCellId = getPointCellId(origin);
+    pair<uint64_t, uint64_t> originCellId = getPointCellId(origin);
         addPoint(origin, originCellId);
 
         Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
-        string destinationCellId = getPointCellId(destination);
+    pair<uint64_t, uint64_t> destinationCellId = getPointCellId(destination);
         addPoint(destination, destinationCellId);
 
         return dijkstra(originCellId, destinationCellId);
@@ -87,7 +87,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 
 //    futures.emplace_back(resourcePool.run([this, location1]() -> uint64_t {
         Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-        string originCellId = getPointCellId(origin);
+    pair<uint64_t, uint64_t> originCellId = getPointCellId(origin);
         addPoint(origin, originCellId);
 
         return allDijkstra(originCellId);

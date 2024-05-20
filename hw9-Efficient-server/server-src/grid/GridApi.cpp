@@ -6,14 +6,14 @@ const std::vector<std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
         { 1,  0}, { 1,  1}
 };
 
-string Grid::getPointCellId(Point &point) {
+pair<uint64_t, uint64_t>Grid::getPointCellId(Point &point) {
     pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
 
 //    locker.sharedLock();
 
     // Search whether there isn't a better match
     for (const auto &comb : precomputedNeighbourPairs) {
-        std::string neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
+        pair<uint64_t, uint64_t> neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
                                                     probableCellCoords.second + comb.second);
         auto cellIt = cells.find(neighborCellId);
         if (cellIt == cells.end()) continue; // The searched cell does not exist
@@ -30,9 +30,8 @@ string Grid::getPointCellId(Point &point) {
     return valuesToCellId(probableCellCoords.first, probableCellCoords.second);
 }
 
-void Grid::addPoint(Point &point, string &cellId) {
+void Grid::addPoint(Point &point, pair<uint64_t, uint64_t> &cellId) {
     // Add the point to the cell
-    apiLogger.debug("Add point <%d,%d> to cell [%s]", point.x, point.y, cellId.c_str());
 
 //    locker.sharedLock();
     auto it = cells.find(cellId);
@@ -53,9 +52,7 @@ void Grid::addPoint(Point &point, string &cellId) {
     }
 }
 
-void Grid::addEdge(string &originCellId, string &destinationCellId, uint64_t length) {
-    apiLogger.debug("Add edge [%s] -> [%s] with length %d", originCellId.c_str(), destinationCellId.c_str(), length);
-
+void Grid::addEdge(pair<uint64_t, uint64_t> &originCellId, pair<uint64_t, uint64_t> &destinationCellId, uint64_t length) {
     auto &cell = cells[originCellId];
 //    cell.locker.uniqueLock();
 
