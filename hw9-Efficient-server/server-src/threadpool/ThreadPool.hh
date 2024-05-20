@@ -20,12 +20,12 @@ using namespace std;
 
 class ThreadPool {
 private:
-    bool                    stop;
-    queue<packaged_task<void()>> tasks;
-    vector<thread>          threads;
-    mutex                   synchMutex;
-    condition_variable      synchCondition;
-    PrefixedLogger          threadpoolLogger;
+    bool                            stop;
+    queue<packaged_task<void()>>    tasks;
+    vector<thread>                  threads;
+    mutex                           synchMutex;
+    condition_variable              synchCondition;
+    PrefixedLogger                  threadpoolLogger;
 
 public:
     ThreadPool(size_t numThreads) : stop(false), threadpoolLogger("[THREADPOOL]", DEBUG) {

@@ -65,19 +65,24 @@ public:
     uint64_t coordY;
     set <Point> points;
     unordered_map <pair<uint64_t, uint64_t>, uint64_t, PairHash> edges;
-    ReentrantSharedLocker ocker;
+    ReentrantSharedLocker locker;
 
-    Cell() : coordX(0), coordY(0) {}
+    Cell() : coordX(0), coordY(0) {
+        edges.reserve(100);
+    }
 
     // Parameterized constructor
     Cell(const pair <uint64_t, uint64_t> &id, uint64_t x, uint64_t y)
-            : id(id), coordX(x), coordY(y) {}
+            : id(id), coordX(x), coordY(y) {
+        edges.reserve(100);
+    }
 
     // Copy constructor
     Cell(const Cell &other)
             : id(other.id), coordX(other.coordX), coordY(other.coordY),
               points(other.points), edges(other.edges) {
         // Note: locker is not copied
+        edges.reserve(100);
     }
 
     // Copy assignment operator
@@ -127,7 +132,9 @@ public:
     Grid(ThreadPool &resourcePool) :
             searchLogger("[GRIDSEARCH]", DEBUG),
             protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG),
-            resourcePool(resourcePool) {}
+            resourcePool(resourcePool) {
+        cells.reserve(20000);
+    }
 
     /* Point API */
     void addPoint(Point &point, pair <uint64_t, uint64_t> &cellId);
