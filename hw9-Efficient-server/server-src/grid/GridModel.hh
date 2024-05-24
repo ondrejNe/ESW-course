@@ -25,7 +25,7 @@
 
 #define ACTIVE_LOGGER_API       true
 #define ACTIVE_LOGGER_PROTO     true
-#define ACTIVE_LOGGER_SEARCH    false
+#define ACTIVE_LOGGER_SEARCH    true
 
 using namespace std;
 

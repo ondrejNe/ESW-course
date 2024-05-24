@@ -4,8 +4,6 @@
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
     uint64_t sum = 0;
 
-    searchLogger.info("All Dijkstra cell count: %d", cells.size());
-
     for (const auto &entry: cells) {
         uint64_t destinationCellId = entry.first;
         uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
