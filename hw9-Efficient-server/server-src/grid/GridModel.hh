@@ -23,9 +23,9 @@
 #include "Logger.hh"
 #include "ThreadPool.hh"
 
-#define ACTIVE_LOGGER_API       true
-#define ACTIVE_LOGGER_PROTO     true
-#define ACTIVE_LOGGER_SEARCH    true
+#define ACTIVE_LOGGER_API       false
+#define ACTIVE_LOGGER_PROTO     false
+#define ACTIVE_LOGGER_SEARCH    false
 
 using namespace std;
 
