@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(chrono::milliseconds(1));
 
     /* Prepare server resources */
-    ThreadPool resourcePool(RESOURCE_POOL_TWO_SIZE);
+    ThreadPool resourcePool(1);
 
     EpollInstance epollConnectInstance;
     EpollInstance epollSocketInstance;
@@ -49,14 +49,15 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(chrono::milliseconds(1));
 
     // Connection events
-    resourcePool.run([&epollConnectInstance]() {
+    thread ep1 = thread([&epollConnectInstance]() {
         while (true) epollConnectInstance.waitAndHandleEvents();
     });
     // Socket events
-    resourcePool.run([&epollSocketInstance]() {
+    thread ep2 = thread([&epollSocketInstance]() {
         while (true) epollSocketInstance.waitAndHandleEvents();
     });
 
+    // Calculation logic
     /* Start the server */
     Grid grid = Grid(resourcePool);
     EpollSocketEntry serverSocket(port, epollSocketInstance, epollConnectInstance, grid, resourcePool);
