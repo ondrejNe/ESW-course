@@ -78,6 +78,7 @@ private:
     PrefixedLogger  searchLogger;
     // Workers
     ThreadPool      &resourcePool;
+    uint64_t        edges;
 
     // Distance metric between points
     uint64_t euclideanDistance(Point &p1, Point &p2);
@@ -89,6 +90,8 @@ public:
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
         cells.reserve(200000);
+        distances.reserve(200000);
+        edges = 0;
     }
 
     /* Point API */

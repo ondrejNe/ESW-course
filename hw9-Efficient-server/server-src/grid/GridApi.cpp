@@ -64,6 +64,7 @@ void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t
     uint64_t &edgeLength = cell.edges[destinationCellId];
     if (edgeLength == 0) {
         edgeLength = length;
+        edges += 1;
     } else {
         edgeLength = (edgeLength + length) / 2;
     }

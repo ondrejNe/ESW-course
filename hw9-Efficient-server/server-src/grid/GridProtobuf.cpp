@@ -51,6 +51,8 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
     apiLogger.warn("Shortest path: %llu", shortestPath);
+    apiLogger.warn("Total cells: %llu", cells.size());
+    apiLogger.warn("Total edges: %llu", edges);
     return shortestPath;
 }
 
@@ -64,6 +66,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     uint64_t shortestPath = allDijkstra(originCellId);
     apiLogger.warn("Total length: %llu", shortestPath);
     apiLogger.warn("Total cells: %d", cells.size());
+    apiLogger.warn("Total edges: %llu", edges);
     return shortestPath;
 }
 
