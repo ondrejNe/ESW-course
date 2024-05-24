@@ -57,7 +57,7 @@ public:
     // Parameterized constructor
     Cell(uint64_t id, uint64_t x, uint64_t y, Point p) :
         id(id), coordX(x), coordY(y), point(p) {
-        edges.reserve(1000);
+        edges.reserve(10000);
     }
 };
 
@@ -88,7 +88,7 @@ public:
             protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
-        cells.reserve(10000);
+        cells.reserve(200000);
     }
 
     /* Point API */
