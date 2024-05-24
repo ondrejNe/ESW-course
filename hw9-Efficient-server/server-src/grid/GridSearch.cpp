@@ -16,8 +16,6 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
 }
 
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
-    int depth = 0;
-    searchLogger.info("Dijkstra from %d to %d", originCellId, destinationCellId);
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
 
     if (distances.find(originCellId) == distances.end()) {
@@ -30,7 +28,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
-        depth += 1;
         // Get the cell with the minimum distance from the priority queue
         uint64_t currentCellId = pq.top().second;
         pq.pop();
@@ -63,7 +60,5 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     }
 
     uint64_t shortestPath = distances[originCellId][destinationCellId];
-
-    searchLogger.info("Dijkstra depth: %d", depth);
     return shortestPath;
 }

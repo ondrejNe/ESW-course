@@ -41,19 +41,11 @@ struct Point {
  * Represents a cell in the grid which is a collection of points
  * and edges to other cells.
  */
-class Cell {
-public:
+struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
     Point       point;
-
-    // Default constructor
-    Cell() : id(0), coordX(0), coordY(0), point(Point{}) {}
-
-    // Parameterized constructor
-    Cell(uint64_t id, uint64_t x, uint64_t y, Point p) :
-        id(id), coordX(x), coordY(y), point(p) {}
 };
 
 /**
@@ -65,7 +57,7 @@ private:
     unordered_map <uint64_t, Cell>                              cells;
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
-    unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>> distances;
+    unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  distances;
     unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  edges;
 
     // Logging
@@ -87,7 +79,7 @@ public:
             resourcePool(resourcePool) {
         cells.reserve(120000);
         distances.reserve(120000);
-        edges.reserve(120000);
+        edges.reserve(200000);
         edges_count = 0;
     }
 
