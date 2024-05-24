@@ -38,9 +38,10 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;
 
-        Cell &currentCellData = cells.at(currentCellId);
+        auto edgeIt = edges.find(currentCellId);
+        if (edgeIt == edges.end()) continue;
 
-        for (const auto &neighborEntry: currentCellData.edges) {
+        for (const auto &neighborEntry: edgeIt->second) {
             const auto &neighborCellId = neighborEntry.first;
             const auto &neighborLength = neighborEntry.second;
 

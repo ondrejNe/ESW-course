@@ -59,20 +59,17 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
 }
 
 void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    auto &cell = cells[originCellId];
-
-    uint64_t &edgeLength = cell.edges[destinationCellId];
+    uint64_t &edgeLength = edges[originCellId][destinationCellId];
     if (edgeLength == 0) {
         edgeLength = length;
-        edges += 1;
+        edges_count += 1;
     } else {
         edgeLength = (edgeLength + length) / 2;
     }
 }
 
 void Grid::resetGrid() {
-    for (auto &cell: cells) {
-        cell.second.edges.clear();
-    }
     cells.clear();
+    distances.clear();
+    edges.clear();
 }

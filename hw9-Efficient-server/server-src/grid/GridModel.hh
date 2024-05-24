@@ -47,18 +47,13 @@ public:
     uint64_t    coordX;
     uint64_t    coordY;
     Point       point;
-    unordered_map <uint64_t, uint64_t> edges;
 
     // Default constructor
-    Cell() : id(0), coordX(0), coordY(0), point(Point{}) {
-        edges.reserve(1000);
-    }
+    Cell() : id(0), coordX(0), coordY(0), point(Point{}) {}
 
     // Parameterized constructor
     Cell(uint64_t id, uint64_t x, uint64_t y, Point p) :
-        id(id), coordX(x), coordY(y), point(p) {
-        edges.reserve(10000);
-    }
+        id(id), coordX(x), coordY(y), point(p) {}
 };
 
 /**
@@ -71,6 +66,7 @@ private:
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
     unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>> distances;
+    unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  edges;
 
     // Logging
     PrefixedLogger  apiLogger;
@@ -78,7 +74,7 @@ private:
     PrefixedLogger  searchLogger;
     // Workers
     ThreadPool      &resourcePool;
-    uint64_t        edges;
+    uint64_t        edges_count;
 
     // Distance metric between points
     uint64_t euclideanDistance(Point &p1, Point &p2);
@@ -89,9 +85,10 @@ public:
             protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
-        cells.reserve(200000);
-        distances.reserve(200000);
-        edges = 0;
+        cells.reserve(120000);
+        distances.reserve(120000);
+        edges.reserve(120000);
+        edges_count = 0;
     }
 
     /* Point API */

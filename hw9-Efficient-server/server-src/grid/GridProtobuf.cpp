@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 void Grid::processWalk(const esw::Walk &walk) {
-    protoLogger.info("Processing walk message");
+    protoLogger.info("Processing Walk message");
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
@@ -38,35 +38,34 @@ void Grid::processWalk(const esw::Walk &walk) {
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
+    protoLogger.info("Processing OnToOne message");
     const auto &location1 = oneToOne.origin();
     const auto &location2 = oneToOne.destination();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     uint64_t originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
 
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
     uint64_t destinationCellId = getPointCellId(destination);
-    addPoint(destination, destinationCellId);
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
     apiLogger.warn("Shortest path: %llu", shortestPath);
     apiLogger.warn("Total cells: %llu", cells.size());
-    apiLogger.warn("Total edges: %llu", edges);
+    apiLogger.warn("Total edges: %llu", edges_count);
     return shortestPath;
 }
 
 uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
+    protoLogger.info("Processing OnToAll message");
     const auto &location1 = oneToAll.origin();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     uint64_t originCellId = getPointCellId(origin);
-    addPoint(origin, originCellId);
 
     uint64_t shortestPath = allDijkstra(originCellId);
     apiLogger.warn("Total length: %llu", shortestPath);
     apiLogger.warn("Total cells: %d", cells.size());
-    apiLogger.warn("Total edges: %llu", edges);
+    apiLogger.warn("Total edges: %llu", edges_count);
     return shortestPath;
 }
 
