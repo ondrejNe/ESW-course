@@ -1,16 +1,6 @@
 
 #include "GridModel.hh"
 
-template <class T>
-class reservable_priority_queue: public std::priority_queue<T>
-{
-public:
-    typedef typename std::priority_queue<T>::size_type size_type;
-    reservable_priority_queue(size_type capacity = 0) { reserve(capacity); };
-    void reserve(size_type capacity) { this->c.reserve(capacity); }
-    size_type capacity() const { return this->c.capacity(); }
-};
-
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
     uint64_t sum = 0;
 
@@ -28,8 +18,8 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
 }
 
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
-    reservable_priority_queue <pair<uint64_t, uint64_t>> pq;
-    pq.reserve(1000);
+    searchLogger.debug("Dijkstra from %d to %d", originCellId, destinationCellId);
+    priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
 
     if (distances.find(originCellId) == distances.end()) {
         distances[originCellId] = unordered_map<uint64_t, uint64_t>();
@@ -41,9 +31,11 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
+        searchLogger.info("Priority queue size: %d", pq.size());
         // Get the cell with the minimum distance from the priority queue
         uint64_t currentCellId = pq.top().second;
         pq.pop();
+        searchLogger.info("Current cell: %d", currentCellId);
 
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;

@@ -65,6 +65,5 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 }
 
 void Grid::processReset(const esw::Reset &reset) {
-    UNUSED(reset);
     resetGrid();
 }

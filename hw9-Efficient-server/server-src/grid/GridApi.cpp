@@ -12,8 +12,10 @@ const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
 };
 
 uint64_t Grid::getPointCellId(Point &point) {
+    apiLogger.debug("Getting cell id for point (%lu, %lu)", point.x, point.y);
     pair<uint64_t, uint64_t> probableCellCoords = {point.x / 500, point.y / 500};
     uint64_t probableCellId = ((point.x / 500) << 32) | ((point.y / 500));
+    apiLogger.debug("Probable cell id: %lu", probableCellId);
 
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
@@ -24,10 +26,13 @@ uint64_t Grid::getPointCellId(Point &point) {
 
         Point &neighborPoint = cellIt->second.point;
         if (euclideanDistance(point, neighborPoint) <= 250000) {
+            apiLogger.debug("Neighbor cell id found: %lu with point %lu ; %lu", neighborCellId, neighborPoint.x,
+                            neighborPoint.y);
             return neighborCellId;
         }
     }
 
+    apiLogger.debug("Cell id not found, using probable cell id");
     return probableCellId;
 }
 
@@ -38,15 +43,15 @@ uint64_t Grid::euclideanDistance(Point &p1, Point &p2) {
 }
 
 void Grid::addPoint(Point &point, uint64_t &cellId) {
-    // Add the point to the cell
-
     auto it = cells.find(cellId);
 
     if (it == cells.end()) {
+        apiLogger.debug("Creating new cell for point (%lu, %lu)", point.x, point.y);
         // Create a new cell
         uint64_t coordX = point.x / 500;
         uint64_t coordY = point.y / 500;
         uint64_t id = (coordX << 32) | coordY;
+        apiLogger.debug("New cell id: %lu", id);
         Point p = {point.x, point.y};
         Cell newCell(id, coordX, coordY, p);
         cells[id] = newCell;

@@ -19,6 +19,7 @@
 #include "Logger.hh"
 #include "ThreadPool.hh"
 
+#define ACTIVE_LOGGER_EPOLL true
 #define EPOLL_MAX_EVENTS 1024
 
 using namespace std;
@@ -63,15 +64,16 @@ private:
     PrefixedLogger epollLogger;
 
 public:
-    EpollInstance() : epollLogger("[EPOLL INST]", DEBUG) {
-        this->fd = epoll_create1(EPOLL_CLOEXEC);
-        if (this->fd == -1) {
-            throw runtime_error(string("epoll_create1: ") + strerror(errno));
-        }
-        std::ostringstream oss;
-        oss << "[fd: " << fd << "]";
-        string fdPrefix = oss.str();
-        epollLogger.addPrefix(fdPrefix);
+    EpollInstance() :
+        epollLogger("[EPOLL INST]", ACTIVE_LOGGER_EPOLL) {
+            this->fd = epoll_create1(EPOLL_CLOEXEC);
+            if (this->fd == -1) {
+                throw runtime_error(string("epoll_create1: ") + strerror(errno));
+            }
+            std::ostringstream oss;
+            oss << "[fd: " << fd << "]";
+            string fdPrefix = oss.str();
+            epollLogger.addPrefix(fdPrefix);
     }
 
     ~EpollInstance() {

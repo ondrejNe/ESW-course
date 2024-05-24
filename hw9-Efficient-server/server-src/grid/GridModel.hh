@@ -23,7 +23,9 @@
 #include "Logger.hh"
 #include "ThreadPool.hh"
 
-#define UNUSED(x) (void)(x)
+#define ACTIVE_LOGGER_API       false
+#define ACTIVE_LOGGER_PROTO     false
+#define ACTIVE_LOGGER_SEARCH    true
 
 using namespace std;
 
@@ -71,9 +73,9 @@ private:
     unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>> distances;
 
     // Logging
-    PrefixedLogger  searchLogger;
-    PrefixedLogger  protoLogger;
     PrefixedLogger  apiLogger;
+    PrefixedLogger  protoLogger;
+    PrefixedLogger  searchLogger;
     // Workers
     ThreadPool      &resourcePool;
 
@@ -82,8 +84,9 @@ private:
 
 public:
     Grid(ThreadPool &resourcePool) :
-            searchLogger("[GRIDSEARCH]", DEBUG),
-            protoLogger("[GRID-PROTO]", DEBUG), apiLogger("[GRID-API]", DEBUG),
+            apiLogger("[GRID-API]", ACTIVE_LOGGER_API),
+            protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
+            searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
         cells.reserve(10000);
     }

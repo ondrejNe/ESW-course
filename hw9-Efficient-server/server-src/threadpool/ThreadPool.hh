@@ -16,19 +16,22 @@
 
 #include "Logger.hh"
 
+#define ACTIVE_LOGGER_THREADPOOL true
 using namespace std;
 
 class ThreadPool {
 private:
     bool                            stop;
-    deque<function<void()>> tasks;
+    deque<function<void()>>         tasks;
     vector<thread>                  threads;
     mutex                           synchMutex;
     condition_variable              synchCondition;
     PrefixedLogger                  threadpoolLogger;
 
 public:
-    ThreadPool(size_t numThreads) : stop(false), threadpoolLogger("[THREADPOOL]", DEBUG) {
+    ThreadPool(size_t numThreads) :
+    stop(false),
+    threadpoolLogger("[THREADPOOL]", ACTIVE_LOGGER_THREADPOOL) {
         for (size_t i = 0; i < numThreads; ++i) {
             // For logging purposes perform suspensions
             this_thread::sleep_for(chrono::milliseconds(1));

@@ -45,14 +45,14 @@ static mutex mapMutex;
 class PrefixedLogger {
 private:
     string          prefix;
+    bool            active;
     ostream&        output;
-    LogLevel        currentLevel;
     vector<string>  additionalPrefixes;
 
 public:
     // Constructor with prefix, output stream, and minimum log level
-    explicit PrefixedLogger(string prefix, LogLevel level = INFO, ostream& output = cout)
-            : prefix(prefix), output(output), currentLevel(level) {}
+    explicit PrefixedLogger(string prefix, bool active = true, ostream& output = cout)
+            : prefix(prefix), active(active), output(output) {}
 
     // Method to add additional prefixes
     void addPrefix(string newPrefix) {
@@ -66,6 +66,7 @@ public:
     // Log a formatted message
     template<typename... Args>
     void log(LogLevel level, string formatString, Args... args) {
+        if (!active) return;
 #ifndef ENABLE_DEBUG
         if (level == DEBUG) return;
 #endif
@@ -78,7 +79,6 @@ public:
 #ifndef ENABLE_ERROR
         if (level == ERROR) return;
 #endif
-        if (level < currentLevel) return;
         ostringstream stream;
         stream << getCurrentTimestamp() << " " << getFullPrefix(level) << ": " << formatMessage(formatString, args...);
         output << stream.str() << endl;
