@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 void Grid::processWalk(const esw::Walk &walk) {
-    protoLogger.info("Processing Walk message");
+    protoLogger.debug("Processing Walk message");
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
