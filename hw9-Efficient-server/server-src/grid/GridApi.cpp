@@ -57,8 +57,8 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         cells[id] = newCell;
         edges[id] = unordered_map<uint64_t, uint64_t>();
         edges[id].reserve(10000);
-        distaces[id] = unordered_map<uint64_t, uint64_t>();
-        distaces[id].reserve(10000);
+        distances[id] = unordered_map<uint64_t, uint64_t>();
+        distances[id].reserve(10000);
     }
 }
 
