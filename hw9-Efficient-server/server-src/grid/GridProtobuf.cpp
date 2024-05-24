@@ -2,6 +2,7 @@
 #include "GridModel.hh"
 
 void Grid::processWalk(const esw::Walk &walk) {
+    protoLogger.info("Processing walk message");
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
@@ -16,10 +17,10 @@ void Grid::processWalk(const esw::Walk &walk) {
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
 
-    pair <uint64_t, uint64_t> originCellId = getPointCellId(origin);
+    uint64_t originCellId = getPointCellId(origin);
     addPoint(origin, originCellId);
 
-    pair <uint64_t, uint64_t> destinationCellId = getPointCellId(destination);
+    uint64_t destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
 
     addEdge(originCellId, destinationCellId, length);
@@ -35,6 +36,7 @@ void Grid::processWalk(const esw::Walk &walk) {
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
     }
+    protoLogger.info("Walk message processed");
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
@@ -42,11 +44,11 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     const auto &location2 = oneToOne.destination();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-    pair <uint64_t, uint64_t> originCellId = getPointCellId(origin);
+    uint64_t originCellId = getPointCellId(origin);
     addPoint(origin, originCellId);
 
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
-    pair <uint64_t, uint64_t> destinationCellId = getPointCellId(destination);
+    uint64_t destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
 
     return dijkstra(originCellId, destinationCellId);
@@ -56,7 +58,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     const auto &location1 = oneToAll.origin();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
-    pair <uint64_t, uint64_t> originCellId = getPointCellId(origin);
+    uint64_t originCellId = getPointCellId(origin);
     addPoint(origin, originCellId);
 
     return allDijkstra(originCellId);

@@ -11,40 +11,49 @@ const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
         {1,  1}
 };
 
-pair <uint64_t, uint64_t> Grid::getPointCellId(Point &point) {
-    pair <uint64_t, uint64_t> probableCellCoords = make_pair(point.x / 500, point.y / 500);
+uint64_t Grid::getPointCellId(Point &point) {
+    pair<uint64_t, uint64_t> probableCellCoords = {point.x / 500, point.y / 500};
+    uint64_t probableCellId = ((point.x / 500) << 32) | ((point.y / 500));
 
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
-        pair <uint64_t, uint64_t> neighborCellId = valuesToCellId(probableCellCoords.first + comb.first,
-                                                                  probableCellCoords.second + comb.second);
+        uint64_t neighborCellId =
+                ((probableCellCoords.first + comb.first) << 32) | (probableCellCoords.second + comb.second);
         auto cellIt = cells.find(neighborCellId);
         if (cellIt == cells.end()) continue; // The searched cell does not exist
 
-        Point neighborPoint = *cellIt->second.points.begin();
+        Point &neighborPoint = cellIt->second.point;
         if (euclideanDistance(point, neighborPoint) <= 250000) {
             return neighborCellId;
         }
     }
 
-    return valuesToCellId(probableCellCoords.first, probableCellCoords.second);
+    return probableCellId;
 }
 
-void Grid::addPoint(Point &point, pair <uint64_t, uint64_t> &cellId) {
+uint64_t Grid::euclideanDistance(Point &p1, Point &p2) {
+    uint64_t dx = std::abs(static_cast<int64_t>(p1.x) - static_cast<int64_t>(p2.x));
+    uint64_t dy = std::abs(static_cast<int64_t>(p1.y) - static_cast<int64_t>(p2.y));
+    return dx * dx + dy * dy;
+}
+
+void Grid::addPoint(Point &point, uint64_t &cellId) {
     // Add the point to the cell
 
     auto it = cells.find(cellId);
 
     if (it == cells.end()) {
         // Create a new cell
-        Cell newCell = pointToCell(point);
-        newCell.points.insert(point);
-        cells[cellId] = newCell;
+        uint64_t coordX = point.x / 500;
+        uint64_t coordY = point.y / 500;
+        uint64_t id = (coordX << 32) | coordY;
+        Point p = {point.x, point.y};
+        Cell newCell(id, coordX, coordY, p);
+        cells[id] = newCell;
     }
 }
 
-void
-Grid::addEdge(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t, uint64_t> &destinationCellId, uint64_t length) {
+void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
     auto &cell = cells[originCellId];
 
     uint64_t &edgeLength = cell.edges[destinationCellId];
@@ -57,7 +66,6 @@ Grid::addEdge(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t, uint64_t>
 
 void Grid::resetGrid() {
     for (auto &cell: cells) {
-        cell.second.points.clear();
         cell.second.edges.clear();
     }
     cells.clear();

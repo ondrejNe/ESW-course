@@ -1,19 +1,25 @@
 
 #include "GridModel.hh"
 
-uint64_t Grid::allDijkstra(pair <uint64_t, uint64_t> &originCellId) {
+template <class T>
+class reservable_priority_queue: public std::priority_queue<T>
+{
+public:
+    typedef typename std::priority_queue<T>::size_type size_type;
+    reservable_priority_queue(size_type capacity = 0) { reserve(capacity); };
+    void reserve(size_type capacity) { this->c.reserve(capacity); }
+    size_type capacity() const { return this->c.capacity(); }
+};
+
+uint64_t Grid::allDijkstra(uint64_t &originCellId) {
     uint64_t sum = 0;
 
     searchLogger.info("All Dijkstra cell count: %d", cells.size());
 
     for (const auto &entry: cells) {
-        pair <uint64_t, uint64_t> id = entry.first;
-        pair <uint64_t, uint64_t> originId = originCellId;
-        pair <uint64_t, uint64_t> destinationId = id;
-        uint64_t shortestPath = this->dijkstra(originId, destinationId);
-        if (shortestPath == numeric_limits<uint64_t>::max()) {
-            sum += 0;
-        } else {
+        uint64_t destinationCellId = entry.first;
+        uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
+        if (shortestPath != numeric_limits<uint64_t>::max()) {
             sum += shortestPath;
         }
     }
@@ -21,15 +27,12 @@ uint64_t Grid::allDijkstra(pair <uint64_t, uint64_t> &originCellId) {
     return sum;
 }
 
-uint64_t Grid::dijkstra(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t, uint64_t> &destinationCellId) {
-
-    // Priority queue to store cells to be processed based on their distances
-    priority_queue < pair < uint64_t, pair < uint64_t, uint64_t > >, vector < pair < uint64_t, pair < uint64_t,
-            uint64_t > >>, greater<>>
-    pq;
+uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
+    reservable_priority_queue <pair<uint64_t, uint64_t>> pq;
+    pq.reserve(1000);
 
     if (distances.find(originCellId) == distances.end()) {
-        distances[originCellId] = unordered_map < pair < uint64_t, uint64_t >, uint64_t, PairHash > ();
+        distances[originCellId] = unordered_map<uint64_t, uint64_t>();
         distances[originCellId][originCellId] = 0;
     }
 
@@ -39,7 +42,7 @@ uint64_t Grid::dijkstra(pair <uint64_t, uint64_t> &originCellId, pair <uint64_t,
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
-        pair <uint64_t, uint64_t> currentCellId = pq.top().second;
+        uint64_t currentCellId = pq.top().second;
         pq.pop();
 
         // Break the loop if the destination cell is reached

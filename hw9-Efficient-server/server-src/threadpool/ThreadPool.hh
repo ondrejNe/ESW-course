@@ -21,7 +21,7 @@ using namespace std;
 class ThreadPool {
 private:
     bool                            stop;
-    queue<packaged_task<void()>>    tasks;
+    deque<function<void()>> tasks;
     vector<thread>                  threads;
     mutex                           synchMutex;
     condition_variable              synchCondition;
@@ -42,7 +42,7 @@ public:
                     if (stop && tasks.empty()) return;
 
                     auto task = move(tasks.front());
-                    tasks.pop();
+                    tasks.pop_front();;
                     lock.unlock();
 
                     task();
@@ -61,16 +61,12 @@ public:
         }
     }
 
-    template<typename F, typename R = std::result_of_t<F&&()>>
-    std::future<R> run(F&& f) {
-        auto task = std::packaged_task<R()>(std::forward<F>(f));
-        auto future = task.get_future();
+    void run(function<void()> task) {
         {
-            std::lock_guard<std::mutex> lock(mutex);
-            tasks.push(std::packaged_task<void()>(std::move(task)));
+            lock_guard<mutex> lock(synchMutex);
+            tasks.push_back(move(task));
         }
         synchCondition.notify_one();
-        return future;
     }
 
     void shutdown() {
