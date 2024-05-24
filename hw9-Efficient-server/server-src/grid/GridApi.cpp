@@ -55,6 +55,7 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         Point p = {point.x, point.y};
         Cell newCell(id, coordX, coordY, p);
         cells[id] = newCell;
+        apiLogger.info("Total cells: %d", cells.size());
     }
 }
 
