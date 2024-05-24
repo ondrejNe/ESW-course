@@ -31,11 +31,9 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
-        searchLogger.info("Priority queue size: %d", pq.size());
         // Get the cell with the minimum distance from the priority queue
         uint64_t currentCellId = pq.top().second;
         pq.pop();
-        searchLogger.info("Current cell: %d", currentCellId);
 
         // Break the loop if the destination cell is reached
         if (currentCellId == destinationCellId) break;

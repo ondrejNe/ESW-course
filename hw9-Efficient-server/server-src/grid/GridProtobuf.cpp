@@ -63,6 +63,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 
     uint64_t shortestPath = allDijkstra(originCellId);
     apiLogger.warn("Total length: %llu", shortestPath);
+    apiLogger.warn("Total cells: %d", cells.size());
     return shortestPath;
 }
 
