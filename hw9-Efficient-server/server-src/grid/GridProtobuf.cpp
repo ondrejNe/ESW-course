@@ -8,8 +8,6 @@ void Grid::processWalk(const esw::Walk &walk) {
 
     if (locations.size() < 2 || lengths.size() < 1) return;
 
-    protoLogger.info("Walk message - %d locations - %d lengths", locations.size(), lengths.size());
-
     auto &location1 = locations.Get(0);
     auto &location2 = locations.Get(1);
     auto &length = lengths.Get(0);
@@ -36,7 +34,7 @@ void Grid::processWalk(const esw::Walk &walk) {
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
     }
-    protoLogger.info("Walk message processed");
+
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
@@ -51,7 +49,9 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     uint64_t destinationCellId = getPointCellId(destination);
     addPoint(destination, destinationCellId);
 
-    return dijkstra(originCellId, destinationCellId);
+    uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
+    apiLogger.warn("Shortest path: %llu", shortestPath);
+    return shortestPath;
 }
 
 uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
@@ -61,7 +61,9 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     uint64_t originCellId = getPointCellId(origin);
     addPoint(origin, originCellId);
 
-    return allDijkstra(originCellId);
+    uint64_t shortestPath = allDijkstra(originCellId);
+    apiLogger.warn("Total length: %llu", shortestPath);
+    return shortestPath;
 }
 
 void Grid::processReset(const esw::Reset &reset) {
