@@ -6,7 +6,7 @@ option(ENABLE_LOGGER_FILE "Enable logger file" OFF)
 
 option(ENABLE_DEBUG_LOG "Enable debug logging level" OFF)
 option(ENABLE_INFO_LOG "Enable info logging level" ON)
-option(ENABLE_WARN_LOG "Enable warn logging level" OFF)
+option(ENABLE_WARN_LOG "Enable warn logging level" ON)
 option(ENABLE_ERROR_LOG "Enable error logging level" OFF)
 
 # Option for enabling locking

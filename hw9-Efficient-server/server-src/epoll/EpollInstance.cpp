@@ -29,7 +29,7 @@ void EpollInstance::unregisterEpollEntry(EpollEntry &e) {
 
     close(e.get_fd());
     delete &e;
-    epollLogger.debug("Unregistered");
+    epollLogger.warn("Unregistered");
 }
 
 void EpollInstance::waitAndHandleEvents() {
