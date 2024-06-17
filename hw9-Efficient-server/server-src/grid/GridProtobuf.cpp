@@ -3,6 +3,7 @@
 
 void Grid::processWalk(const esw::Walk &walk) {
     protoLogger.debug("Processing Walk message");
+    cout << "Processing Walk message" << endl;
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
@@ -34,7 +35,7 @@ void Grid::processWalk(const esw::Walk &walk) {
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
     }
-
+    cout << "Walk message processed" << endl;
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
