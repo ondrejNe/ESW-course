@@ -2,9 +2,11 @@
 #include "GridModel.hh"
 
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
+    cout << "All Dijkstra's Algorithm" << endl;
     uint64_t sum = 0;
 
     for (const auto &entry: cells) {
+        cout << "Destination cell: " << entry.first << endl;
         uint64_t destinationCellId = entry.first;
         uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
         if (shortestPath != numeric_limits<uint64_t>::max()) {
@@ -12,6 +14,7 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
         }
     }
 
+    cout << "Total sum: " << sum << endl;
     return sum;
 }
 
