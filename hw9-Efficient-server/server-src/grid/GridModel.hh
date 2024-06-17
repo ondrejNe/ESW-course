@@ -66,7 +66,7 @@ private:
 
 public:
     Grid(ThreadPool &resourcePool) :
-            apiLogger("[GRID-API]", ACTIVE_LOGGER_API),
+            apiLogger("[GRID-API  ]", ACTIVE_LOGGER_API),
             protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
