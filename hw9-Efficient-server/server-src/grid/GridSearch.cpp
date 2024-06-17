@@ -42,6 +42,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
         auto edgeIt = edges.find(currentCellId);
         if (edgeIt == edges.end()) continue;
 
+        searchLogger.debug("Processing cell %llu", currentCellId);
         for (const auto &neighborEntry: edgeIt->second) {
             const auto &neighborCellId = neighborEntry.first;
             const auto &neighborLength = neighborEntry.second;
