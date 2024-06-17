@@ -126,40 +126,40 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
-        connectLogger.warn("Walk message received");
+        processLogger.warn("Walk message received");
         const esw::Walk &walk = request.walk();
         // Process the Walk message accordingly
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
         // The message is of type OneToOne
-        connectLogger.warn("OneToOne message received");
+        processLogger.warn("OneToOne message received");
         const esw::OneToOne &oneToOne = request.onetoone();
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
 
-        connectLogger.info("OneToOne response %llu", val);
+        processLogger.info("OneToOne response %llu", val);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
         // The message is of type OneToAll
-        connectLogger.warn("OneToAll message received");
+        processLogger.warn("OneToAll message received");
         const esw::OneToAll &oneToAll = request.onetoall();
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        connectLogger.info("OneToAll response %llu", val);
+        processLogger.info("OneToAll response %llu", val);
         response.set_total_length(val);
 
     } else if (request.has_reset()) {
         // The message is of type Reset
-        connectLogger.warn("Reset message received");
+        processLogger.warn("Reset message received");
         const esw::Reset &reset = request.reset();
         // Process the Reset message accordingly
         grid.processReset(reset);
 
     } else {
-        connectLogger.error("No valid message type detected");
+        processLogger.error("No valid message type detected");
         response.set_status(esw::Response_Status_ERROR);
     }
 
@@ -169,7 +169,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     // Final request should close the connection
     if (request.has_onetoall()) {
         shutdown(this->get_fd(), SHUT_RDWR);
-        connectLogger.info("Closing connection after OneToAll request");
+        processLogger.info("Closing connection after OneToAll request");
     }
 }
 
@@ -177,8 +177,8 @@ void EpollConnectEntry::writeResponse(esw::Response &response) {
     // Get the size of the serialized response
     size_t size = response.ByteSizeLong();
 
-    connectLogger.debug("Response size: %d", size);
-    connectLogger.debug("Response status: %d", response.status());
+    processLogger.debug("Response size: %d", size);
+    processLogger.debug("Response status: %d", response.status());
 
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);

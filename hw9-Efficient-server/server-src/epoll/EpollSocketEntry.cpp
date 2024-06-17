@@ -7,7 +7,8 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
     grid(grid),
     resourcePool(resourcePool),
     socketLogger("[EPOLL SOCK]", DEBUG),
-    connectLogger("[EPOLL CONN]", DEBUG)
+    connectLogger("[EPOLL CONN]", DEBUG),
+    processLogger("[EPOLL PROC]", DEBUG)
 {
     int fd;
     struct sockaddr_in addr;
@@ -108,7 +109,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
         }
 
         // Create a new EpollConnection and register it
-        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections, connectLogger);
+        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections, connectLogger, processLogger);
         eConnections.registerEpollEntry(*conn);
         socketLogger.debug("Socket registered connection (%d)", connFd);
     }

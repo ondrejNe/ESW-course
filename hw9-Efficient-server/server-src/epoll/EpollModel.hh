@@ -122,6 +122,7 @@ private:
     ThreadPool      &resourcePool;
     EpollInstance   &eConnections;
     PrefixedLogger  &connectLogger;
+    PrefixedLogger  &processLogger;
     // Single message variables
     int             inProgressMessageSize;
     int             inProgressMessageRead;
@@ -139,11 +140,12 @@ private:
 
 public:
     // A proper constructor for an accepted connection
-    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool, EpollInstance &eConnections, PrefixedLogger &connectLogger) :
+    EpollConnectEntry(int fd, Grid &grid, ThreadPool &resourcePool, EpollInstance &eConnections, PrefixedLogger &connectLogger, PrefixedLogger &processLogger) :
         grid(grid),
         resourcePool(resourcePool),
         eConnections(eConnections),
         connectLogger(connectLogger),
+        processLogger(processLogger),
         inProgressMessageSize(0),
         inProgressMessageRead(0),
         messageBuffer(nullptr),
