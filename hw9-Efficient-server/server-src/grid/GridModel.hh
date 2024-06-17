@@ -47,11 +47,11 @@ struct Cell {
 class Grid {
 private:
     // Graph structure
-    robin_hood::unordered_map <uint64_t, Cell>                              cells;
+    unordered_map <uint64_t, Cell>                              cells;
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
-    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  distances;
-    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  edges;
+    unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  distances;
+    unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  edges;
 
     // Logging
     PrefixedLogger  apiLogger;
