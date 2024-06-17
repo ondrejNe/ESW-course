@@ -41,6 +41,7 @@ enum LogLevel {
 static unordered_map<thread::id, size_t> threadIDMap;
 static size_t nextThreadID = 1;
 static mutex mapMutex;
+static mutex outputMutex;
 
 class PrefixedLogger {
 private:
@@ -48,7 +49,6 @@ private:
     bool            active;
     ostream&        output;
     vector<string>  additionalPrefixes;
-
 public:
     // Constructor with prefix, output stream, and minimum log level
     explicit PrefixedLogger(string prefix, bool active = true, ostream& output = cout)
@@ -80,7 +80,10 @@ public:
 #endif
         ostringstream stream;
         stream << getCurrentTimestamp() << " " << getFullPrefix(level) << ": " << formatMessage(formatString, args...);
-        output << stream.str() << endl;
+        {
+            lock_guard<mutex> lock(outputMutex);
+            output << stream.str() << endl;
+        }
     }
 
     // Convenience methods for each log level
