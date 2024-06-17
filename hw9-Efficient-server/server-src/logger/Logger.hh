@@ -82,7 +82,9 @@ public:
         stream << getCurrentTimestamp() << " " << getFullPrefix(level) << ": " << formatMessage(formatString, args...);
         {
             lock_guard<mutex> lock(outputMutex);
+            output << "test" << endl;
             output << stream.str() << endl;
+            output << "endtest" << endl;
         }
     }
 
