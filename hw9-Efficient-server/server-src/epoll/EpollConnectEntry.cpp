@@ -46,7 +46,6 @@ void EpollConnectEntry::readEvent() {
         }
 
         inProgressMessageRead = 0;
-        messageBuffer = new char[inProgressMessageSize];
     }
 
     // Message in progress
@@ -88,13 +87,6 @@ void EpollConnectEntry::readEvent() {
         processMessage(request, response);
         this->processingInProgress = false;
     });
-
-    // Clean up after successful message processing
-    messageInProgress = false;
-    inProgressMessageSize = 0;
-    inProgressMessageRead = 0;
-    delete[] messageBuffer;
-    messageBuffer = nullptr;
 }
 
 int EpollConnectEntry::readMessageSize() {

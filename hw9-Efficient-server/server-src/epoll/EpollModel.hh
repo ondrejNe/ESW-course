@@ -162,6 +162,7 @@ public:
 //        string fdPrefix = oss.str();
 //        connectLogger.addPrefix(fdPrefix);
         connectLogger.info("Connection created (%d)", fd);
+        messageBuffer = new char [22000];
     }
 
     ~EpollConnectEntry() {
