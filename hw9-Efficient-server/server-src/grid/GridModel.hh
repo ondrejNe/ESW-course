@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <queue>
 #include <unordered_set>
 #include <limits>
