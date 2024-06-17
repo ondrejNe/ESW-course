@@ -49,8 +49,8 @@ private:
     robin_hood::unordered_map <uint64_t, Cell>                              cells;
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
-    robin_hood::unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  distances;
-    robin_hood::unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  edges;
+    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  distances;
+    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  edges;
 
     // Logging
     PrefixedLogger  apiLogger;
