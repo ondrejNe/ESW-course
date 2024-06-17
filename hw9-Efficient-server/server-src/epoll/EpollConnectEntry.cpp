@@ -2,8 +2,6 @@
 #include "EpollModel.hh"
 
 bool EpollConnectEntry::handleEvent(uint32_t events) {
-    connectLogger.debug("Handling events num %d", events);
-
     if (!this->is_fd_valid()) {
         connectLogger.error("Invalid file descriptor");
         return false;
