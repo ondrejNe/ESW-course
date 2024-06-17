@@ -16,6 +16,7 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
 }
 
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
+    cout << "Dijkstra's Algorithm" << endl;
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
 
     if (distances.find(originCellId) == distances.end()) {
@@ -82,5 +83,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
     uint64_t shortestPath = distances[originCellId][destinationCellId];
     searchLogger.debug("Shortest path: %llu", shortestPath);
+    cout << "Shortest path: " << shortestPath << endl;
     return shortestPath;
 }
