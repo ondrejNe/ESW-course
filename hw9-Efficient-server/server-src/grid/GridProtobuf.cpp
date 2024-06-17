@@ -24,7 +24,9 @@ void Grid::processWalk(const esw::Walk &walk) {
 
     addEdge(originCellId, destinationCellId, length);
 
+    cout << "Processing Walk message: 1st edge added" << endl;
     for (int i = 1; i < locations.size() - 1; ++i) {
+        cout << "Processing Walk message: " << i + 1 << "th edge" << endl;
         auto &location = locations.Get(i + 1);
         auto &len = lengths.Get(i);
 
@@ -34,6 +36,7 @@ void Grid::processWalk(const esw::Walk &walk) {
         destinationCellId = getPointCellId(destination);
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
+        cout << "Processing Walk message: " << i + 1 << "th edge added" << endl;
     }
     cout << "Walk message processed" << endl;
 }
