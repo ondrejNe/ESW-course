@@ -70,9 +70,6 @@ public:
             protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
-        cells.reserve(2000);
-        distances.reserve(2000);
-        edges.reserve(2000);
         edges_count = 0;
     }
 
