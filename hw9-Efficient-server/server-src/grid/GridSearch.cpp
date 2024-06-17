@@ -19,7 +19,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
 
     if (distances.find(originCellId) == distances.end()) {
-        distances[originCellId] = unordered_map<uint64_t, uint64_t>();
+        distances[originCellId] = robin_hood::unordered_map<uint64_t, uint64_t>();
         distances[originCellId][originCellId] = 0;
     }
 
