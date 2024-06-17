@@ -87,6 +87,9 @@ void EpollConnectEntry::readEvent() {
         processMessage(request, response);
         this->processingInProgress = false;
     });
+
+    // Clean up after successful message processing
+    messageInProgress = false;
 }
 
 int EpollConnectEntry::readMessageSize() {
