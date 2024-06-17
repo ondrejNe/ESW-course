@@ -29,6 +29,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     uint64_t pointX = cells[destinationCellId].pointX;
     uint64_t pointY = cells[destinationCellId].pointY;
 
+    searchLogger.debug("Dijkstra's Algorithm from %llu to %llu", originCellId, destinationCellId);
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
@@ -80,5 +81,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     }
 
     uint64_t shortestPath = distances[originCellId][destinationCellId];
+    searchLogger.debug("Shortest path: %llu", shortestPath);
     return shortestPath;
 }

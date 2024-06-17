@@ -59,7 +59,6 @@ private:
     PrefixedLogger  searchLogger;
     // Workers
     ThreadPool      &resourcePool;
-    uint64_t        edges_count;
 
     // Distance metric between points
     uint64_t euclideanDistance(Point &p1, Point &p2);
@@ -73,7 +72,6 @@ public:
         cells.reserve(2000);
         distances.reserve(2000);
         edges.reserve(2000);
-        edges_count = 0;
     }
 
     /* Point API */
