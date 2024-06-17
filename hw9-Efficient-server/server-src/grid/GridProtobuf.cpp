@@ -3,7 +3,7 @@
 
 void Grid::processWalk(const esw::Walk &walk) {
     protoLogger.debug("Processing Walk message");
-    cout << "Processing Walk message" << endl;
+
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
@@ -16,20 +16,13 @@ void Grid::processWalk(const esw::Walk &walk) {
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
 
-    cout << "Processing Walk message: 1st edge" << endl;
     uint64_t originCellId = getPointCellId(origin);
-    cout << "Processing Walk message: 1st edge: originCellId: " << originCellId << endl;
     addPoint(origin, originCellId);
-    cout << "Processing Walk message: 1st edge: origin added" << endl;
     uint64_t destinationCellId = getPointCellId(destination);
-    cout << "Processing Walk message: 1st edge: destinationCellId: " << destinationCellId << endl;
     addPoint(destination, destinationCellId);
-    cout << "Processing Walk message: 1st edge: destination added" << endl;
     addEdge(originCellId, destinationCellId, length);
-    cout << "Processing Walk message: 1st edge added" << endl;
 
     for (int i = 1; i < locations.size() - 1; ++i) {
-        cout << "Processing Walk message: " << i + 1 << "th edge" << endl;
         auto &location = locations.Get(i + 1);
         auto &len = lengths.Get(i);
 
@@ -39,9 +32,7 @@ void Grid::processWalk(const esw::Walk &walk) {
         destinationCellId = getPointCellId(destination);
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
-        cout << "Processing Walk message: " << i + 1 << "th edge added" << endl;
     }
-    cout << "Walk message processed" << endl;
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {

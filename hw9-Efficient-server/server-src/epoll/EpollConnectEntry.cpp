@@ -163,11 +163,9 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
         response.set_status(esw::Response_Status_ERROR);
     }
 
-    cout << "Response status: " << response.status() << endl;
     // Send the response
     writeResponse(response);
 
-    cout << "Response sent" << endl;
     // Final request should close the connection
     if (request.has_onetoall()) {
         shutdown(this->get_fd(), SHUT_RDWR);

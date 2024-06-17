@@ -26,6 +26,9 @@ clean-debug: clean debug
 run-server:
 	./build/server-src/efficient_server 4321
 
+valgrind-server:
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/server-src/efficient_server
+
 gdb-server:
 	gdb ./build/server-src/efficient_server
 
