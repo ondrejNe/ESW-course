@@ -86,8 +86,10 @@ void EpollConnectEntry::readEvent() {
 
     connectLogger.info("Message handed to processing");
     processingInProgress = true;
-    processMessage(request, response);
-    processingInProgress = false;
+    resourcePool.run([this, request, response] {
+        processMessage(request, response);
+        this->processingInProgress = false;
+    });
 
     // Clean up after successful message processing
     messageInProgress = false;
