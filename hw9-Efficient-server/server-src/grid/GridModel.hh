@@ -29,28 +29,20 @@
 
 using namespace std;
 
-/**
- * Represents a point in the grid
- */
 struct Point {
     uint64_t x;
     uint64_t y;
 };
 
-/**
- * Represents a cell in the grid which is a collection of points
- * and edges to other cells.
- */
 struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
-    Point       point;
+    uint64_t    pointX;
+    uint64_t    pointY;
 };
 
-/**
- * Represents the grid data structure which is a collection of cells.
- */
+
 class Grid {
 private:
     // Graph structure
@@ -77,9 +69,9 @@ public:
             protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
             searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
             resourcePool(resourcePool) {
-        cells.reserve(120000);
-        distances.reserve(120000);
-        edges.reserve(200000);
+        cells.reserve(2000);
+        distances.reserve(2000);
+        edges.reserve(2000);
         edges_count = 0;
     }
 

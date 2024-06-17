@@ -12,48 +12,45 @@ const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
 };
 
 uint64_t Grid::getPointCellId(Point &point) {
-    apiLogger.debug("Getting cell id for point (%lu, %lu)", point.x, point.y);
-    pair<uint64_t, uint64_t> probableCellCoords = {point.x / 500, point.y / 500};
-    uint64_t probableCellId = ((point.x / 500) << 32) | ((point.y / 500));
-    apiLogger.debug("Probable cell id: %lu", probableCellId);
+    uint64_t probableCoordX = point.x / 500;
+    uint64_t probableCoordY = point.y / 500;
 
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
-        uint64_t neighborCellId =
-                ((probableCellCoords.first + comb.first) << 32) | (probableCellCoords.second + comb.second);
+        uint64_t neighborCellId = ((probableCoordX + comb.first) << 32) | (probableCoordY + comb.second);
         auto cellIt = cells.find(neighborCellId);
         if (cellIt == cells.end()) continue; // The searched cell does not exist
 
-        Point &neighborPoint = cellIt->second.point;
-        if (euclideanDistance(point, neighborPoint) <= 250000) {
-            apiLogger.debug("Neighbor cell id found: %lu with point %lu ; %lu", neighborCellId, neighborPoint.x,
-                            neighborPoint.y);
+        uint64_t &neighborPointX = cellIt->second.pointX;
+        uint64_t &neighborPointY = cellIt->second.pointY;
+        uint64_t dx = 0;
+        if (point.x > neighborPointX) {
+            dx = point.x - neighborPointX;
+        } else {
+            dx = neighborPointX - point.x;
+        }
+        uint64_t dy = 0;
+        if (point.y > neighborPointY) {
+            dy = point.y - neighborPointY;
+        } else {
+            dy = neighborPointY - point.y;
+        }
+        if ((dx * dx + dy * dy) <= 250000) {
             return neighborCellId;
         }
     }
 
-    apiLogger.debug("Cell id not found, using probable cell id");
-    return probableCellId;
-}
-
-uint64_t Grid::euclideanDistance(Point &p1, Point &p2) {
-    uint64_t dx = std::abs(static_cast<int64_t>(p1.x) - static_cast<int64_t>(p2.x));
-    uint64_t dy = std::abs(static_cast<int64_t>(p1.y) - static_cast<int64_t>(p2.y));
-    return dx * dx + dy * dy;
+    return (probableCoordX << 32) | (probableCoordY);
 }
 
 void Grid::addPoint(Point &point, uint64_t &cellId) {
     auto it = cells.find(cellId);
 
     if (it == cells.end()) {
-        apiLogger.debug("Creating new cell for point (%lu, %lu)", point.x, point.y);
-        // Create a new cell
         uint64_t coordX = point.x / 500;
         uint64_t coordY = point.y / 500;
         uint64_t id = (coordX << 32) | coordY;
-        apiLogger.debug("New cell id: %lu", id);
-        Point p = {point.x, point.y};
-        Cell newCell = {id, coordX, coordY, p};
+        Cell newCell = {id, coordX, coordY, point.x, point.y};
         cells[id] = newCell;
         edges[id] = unordered_map<uint64_t, uint64_t>();
         edges[id].reserve(10);
