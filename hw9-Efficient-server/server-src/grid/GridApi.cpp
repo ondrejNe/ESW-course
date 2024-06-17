@@ -18,6 +18,7 @@ uint64_t Grid::getPointCellId(Point &point) {
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
         uint64_t neighborCellId = ((probableCoordX + comb.first) << 32) | (probableCoordY + comb.second);
+        std::cout << "Checking cells map status: " << (void*)&cells << std::endl;
         auto cellIt = cells.find(neighborCellId);
         if (cellIt == cells.end()) continue; // The searched cell does not exist
 
