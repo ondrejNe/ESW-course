@@ -105,6 +105,7 @@ private:
     ThreadPool      &resourcePool;
     PrefixedLogger  socketLogger;
     PrefixedLogger  connectLogger;
+    PrefixedLogger  processLogger;
 public:
     // Constructor creates the listening socket
     EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool);
