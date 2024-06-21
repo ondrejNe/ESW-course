@@ -8,19 +8,19 @@ PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
 // Class definition -------------------------------------------------------------------------------
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     if (!this->is_fd_valid()) {
-        connectLogger.error("Invalid file descriptor");
+        connectLogger.error("Invalid file descriptor %d", this->get_fd());
         return false;
     }
     else if (events & EPOLLERR) {
-        connectLogger.error("EPOLLERR");
+        connectLogger.error("EPOLLERR received on connection %d", this->get_fd());
         return false;
     }
     else if (events & EPOLLHUP) {
-        connectLogger.warn("EPOLLHUP");
+        connectLogger.warn("EPOLLHUP received on connection %d", this->get_fd());
         return false;
     }
     else if (events & EPOLLRDHUP) {
-        connectLogger.error("EPOLLRDHUP");
+        connectLogger.error("EPOLLRDHUP received on connection %d", this->get_fd());
         return false;
     }
     else if (events & EPOLLIN) {
@@ -28,7 +28,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
             readEvent();
         }
         catch (exception &e) {
-            connectLogger.error("readEvent(): %s", e.what());
+            connectLogger.error("readEvent(): %s on connection %d", e.what(), this->get_fd());
             return false;
         }
     }
