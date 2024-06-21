@@ -20,7 +20,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
         } else {
             connectLogger.error("EPOLLERR received on connection FD%d: Unable to retrieve error code", this->get_fd());
         }
-        return false;
+        return true;
     }
     else if (events & EPOLLHUP) {
         connectLogger.warn("EPOLLHUP received on connection FD%d", this->get_fd());

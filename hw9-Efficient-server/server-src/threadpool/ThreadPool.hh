@@ -27,13 +27,11 @@ private:
     mutex                           synchMutex;
     condition_variable              synchCondition;
     PrefixedLogger                  threadpoolLogger;
-    int                             counter;
 
 public:
     ThreadPool(size_t numThreads) :
     stop(false),
-    threadpoolLogger("[THREADPOOL]", ACTIVE_LOGGER_THREADPOOL),
-    counter(0) {
+    threadpoolLogger("[THREADPOOL]", ACTIVE_LOGGER_THREADPOOL) {
         for (size_t i = 0; i < numThreads; ++i) {
             // For logging purposes perform suspensions
             this_thread::sleep_for(chrono::milliseconds(1));
