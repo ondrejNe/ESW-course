@@ -50,9 +50,9 @@ public:
                     tasks.pop_front();;
                     lock.unlock();
 
-                    threadpoolLogger.info("Task retrieved from queue %d", task.second);
+                    threadpoolLogger.info("Task retrieved from queue FD%d", task.second);
                     task.first();
-                    threadpoolLogger.info("Task executed %d", task.second);
+                    threadpoolLogger.info("Task executed FD%d", task.second);
                 }
             });
         }
@@ -68,12 +68,11 @@ public:
         }
     }
 
-    void run(function<void()> task) {
+    void run(function<void()> task, int id) {
         {
             lock_guard<mutex> lock(synchMutex);
-            int id = counter++;
             tasks.push_back(make_pair(move(task), id));
-            threadpoolLogger.info("Task added to the queue %d", id);
+            threadpoolLogger.info("Task added to the queue for FD%d", id);
         }
         synchCondition.notify_one();
     }

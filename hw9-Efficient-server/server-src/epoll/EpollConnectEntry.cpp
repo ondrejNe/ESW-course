@@ -99,7 +99,7 @@ void EpollConnectEntry::readEvent() {
     resourcePool.run([this, request, response] {
         processMessage(request, response);
         this->processingInProgress = false;
-    });
+    }, this->get_fd());
 
     // Clean up after successful message processing
     messageInProgress = false;
