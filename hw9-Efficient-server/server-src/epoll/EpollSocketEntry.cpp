@@ -18,7 +18,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) 
     if (fd == -1) {
         throw runtime_error("Socket creation failed: " + string(strerror(errno)));
     }
-    socketLogger.info("Socket created (%d)", fd);
+    socketLogger.info("Socket created [FD%d]", fd);
 
     /**
      * Setting the socket to non-blocking mode

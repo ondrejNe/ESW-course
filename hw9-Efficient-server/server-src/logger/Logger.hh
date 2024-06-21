@@ -66,6 +66,7 @@ public:
     // Log a formatted message
     template<typename... Args>
     void log(LogLevel level, string formatString, Args... args) {
+        if (!active) return;
 #ifndef ENABLE_DEBUG
         if (level == DEBUG) return;
 #endif

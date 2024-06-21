@@ -19,7 +19,7 @@
 #include <utility>
 
 #include "scheme.pb.h"
-#include "robin_hood.h"
+#include "robin_map.h"
 
 #include "Logger.hh"
 #include "ThreadPool.hh"
@@ -52,12 +52,12 @@ struct Cell {
 class Grid {
 private:
     // Graph structure
-    robin_hood::unordered_map <uint64_t, Cell>                              cells;
+    tsl::robin_map <uint64_t, Cell>                              cells;
 
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
-    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  distances;
-    robin_hood::unordered_map <uint64_t, robin_hood::unordered_map<uint64_t, uint64_t>>  edges;
+    tsl::robin_map <uint64_t, tsl::robin_map<uint64_t, uint64_t>>  distances;
+    tsl::robin_map <uint64_t, tsl::robin_map<uint64_t, uint64_t>>  edges;
 
     // Workers
     uint64_t        edges_count;
@@ -87,6 +87,8 @@ public:
     uint64_t processOneToOne(const esw::OneToOne &oneToOne);
 
     uint64_t processOneToAll(const esw::OneToAll &oneToAll);
+
+    void logGridGraph();
 };
 
 extern Grid grid;
