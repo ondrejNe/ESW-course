@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", false);
+PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
 
 // Class definition -------------------------------------------------------------------------------
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
@@ -20,8 +20,9 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
 }
 
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
-    searchLogger.info("Dijkstra from %llu to %llu", originCellId, destinationCellId);
+    searchLogger.debug("Dijkstra from %llu to %llu", originCellId, destinationCellId);
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
+    tsl::robin_map <uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
 
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
@@ -31,10 +32,12 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
         // Get the cell with the minimum distance from the priority queue
         uint64_t currentCellId = pq.top().second;
         pq.pop();
-        searchLogger.info("PQ popped current cell %llu", currentCellId);
-
-        // Break the loop if the destination cell is reached
-        if (currentCellId == destinationCellId) break;
+        searchLogger.debug("PQ popped current cell %llu", currentCellId);
+        if (visited[currentCellId] == 1) {
+            searchLogger.debug("Current cell %llu already visited", currentCellId);
+            continue;
+        }
+        visited[currentCellId] = 1;
 
         // Iterate over the neighbors of the current cell if they exist
         auto edgeIt = edges.find(currentCellId);
@@ -42,27 +45,22 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
         for (const auto &neighborEntry: edgeIt->second) {
             const auto &neighborCellId = neighborEntry.first;
-//            const auto &neighborLength = neighborEntry.second;
-//            searchLogger.info("Found neighbor cell %llu with length %llu", neighborCellId, neighborLength);
+            const auto &currentNeighbor = neighborEntry.second;
+            searchLogger.debug("Current to neighbor %llu", currentNeighbor);
 
             uint64_t originCurrent = distances[originCellId][currentCellId];
-            if (originCurrent == 0) {
-                searchLogger.error("Origin to current %llu is 0", currentCellId);
-            }
-            uint64_t currentNeighbor = distances[currentCellId][neighborCellId];
-            searchLogger.info("Origin to current %llu", originCurrent);
-            searchLogger.info("Current to neighbor %llu", currentNeighbor);
+            searchLogger.debug("Origin to current %llu", originCurrent);
 
             const uint64_t possibleOriginNeighbor = originCurrent + currentNeighbor;
-            searchLogger.info("Possible origin to neighbor %llu", possibleOriginNeighbor);
+            searchLogger.debug("Possible origin to neighbor %llu", possibleOriginNeighbor);
 
             uint64_t originNeighbor = distances[originCellId][neighborCellId];
-            searchLogger.info("Origin to neighbor %llu", originNeighbor);
+            searchLogger.debug("Origin to neighbor %llu", originNeighbor);
 
-            if (originNeighbor == 0 || possibleOriginNeighbor <= originNeighbor) {
+            if (originNeighbor == 0 || possibleOriginNeighbor < originNeighbor) {
                 distances[originCellId][neighborCellId] = possibleOriginNeighbor;
                 pq.push(make_pair(possibleOriginNeighbor, neighborCellId));
-                searchLogger.info("Origin to neighbor %llu updated to %llu", neighborCellId, possibleOriginNeighbor);
+                searchLogger.debug("Origin to neighbor %llu updated to %llu", neighborCellId, possibleOriginNeighbor);
             }
         }
     }

@@ -66,13 +66,6 @@ void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t
         edgeLength = (edgeLength + length) / 2;
     }
     edges[originCellId][destinationCellId] = edgeLength;
-
-    // Distances
-    uint64_t distanceLength = distances[originCellId][destinationCellId];
-    if (distanceLength == 0 || distanceLength > edgeLength) {
-        distanceLength = edgeLength;
-    }
-    distances[originCellId][destinationCellId] = distanceLength;
 }
 
 void Grid::resetGrid() {
