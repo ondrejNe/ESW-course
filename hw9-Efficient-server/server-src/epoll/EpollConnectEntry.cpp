@@ -3,7 +3,7 @@
 
 // Global variables -------------------------------------------------------------------------------
 PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
-PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
+PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", false);
 
 // Class definition -------------------------------------------------------------------------------
 bool EpollConnectEntry::handleEvent(uint32_t events) {

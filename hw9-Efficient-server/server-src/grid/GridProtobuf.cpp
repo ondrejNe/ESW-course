@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
+PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", false);
 
 // Class definition -------------------------------------------------------------------------------
 void Grid::processWalk(const esw::Walk &walk) {
