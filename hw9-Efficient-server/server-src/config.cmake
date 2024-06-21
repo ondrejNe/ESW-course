@@ -4,7 +4,7 @@ add_definitions(-DRESOURCE_POOL_TWO_SIZE=3)
 option(ENABLE_LOGGER_FILE "Enable logger file" OFF)
 option(ENABLE_LOGGER_THREAD "Enable logger thread" ON)
 
-option(ENABLE_DEBUG_LOG "Enable debug logging level" ON)
+option(ENABLE_DEBUG_LOG "Enable debug logging level" OFF)
 option(ENABLE_INFO_LOG "Enable info logging level" ON)
 option(ENABLE_WARN_LOG "Enable warn logging level" ON)
 option(ENABLE_ERROR_LOG "Enable error logging level" ON)
