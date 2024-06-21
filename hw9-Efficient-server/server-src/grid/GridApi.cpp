@@ -56,8 +56,8 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t id = (coordX << 32) | coordY;
         Cell newCell = {id, coordX, coordY, point.x, point.y};
         cells[id] = newCell;
-        edges[id] = unordered_map<uint64_t, uint64_t>();
-        distances[id] = unordered_map<uint64_t, uint64_t>();
+        edges[id] = robin_hood::unordered_map<uint64_t, uint64_t>();
+        distances[id] = robin_hood::unordered_map<uint64_t, uint64_t>();
     }
 }
 
