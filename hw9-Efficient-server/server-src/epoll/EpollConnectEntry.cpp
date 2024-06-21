@@ -129,7 +129,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
         const esw::OneToOne &oneToOne = request.onetoone();
         uint64_t val = grid.processOneToOne(oneToOne);
 
-        processLogger.info("OneToOne response %llu on connection FD%d", val);
+        processLogger.info("OneToOne response %llu on connection FD%d", val, fd);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
