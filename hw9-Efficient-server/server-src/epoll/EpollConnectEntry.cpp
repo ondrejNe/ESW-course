@@ -8,19 +8,19 @@ PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
 // Class definition -------------------------------------------------------------------------------
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     if (!this->is_fd_valid()) {
-        connectLogger.error("Invalid file descriptor %d", this->get_fd());
+        connectLogger.error("Invalid file descriptor FD%d", this->get_fd());
         return false;
     }
     else if (events & EPOLLERR) {
-        connectLogger.error("EPOLLERR received on connection %d", this->get_fd());
+        connectLogger.error("EPOLLERR received on connection FD%d", this->get_fd());
         return false;
     }
     else if (events & EPOLLHUP) {
-        connectLogger.warn("EPOLLHUP received on connection %d", this->get_fd());
+        connectLogger.warn("EPOLLHUP received on connection FD%d", this->get_fd());
         return false;
     }
     else if (events & EPOLLRDHUP) {
-        connectLogger.error("EPOLLRDHUP received on connection %d", this->get_fd());
+        connectLogger.error("EPOLLRDHUP received on connection FD%d", this->get_fd());
         return false;
     }
     else if (events & EPOLLIN) {
@@ -28,7 +28,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
             readEvent();
         }
         catch (exception &e) {
-            connectLogger.error("readEvent(): %s on connection %d", e.what(), this->get_fd());
+            connectLogger.error("readEvent(): %s on connection FD%d", e.what(), this->get_fd());
             return false;
         }
     }
@@ -46,7 +46,7 @@ void EpollConnectEntry::readEvent() {
         // New message
         inProgressMessageSize = readMessageSize();
         if (inProgressMessageSize < 0) {
-            connectLogger.error("Failed to read message size");
+            connectLogger.error("Failed to read message size on connection FD%d", this->get_fd());
             shutdown(this->get_fd(), SHUT_RDWR);
             return;
         }
@@ -59,24 +59,24 @@ void EpollConnectEntry::readEvent() {
                         inProgressMessageSize - inProgressMessageRead, MSG_WAITALL);
 
     if (received == 0) {
-        connectLogger.debug("Connection closed by client");
+        connectLogger.debug("Connection closed by client on FD%d", this->get_fd());
         shutdown(this->get_fd(), SHUT_RDWR);
         return;
     }
 
     if (received < 0) {
-        connectLogger.error("Failed to read message: %s", string(strerror(errno)));
+        connectLogger.error("Failed to read message: %s on FD%d", string(strerror(errno)), this->get_fd());
         shutdown(this->get_fd(), SHUT_RDWR);
         return;
     }
 
     inProgressMessageRead += received;
-    connectLogger.debug("Received: %d", received);
+    connectLogger.debug("Received: %d on connection FD%d", received, this->get_fd());
 
     // Was everything read from the socket?
     if (inProgressMessageRead != inProgressMessageSize) {
-        connectLogger.debug("Message in progress (received %d out of %d)", inProgressMessageRead,
-                            inProgressMessageSize);
+        connectLogger.debug("Message in progress (received %d out of %d) on connection FD%d", inProgressMessageRead,
+                            inProgressMessageSize, this->get_fd());
         messageInProgress = true;
         return;
     }
@@ -87,7 +87,7 @@ void EpollConnectEntry::readEvent() {
     response.set_status(esw::Response_Status_OK);
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
 
-    connectLogger.info("Message handed to processing");
+    connectLogger.info("Message handed to processing on connection FD%d", this->get_fd());
     processingInProgress = true;
     resourcePool.run([this, request, response] {
         processMessage(request, response);
@@ -104,12 +104,12 @@ int EpollConnectEntry::readMessageSize() {
     int received = recv(this->get_fd(), sizeBytes, sizeof(sizeBytes), MSG_WAITALL);
 
     if (received == 0) {
-        connectLogger.debug("Connection closed by client");
+        connectLogger.debug("Connection closed by client on FD%d", this->get_fd());
         return -1; // signifying that the connection should be closed
     }
 
     if (received != 4) {
-        connectLogger.error("On size read (expected 4) got: %d", received);
+        connectLogger.error("On size read (expected 4) got: %d on connection FD%d", received, this->get_fd());
         esw::Response response;
         response.set_status(esw::Response_Status_OK);
         writeResponse(response);
@@ -119,7 +119,7 @@ int EpollConnectEntry::readMessageSize() {
     memcpy(&msgSize, sizeBytes, sizeof(int));
     // Converts u_long from TCP/IP network order to host byte order
     msgSize = ntohl(msgSize);
-    connectLogger.debug("Message size: %d", msgSize);
+    connectLogger.debug("Message size: %d on connection FD%d", msgSize, this->get_fd());
     return msgSize;
 }
 
@@ -127,40 +127,40 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     // Parse the message request
     if (request.has_walk()) {
         // The message is of type Walk
-        processLogger.warn("Walk message received");
+        processLogger.warn("Walk message received on connection FD%d", this->get_fd());
         const esw::Walk &walk = request.walk();
         // Process the Walk message accordingly
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
         // The message is of type OneToOne
-        processLogger.warn("OneToOne message received");
+        processLogger.warn("OneToOne message received on connection FD%d", this->get_fd());
         const esw::OneToOne &oneToOne = request.onetoone();
         // Process the OneToOne message accordingly
         uint64_t val = grid.processOneToOne(oneToOne);
 
-        processLogger.info("OneToOne response %llu", val);
+        processLogger.info("OneToOne response %llu on connection FD%d", val);
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
         // The message is of type OneToAll
-        processLogger.warn("OneToAll message received");
+        processLogger.warn("OneToAll message received on connection FD%d", this->get_fd());
         const esw::OneToAll &oneToAll = request.onetoall();
         // Process the OneToAll message accordingly
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        processLogger.info("OneToAll response %llu", val);
+        processLogger.info("OneToAll response %llu on connection FD%d", val, this->get_fd());
         response.set_total_length(val);
 
     } else if (request.has_reset()) {
         // The message is of type Reset
-        processLogger.warn("Reset message received");
+        processLogger.warn("Reset message received on connection FD%d", this->get_fd());
         const esw::Reset &reset = request.reset();
         // Process the Reset message accordingly
         grid.processReset(reset);
 
     } else {
-        processLogger.error("No valid message type detected");
+        processLogger.error("No valid message type detected on connection FD%d", this->get_fd());
         response.set_status(esw::Response_Status_ERROR);
     }
 
@@ -170,7 +170,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     // Final request should close the connection
     if (request.has_onetoall()) {
         shutdown(this->get_fd(), SHUT_RDWR);
-        processLogger.info("Closing connection after OneToAll request");
+        processLogger.info("Closing connection after OneToAll request on connection FD%d", this->get_fd());
     }
 }
 
@@ -178,8 +178,8 @@ void EpollConnectEntry::writeResponse(esw::Response &response) {
     // Get the size of the serialized response
     size_t size = response.ByteSizeLong();
 
-    processLogger.debug("Response   size: %d on connection %d", size, this->get_fd());
-    processLogger.debug("Response status: %d on connection %d", response.status(), this->get_fd());
+    processLogger.debug("Response   size: %d on connection FD%d", size, this->get_fd());
+    processLogger.debug("Response status: %d on connection FD%d", response.status(), this->get_fd());
 
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);
