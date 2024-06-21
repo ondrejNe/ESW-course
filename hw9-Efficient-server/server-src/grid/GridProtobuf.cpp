@@ -51,7 +51,7 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     uint64_t destinationCellId = getPointCellId(destination);
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
-    protoLogger.warn("Shortest path: %llu", shortestPath);
+    protoLogger.warn("Shortest path: %llu from: %llu to: %llu", shortestPath, originCellId, destinationCellId);
     protoLogger.warn("Total cells: %llu", cells.size());
     protoLogger.warn("Total edges: %llu", edges_count);
     return shortestPath;

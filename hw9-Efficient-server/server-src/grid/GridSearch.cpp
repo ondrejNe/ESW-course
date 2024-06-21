@@ -30,9 +30,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
 
-    uint64_t pointX = cells[destinationCellId].pointX;
-    uint64_t pointY = cells[destinationCellId].pointY;
-
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
@@ -62,23 +59,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
             if (newDistance < neighborDistance) {
                 distances[originCellId][neighborCellId] = newDistance;
                 pq.push(make_pair(newDistance, neighborCellId));
-//                uint64_t neighborPointX = cells[neighborCellId].pointX;
-//                uint64_t neighborPointY = cells[neighborCellId].pointY;
-//
-//                uint64_t dx = 0;
-//                if (pointX > neighborPointX) {
-//                    dx = pointX - neighborPointX;
-//                } else {
-//                    dx = neighborPointX - pointX;
-//                }
-//                uint64_t dy = 0;
-//                if (pointY > neighborPointY) {
-//                    dy = pointY - neighborPointY;
-//                } else {
-//                    dy = neighborPointY - pointY;
-//                }
-//                uint64_t euclidean = dx * dx + dy * dy;
-//                pq.push(make_pair(newDistance + euclidean, neighborCellId));
             }
         }
     }
