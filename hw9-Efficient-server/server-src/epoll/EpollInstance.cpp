@@ -40,9 +40,8 @@ void EpollInstance::unregisterEpollEntry(int fd) {
     close(fd);
     epollLogger.debug("Closed FD%d", fd);
     for (const auto& entry : this->entries) {
-        int key = entry.first;
         const EpollEntry* e = entry.second.get();
-        epollLogger.debug("Key: %d, FD: %d", key, e->get_fd());
+        epollLogger.debug("Alive FD%d", e->get_fd());
     }
 }
 

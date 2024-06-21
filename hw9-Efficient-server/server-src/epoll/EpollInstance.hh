@@ -16,6 +16,7 @@
 #include <sstream>
 #include <memory>
 #include <unordered_map>
+#include <map>
 
 #include "EpollEntry.hh"
 
@@ -31,7 +32,7 @@ class EpollInstance
 {
 private:
     int fd;
-    std::unordered_map<int, std::unique_ptr<EpollEntry>> entries;
+    std::map<int, std::unique_ptr<EpollEntry>> entries;
 
 public:
     EpollInstance() {
@@ -39,7 +40,7 @@ public:
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));
         }
-        this->entries = std::unordered_map<int, std::unique_ptr<EpollEntry>>();
+        this->entries = std::map<int, std::unique_ptr<EpollEntry>>();
     }
 
     ~EpollInstance() {
