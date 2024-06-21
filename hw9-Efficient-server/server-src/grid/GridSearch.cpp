@@ -61,24 +61,24 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
             // Update the distance and previous cell if the new distance is shorter
             if (newDistance < neighborDistance) {
                 distances[originCellId][neighborCellId] = newDistance;
-
-                uint64_t neighborPointX = cells[neighborCellId].pointX;
-                uint64_t neighborPointY = cells[neighborCellId].pointY;
-
-                uint64_t dx = 0;
-                if (pointX > neighborPointX) {
-                    dx = pointX - neighborPointX;
-                } else {
-                    dx = neighborPointX - pointX;
-                }
-                uint64_t dy = 0;
-                if (pointY > neighborPointY) {
-                    dy = pointY - neighborPointY;
-                } else {
-                    dy = neighborPointY - pointY;
-                }
-                uint64_t euclidean = dx * dx + dy * dy;
-                pq.push(make_pair(newDistance + euclidean, neighborCellId));
+                pq.push(make_pair(newDistance, neighborCellId));
+//                uint64_t neighborPointX = cells[neighborCellId].pointX;
+//                uint64_t neighborPointY = cells[neighborCellId].pointY;
+//
+//                uint64_t dx = 0;
+//                if (pointX > neighborPointX) {
+//                    dx = pointX - neighborPointX;
+//                } else {
+//                    dx = neighborPointX - pointX;
+//                }
+//                uint64_t dy = 0;
+//                if (pointY > neighborPointY) {
+//                    dy = pointY - neighborPointY;
+//                } else {
+//                    dy = neighborPointY - pointY;
+//                }
+//                uint64_t euclidean = dx * dx + dy * dy;
+//                pq.push(make_pair(newDistance + euclidean, neighborCellId));
             }
         }
     }
