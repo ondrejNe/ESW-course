@@ -44,7 +44,6 @@ void EpollInstance::unregisterEpollEntry(int fd) {
         const EpollEntry* e = entry.second.get();
         epollLogger.debug("Key: %d, FD: %d", key, e->get_fd());
     }
-    this->entries.erase(fd);
     epollLogger.warn("Erased %d", fd);
 }
 
