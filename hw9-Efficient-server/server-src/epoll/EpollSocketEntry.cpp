@@ -5,9 +5,8 @@
 PrefixedLogger socketLogger = PrefixedLogger("[EPOLL SOCK]", true);
 
 // Class definition -------------------------------------------------------------------------------
-EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections) :
-    eSocket(eSocket),
-    eConnections(eConnections)
+EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) :
+    epollInstance(epollInstance)
 {
     int fd;
     struct sockaddr_in addr;
@@ -66,7 +65,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
 
     // Set the file descriptor and events for the epoll entry
     this->set_fd(fd);
-    this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
+    this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
 bool EpollSocketEntry::handleEvent(uint32_t events) {
@@ -91,7 +90,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events) {
             socketLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
             return false;
         }
-        socketLogger.info("Socket accepted connection (%d)", connFd);
+        socketLogger.info("Socket accepted connection FD%d", connFd);
 
         // Set the connection fd to non-blocking mode
         int flags = fcntl(connFd, F_GETFL, 0);
@@ -101,8 +100,8 @@ bool EpollSocketEntry::handleEvent(uint32_t events) {
             return false;
         }
 
-        auto conn = std::make_unique<EpollConnectEntry>(connFd, eConnections);
-        eConnections.registerEpollEntry(std::move(conn));
+        auto conn = std::make_unique<EpollConnectEntry>(connFd);
+        epollInstance.registerEpollEntry(std::move(conn));
         socketLogger.debug("Socket registered connection (%d)", connFd);
     }
 

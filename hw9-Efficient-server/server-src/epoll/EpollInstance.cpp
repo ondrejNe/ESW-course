@@ -1,6 +1,8 @@
 
 #include "EpollInstance.hh"
 
+#define EPOLL_MAX_EVENTS 2048
+
 // Global variables -------------------------------------------------------------------------------
 PrefixedLogger epollLogger = PrefixedLogger("[EPOLL INST]", true);
 

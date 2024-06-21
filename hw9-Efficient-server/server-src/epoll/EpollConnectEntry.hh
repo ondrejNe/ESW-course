@@ -34,8 +34,6 @@ extern Grid grid;
 class EpollConnectEntry : public EpollEntry
 {
 private:
-    EpollInstance   &eConnections;
-    // Single message variables
     int             inProgressMessageSize;
     int             inProgressMessageRead;
     char            messageBuffer[50000];
@@ -52,8 +50,7 @@ private:
 
 public:
     // A proper constructor for an accepted connection
-    EpollConnectEntry(int fd, EpollInstance &eConnections) :
-            eConnections(eConnections),
+    EpollConnectEntry(int fd) :
             inProgressMessageSize(0),
             inProgressMessageRead(0),
             messageInProgress(false),
@@ -61,7 +58,7 @@ public:
 
         // Assign the file descriptor of the accepted connection
         this->set_fd(fd);
-        this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP);
+        this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         // Add logging
         connectLogger.info("Connection epoll entry created FD%d", fd);
     }

@@ -33,11 +33,10 @@ extern Grid grid;
 class EpollSocketEntry : public EpollEntry
 {
 private:
-    EpollInstance   &eSocket;
-    EpollInstance   &eConnections;
+    EpollInstance   &epollInstance;
 public:
     // Constructor creates the listening socket
-    EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections);
+    EpollSocketEntry(uint16_t port, EpollInstance &epollInstance);
 
     // Accept connections and create epoll connection entries
     bool handleEvent(uint32_t events) override;

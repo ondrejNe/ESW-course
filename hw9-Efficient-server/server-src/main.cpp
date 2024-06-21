@@ -43,26 +43,19 @@ int main(int argc, char *argv[]) {
     // For logging purposes perform suspensions
     this_thread::sleep_for(chrono::milliseconds(1));
 
-    /* Prepare server resources */
-
-    EpollInstance epollConnectInstance;
-    EpollInstance epollSocketInstance;
+    EpollInstance epollInstance;
 
     // For logging purposes perform suspensions
     this_thread::sleep_for(chrono::milliseconds(1));
 
-    // Connection events
-    thread ep1 = thread([&epollConnectInstance]() {
-        while (true) epollConnectInstance.waitAndHandleEvents();
-    });
     // Socket events
-    thread ep2 = thread([&epollSocketInstance]() {
-        while (true) epollSocketInstance.waitAndHandleEvents();
+    thread ep = thread([&epollInstance]() {
+        while (true) epollInstance.waitAndHandleEvents();
     });
 
     // Calculation logic
-    std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollSocketInstance, epollConnectInstance);
-    epollSocketInstance.registerEpollEntry(std::move(serverSocket));
+    std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollInstance);
+    epollInstance.registerEpollEntry(std::move(serverSocket));
 
     resourcePool.waitAllThreads();
     return 0;
