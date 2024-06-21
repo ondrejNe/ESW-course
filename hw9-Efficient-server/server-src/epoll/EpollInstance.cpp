@@ -7,7 +7,7 @@ PrefixedLogger epollLogger = PrefixedLogger("[EPOLL INST]", true);
 // Class definition -------------------------------------------------------------------------------
 void EpollInstance::registerEpollEntry(std::unique_ptr<EpollEntry> e) {
     int fd = e->get_fd();
-    epollLogger.debug("Register: %d", fd);
+    epollLogger.debug("Register: FD%d", fd);
 
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
@@ -24,8 +24,6 @@ void EpollInstance::registerEpollEntry(std::unique_ptr<EpollEntry> e) {
 }
 
 void EpollInstance::unregisterEpollEntry(int fd) {
-    epollLogger.debug("Unregister: %d", fd);
-
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
 
@@ -35,12 +33,12 @@ void EpollInstance::unregisterEpollEntry(int fd) {
     if (epoll_ctl(this->fd, EPOLL_CTL_DEL, fd, &ev) == -1) {
         throw std::runtime_error(std::string("epoll_ctl: ") + strerror(errno));
     }
-    epollLogger.debug("Unregistered: %d", fd);
-    close(fd);
-    epollLogger.debug("Closed: %d", fd);
+    epollLogger.debug("Unregistered FD%d", fd);
     // Remove the entry from the map
     this->entries.erase(fd);
-    epollLogger.warn("Erased %d", fd);
+    epollLogger.warn("Erased FD%d", fd);
+    close(fd);
+    epollLogger.debug("Closed FD%d", fd);
     for (const auto& entry : this->entries) {
         int key = entry.first;
         const EpollEntry* e = entry.second.get();
