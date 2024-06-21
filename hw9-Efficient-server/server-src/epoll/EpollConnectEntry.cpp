@@ -173,9 +173,8 @@ void EpollConnectEntry::writeResponse(esw::Response &response, int fd) {
     int bytesSent = send(fd, (const char *) (&networkByteOrderSize), 4, 0);
     if (bytesSent < 0) {
         processLogger.error("Failed to send response size on connection [FD%d]: %s", fd, string(strerror(errno)));
-        throw runtime_error(string(strerror(errno)));
+    } else {
+        response.SerializeToFileDescriptor(fd);
+        fsync(fd);
     }
-
-    response.SerializeToFileDescriptor(fd);
-    fsync(fd);
 }
