@@ -60,11 +60,15 @@ public:
         this->set_fd(fd);
         this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         // Add logging
+#ifdef CONNECT_LOGGER
         connectLogger.info("Connection epoll entry created FD%d", fd);
+#endif
     }
 
     ~EpollConnectEntry() {
+#ifdef CONNECT_LOGGER
         connectLogger.info("Connection epoll entry closed FD%d", this->get_fd());
+#endif
     }
 
     // Handle incoming data or errors for the connection
