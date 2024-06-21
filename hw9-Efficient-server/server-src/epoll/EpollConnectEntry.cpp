@@ -178,8 +178,7 @@ void EpollConnectEntry::writeResponse(esw::Response &response) {
     // Get the size of the serialized response
     size_t size = response.ByteSizeLong();
 
-    processLogger.debug("Response   size: %d on connection FD%d", size, this->get_fd());
-    processLogger.debug("Response status: %d on connection FD%d", response.status(), this->get_fd());
+    processLogger.debug("Response size: %d status: %d on connection FD%d", size, response.status(), this->get_fd());
 
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);
