@@ -87,10 +87,13 @@ void EpollConnectEntry::readEvent() {
     connectLogger.info("Message handed to processing on connection [FD%d]", this->get_fd());
     processingInProgress = true;
     int fd = this->get_fd();
-    resourcePool.run([this, request, response, fd] {
-        processMessage(request, response, fd);
-        this->processingInProgress = false;
-    }, fd);
+    processMessage(request, response, fd);
+    this->processingInProgress = false;
+
+//    resourcePool.run([this, request, response, fd] {
+//        processMessage(request, response, fd);
+//        this->processingInProgress = false;
+//    }, fd);
 }
 
 int EpollConnectEntry::readMessageSize() {
