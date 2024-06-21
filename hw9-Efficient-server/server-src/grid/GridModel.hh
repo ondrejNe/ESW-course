@@ -61,6 +61,7 @@ private:
 
     // Workers
     uint64_t        edges_count;
+    uint64_t        edges_space;
     uint64_t        location_count;
     uint64_t        walk_count;
     uint64_t        oneToOne_count;
@@ -68,7 +69,12 @@ private:
 
 public:
     Grid() {
+        cells.reserve(100000);
+        distances.reserve(100000);
+        edges.reserve(100000);
+
         edges_count = 0;
+        edges_space = 0;
         location_count = 0;
         walk_count = 0;
         oneToOne_count = 0;
