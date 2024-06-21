@@ -65,7 +65,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) 
 
     // Set the file descriptor and events for the epoll entry
     this->set_fd(fd);
-    this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
+    this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
 bool EpollSocketEntry::handleEvent(uint32_t events) {
