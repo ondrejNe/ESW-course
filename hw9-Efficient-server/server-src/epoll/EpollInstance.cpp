@@ -39,13 +39,13 @@ void EpollInstance::unregisterEpollEntry(int fd) {
     close(fd);
     epollLogger.debug("Closed: %d", fd);
     // Remove the entry from the map
+    this->entries.erase(fd);
+    epollLogger.warn("Erased %d", fd);
     for (const auto& entry : this->entries) {
         int key = entry.first;
         const EpollEntry* e = entry.second.get();
         epollLogger.debug("Key: %d, FD: %d", key, e->get_fd());
     }
-    this->entries.erase(fd);
-    epollLogger.warn("Erased %d", fd);
 }
 
 void EpollInstance::waitAndHandleEvents() {
