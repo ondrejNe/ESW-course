@@ -61,7 +61,7 @@ public:
 
         // Assign the file descriptor of the accepted connection
         this->set_fd(fd);
-        this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
+        this->set_events(EPOLLIN | EPOLLHUP | EPOLLRDHUP);
         // Add logging
         connectLogger.info("Connection epoll entry created FD%d", fd);
     }
