@@ -33,10 +33,10 @@ gdb-server:
 	gdb ./build/server-src/efficient_server
 
 perf-server:
-	perf record ./build/server-src/efficient_server
+	perf record -g ./build/server-src/efficient_server
 
 perf-report:
-	perf report ./perf.data --hierarchy
+	perf report -g ./perf.data --hierarchy
 
 run-test-one:
 	nc localhost 4321 < test/walk1nodes3-2.pbf
