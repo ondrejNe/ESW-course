@@ -33,7 +33,6 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
     else if (events & EPOLLIN) {
         try {
             readEvent();
-            connectLogger.debug("Read event on connection [FD%d]", this->get_fd());
         }
         catch (exception &e) {
             connectLogger.error("readEvent(): %s on connection [FD%d]", e.what(), this->get_fd());
