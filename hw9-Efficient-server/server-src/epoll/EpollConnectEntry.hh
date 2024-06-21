@@ -42,9 +42,9 @@ private:
 
     int readMessageSize();
 
-    void processMessage(esw::Request request, esw::Response response);
+    void processMessage(esw::Request request, esw::Response response, int fd);
 
-    void writeResponse(esw::Response &response);
+    void writeResponse(esw::Response &response, int fd);
 
 public:
     // A proper constructor for an accepted connection

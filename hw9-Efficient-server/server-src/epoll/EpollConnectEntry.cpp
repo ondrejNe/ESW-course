@@ -87,7 +87,7 @@ void EpollConnectEntry::readEvent() {
     connectLogger.info("Message handed to processing on connection FD%d", this->get_fd());
     processingInProgress = true;
     resourcePool.run([this, request, response] {
-        processMessage(request, response);
+        processMessage(request, response, this->get_fd());
         this->processingInProgress = false;
     }, this->get_fd());
 }
@@ -106,7 +106,7 @@ int EpollConnectEntry::readMessageSize() {
         connectLogger.error("On size read expected 4 got: %d on connection FD%d", received, this->get_fd());
         esw::Response response;
         response.set_status(esw::Response_Status_OK);
-        writeResponse(response);
+        writeResponse(response, this->get_fd());
         return -1; // signifying that the connection should be closed
     }
 
@@ -117,14 +117,14 @@ int EpollConnectEntry::readMessageSize() {
     return msgSize;
 }
 
-void EpollConnectEntry::processMessage(esw::Request request, esw::Response response) {
+void EpollConnectEntry::processMessage(esw::Request request, esw::Response response, int fd) {
     if (request.has_walk()) {
-        processLogger.warn("Walk message received on connection FD%d", this->get_fd());
+        processLogger.warn("Walk message received on connection FD%d", fd);
         const esw::Walk &walk = request.walk();
         grid.processWalk(walk);
 
     } else if (request.has_onetoone()) {
-        processLogger.warn("OneToOne message received on connection FD%d", this->get_fd());
+        processLogger.warn("OneToOne message received on connection FD%d", fd);
         const esw::OneToOne &oneToOne = request.onetoone();
         uint64_t val = grid.processOneToOne(oneToOne);
 
@@ -132,48 +132,48 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
-        processLogger.warn("OneToAll message received on connection FD%d", this->get_fd());
+        processLogger.warn("OneToAll message received on connection FD%d", fd);
         const esw::OneToAll &oneToAll = request.onetoall();
         uint64_t val = grid.processOneToAll(oneToAll);
 
-        processLogger.info("OneToAll response %llu on connection FD%d", val, this->get_fd());
+        processLogger.info("OneToAll response %llu on connection FD%d", val, fd);
         response.set_total_length(val);
 
     } else if (request.has_reset()) {
-        processLogger.warn("Reset message received on connection FD%d", this->get_fd());
+        processLogger.warn("Reset message received on connection FD%d", fd);
         const esw::Reset &reset = request.reset();
         grid.processReset(reset);
 
     } else {
-        processLogger.error("No valid message type detected on connection FD%d", this->get_fd());
+        processLogger.error("No valid message type detected on connection FD%d", fd);
         response.set_status(esw::Response_Status_ERROR);
     }
 
     // Send the response
-    writeResponse(response);
+    writeResponse(response, fd);
 
     // Final request should close the connection
     if (request.has_onetoall()) {
-        shutdown(this->get_fd(), SHUT_RDWR);
-        processLogger.info("Closing connection after OneToAll request on connection FD%d", this->get_fd());
+        shutdown(fd, SHUT_RDWR);
+        processLogger.info("Closing connection after OneToAll request on connection FD%d", fd);
     }
 }
 
-void EpollConnectEntry::writeResponse(esw::Response &response) {
+void EpollConnectEntry::writeResponse(esw::Response &response, int fd) {
     // Get the size of the serialized response
     size_t size = response.ByteSizeLong();
 
-    processLogger.debug("Response size: %d status: %d on connection FD%d", size, response.status(), this->get_fd());
+    processLogger.debug("Response size: %d status: %d on connection FD%d", size, response.status(), fd);
 
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);
 
-    int bytesSent = send(this->get_fd(), (const char *) (&networkByteOrderSize), 4, 0);
+    int bytesSent = send(fd, (const char *) (&networkByteOrderSize), 4, 0);
     if (bytesSent < 0) {
-        processLogger.error("Failed to send response size on connection FD%d: %s", this->get_fd(), string(strerror(errno)));
+        processLogger.error("Failed to send response size on connection FD%d: %s", fd, string(strerror(errno)));
         throw runtime_error(string(strerror(errno)));
     }
 
-    response.SerializeToFileDescriptor(this->get_fd());
-    fsync(this->get_fd());
+    response.SerializeToFileDescriptor(fd);
+    fsync(fd);
 }
