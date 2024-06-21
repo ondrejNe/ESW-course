@@ -87,7 +87,7 @@ void EpollConnectEntry::readEvent() {
     response.set_status(esw::Response_Status_OK);
     request.ParseFromArray(messageBuffer, inProgressMessageSize);
 
-    connectLogger.info("Message handed to processing on connection [FD%d]", this->get_fd());
+    connectLogger.debug("Message handed to processing on connection [FD%d]", this->get_fd());
     processingInProgress = true;
     int fd = this->get_fd();
     processMessage(request, response, fd);
@@ -149,8 +149,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
 
     } else if (request.has_reset()) {
         processLogger.warn("Reset message received on connection [FD%d]", fd);
-        const esw::Reset &reset = request.reset();
-        grid.processReset(reset);
+        grid.processReset();
 
     } else {
         processLogger.error("No valid message type detected on connection [FD%d]", fd);

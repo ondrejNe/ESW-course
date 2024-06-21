@@ -7,6 +7,7 @@ PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 // Class definition -------------------------------------------------------------------------------
 void Grid::processWalk(const esw::Walk &walk) {
     protoLogger.debug("Processing Walk message");
+    walk_count++;
 
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
@@ -42,7 +43,9 @@ void Grid::processWalk(const esw::Walk &walk) {
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
-    protoLogger.info("Processing OnToOne message");
+    protoLogger.info("Processing OneToOne message");
+    oneToOne_count++;
+
     const auto &location1 = oneToOne.origin();
     const auto &location2 = oneToOne.destination();
 
@@ -55,26 +58,32 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
     protoLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId,
                      destinationCellId, cells.size(), edges_count);
+    protoLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
+                     location_count);
 
 //    logGridGraph();
     return shortestPath;
 }
 
 uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
-    protoLogger.info("Processing OnToAll message");
+    protoLogger.info("Processing OneToAll message");
+    oneToAll_count++;
+
     const auto &location1 = oneToAll.origin();
 
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     uint64_t originCellId = getPointCellId(origin);
 
     uint64_t shortestPath = allDijkstra(originCellId);
-    protoLogger.warn("Total length: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
+    protoLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
                      edges_count);
+    protoLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
+                     location_count);
 
 //    logGridGraph();
     return shortestPath;
 }
 
-void Grid::processReset(const esw::Reset &reset) {
+void Grid::processReset() {
     resetGrid();
 }

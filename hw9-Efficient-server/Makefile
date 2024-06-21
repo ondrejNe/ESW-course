@@ -48,9 +48,12 @@ run-test-three:
 	nc localhost 4321 < test/walk2nodes6.pbf
 
 run-test-four:
-	nc localhost 4321 < test/walk3000.pbf
+	nc localhost 4321 < test/walk10nodes500.pbf
 
 run-test-five:
+	nc localhost 4321 < test/walk3000.pbf
+
+run-test-six:
 	nc localhost 4321 < test/static.pbf
 
 ## Project environment --------------------------------------------------------

@@ -42,29 +42,27 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 
         for (const auto &neighborEntry: edgeIt->second) {
             const auto &neighborCellId = neighborEntry.first;
-            const auto &neighborLength = neighborEntry.second;
-            searchLogger.info("Found neighbor cell %llu with length %llu", neighborCellId, neighborLength);
+//            const auto &neighborLength = neighborEntry.second;
+//            searchLogger.info("Found neighbor cell %llu with length %llu", neighborCellId, neighborLength);
 
-            if (distances[originCellId].find(neighborCellId) == distances[originCellId].end()) {
-                distances[originCellId][neighborCellId] = numeric_limits<uint64_t>::max();
-                searchLogger.info("Neighbor cell %llu added to the origin distances with max", neighborCellId);
-            }
             uint64_t originCurrent = distances[originCellId][currentCellId];
-            uint64_t originNeighbor = distances[originCellId][neighborCellId];
+            if (originCurrent == 0) {
+                searchLogger.error("Origin to current %llu is 0", currentCellId);
+            }
             uint64_t currentNeighbor = distances[currentCellId][neighborCellId];
             searchLogger.info("Origin to current %llu", originCurrent);
-            searchLogger.info("Origin to neighbor %llu", originNeighbor);
             searchLogger.info("Current to neighbor %llu", currentNeighbor);
 
-            // Calculate the new distance from the source to the neighbor cell
-            const uint64_t newDistance = originCurrent + neighborLength;
-            searchLogger.info("Possible origin to neighbor %llu", newDistance);
+            const uint64_t possibleOriginNeighbor = originCurrent + currentNeighbor;
+            searchLogger.info("Possible origin to neighbor %llu", possibleOriginNeighbor);
 
-            // Update the distance and previous cell if the new distance is shorter
-            if (newDistance <= originNeighbor) {
-                distances[originCellId][neighborCellId] = newDistance;
-                pq.push(make_pair(newDistance, neighborCellId));
-                searchLogger.info("Neighbor cell %llu updated to %llu", neighborCellId, newDistance);
+            uint64_t originNeighbor = distances[originCellId][neighborCellId];
+            searchLogger.info("Origin to neighbor %llu", originNeighbor);
+
+            if (originNeighbor == 0 || possibleOriginNeighbor <= originNeighbor) {
+                distances[originCellId][neighborCellId] = possibleOriginNeighbor;
+                pq.push(make_pair(possibleOriginNeighbor, neighborCellId));
+                searchLogger.info("Origin to neighbor %llu updated to %llu", neighborCellId, possibleOriginNeighbor);
             }
         }
     }

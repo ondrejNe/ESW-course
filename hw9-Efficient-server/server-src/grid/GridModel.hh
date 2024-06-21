@@ -61,10 +61,18 @@ private:
 
     // Workers
     uint64_t        edges_count;
+    uint64_t        location_count;
+    uint64_t        walk_count;
+    uint64_t        oneToOne_count;
+    uint64_t        oneToAll_count;
 
 public:
     Grid() {
         edges_count = 0;
+        location_count = 0;
+        walk_count = 0;
+        oneToOne_count = 0;
+        oneToAll_count = 0;
     }
 
     void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
@@ -82,7 +90,7 @@ public:
 
     void processWalk(const esw::Walk &walk);
 
-    void processReset(const esw::Reset &reset);
+    void processReset();
 
     uint64_t processOneToOne(const esw::OneToOne &oneToOne);
 

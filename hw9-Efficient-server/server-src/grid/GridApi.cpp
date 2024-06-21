@@ -39,6 +39,8 @@ uint64_t Grid::getPointCellId(Point &point) {
 }
 
 void Grid::addPoint(Point &point, uint64_t &cellId) {
+    location_count++;
+
     auto it = cells.find(cellId);
 
     if (it == cells.end()) {
@@ -55,20 +57,22 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
 }
 
 void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    uint64_t &edgeLength = edges[originCellId][destinationCellId];
+    // Edges
+    uint64_t edgeLength = edges[originCellId][destinationCellId];
     if (edgeLength == 0) {
         edgeLength = length;
         edges_count += 1;
     } else {
         edgeLength = (edgeLength + length) / 2;
     }
+    edges[originCellId][destinationCellId] = edgeLength;
 
-    if (distances[originCellId][destinationCellId] == 0) {
-        distances[originCellId][destinationCellId] = edgeLength;
+    // Distances
+    uint64_t distanceLength = distances[originCellId][destinationCellId];
+    if (distanceLength == 0 || distanceLength > edgeLength) {
+        distanceLength = edgeLength;
     }
-    if (distances[originCellId][destinationCellId] > edgeLength) {
-        distances[originCellId][destinationCellId] = edgeLength;
-    }
+    distances[originCellId][destinationCellId] = distanceLength;
 }
 
 void Grid::resetGrid() {
