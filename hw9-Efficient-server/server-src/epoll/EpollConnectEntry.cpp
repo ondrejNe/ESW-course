@@ -10,27 +10,24 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
     if (!this->is_fd_valid()) {
         connectLogger.error("Invalid file descriptor [FD%d]", this->get_fd());
         return false;
-    }
-    else if (events & EPOLLERR) {
+    } else if (events & EPOLLERR) {
         // Retrieve the specific error code
         int err = 0;
         socklen_t len = sizeof(err);
         if (getsockopt(this->get_fd(), SOL_SOCKET, SO_ERROR, &err, &len) == 0) {
             connectLogger.error("EPOLLERR received on connection [FD%d]: %s", this->get_fd(), strerror(err));
         } else {
-            connectLogger.error("EPOLLERR received on connection [FD%d]: Unable to retrieve error code", this->get_fd());
+            connectLogger.error("EPOLLERR received on connection [FD%d]: Unable to retrieve error code",
+                                this->get_fd());
         }
         return false;
-    }
-    else if (events & EPOLLHUP) {
+    } else if (events & EPOLLHUP) {
         connectLogger.warn("EPOLLHUP received on connection [FD%d]", this->get_fd());
         return false;
-    }
-    else if (events & EPOLLRDHUP) {
+    } else if (events & EPOLLRDHUP) {
         connectLogger.error("EPOLLRDHUP received on connection [FD%d]", this->get_fd());
         return false;
-    }
-    else if (events & EPOLLIN) {
+    } else if (events & EPOLLIN) {
         try {
             readEvent();
         }
@@ -49,15 +46,20 @@ void EpollConnectEntry::readEvent() {
     }
 
     // New message
-    inProgressMessageSize = readMessageSize();
-    if (inProgressMessageSize < 0) {
-        connectLogger.warn("Failed to read message size on connection [FD%d]", this->get_fd());
-        shutdown(this->get_fd(), SHUT_RDWR);
-        return;
+    if (!messageInProgress) {
+        inProgressMessageSize = readMessageSize();
+        if (inProgressMessageSize < 0) {
+            connectLogger.warn("Failed to read message size on connection [FD%d]", this->get_fd());
+            shutdown(this->get_fd(), SHUT_RDWR);
+            return;
+        }
+        messageInProgress = true;
+        inProgressMessageOffset = 0;
     }
 
     // Read the message
-    int received = recv(this->get_fd(), messageBuffer, inProgressMessageSize, MSG_WAITALL);
+    int received = recv(this->get_fd(), messageBuffer + inProgressMessageOffset,
+                        inProgressMessageSize - inProgressMessageOffset, MSG_WAITALL);
     connectLogger.debug("Received: %d on connection [FD%d]", received, this->get_fd());
 
     if (received == 0) {
@@ -72,9 +74,10 @@ void EpollConnectEntry::readEvent() {
         return;
     }
 
-    if (received != inProgressMessageSize) {
-        connectLogger.error("Received %d of %d on connection [FD%d]", received, inProgressMessageSize, this->get_fd());
-        shutdown(this->get_fd(), SHUT_RDWR);
+    inProgressMessageOffset += received;
+
+    if (inProgressMessageOffset != inProgressMessageSize) {
+        connectLogger.debug("Received %d of %d on connection [FD%d]", received, inProgressMessageSize, this->get_fd());
         return;
     }
 
@@ -88,7 +91,8 @@ void EpollConnectEntry::readEvent() {
     processingInProgress = true;
     int fd = this->get_fd();
     processMessage(request, response, fd);
-    this->processingInProgress = false;
+    processingInProgress = false;
+    messageInProgress = false;
 
 //    resourcePool.run([this, request, response, fd] {
 //        processMessage(request, response, fd);

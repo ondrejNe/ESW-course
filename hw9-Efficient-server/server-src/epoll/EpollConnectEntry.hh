@@ -35,7 +35,9 @@ class EpollConnectEntry : public EpollEntry
 {
 private:
     int             inProgressMessageSize;
+    int             inProgressMessageOffset;
     char            messageBuffer[50000];
+    bool            messageInProgress;
     bool            processingInProgress;
 
     void readEvent();
@@ -50,6 +52,8 @@ public:
     // A proper constructor for an accepted connection
     EpollConnectEntry(int fd) :
             inProgressMessageSize(0),
+            inProgressMessageOffset(0),
+            messageInProgress(false),
             processingInProgress(false) {
 
         // Assign the file descriptor of the accepted connection
