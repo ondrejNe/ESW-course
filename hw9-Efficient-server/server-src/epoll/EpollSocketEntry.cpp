@@ -2,6 +2,7 @@
 #include "EpollSocketEntry.hh"
 
 // Global variables -------------------------------------------------------------------------------
+#define SOCKET_LOGGER
 PrefixedLogger socketLogger = PrefixedLogger("[EPOLL SOCK]", true);
 
 // Class definition -------------------------------------------------------------------------------
@@ -52,8 +53,9 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) 
         close(fd);
         throw runtime_error("Socket binding failed: " + string(strerror(errno)));
     }
+#ifdef SOCKET_LOGGER
     socketLogger.info("Socket bound to port: %d", port);
-
+#endif
     /**
      * Listen for connections on the socket. n connections is queued before refusal of new ones.
     */
@@ -61,8 +63,9 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) 
         close(fd);
         throw runtime_error("Socket listen failed: " + string(strerror(errno)));
     }
+#ifdef SOCKET_LOGGER
     socketLogger.info("Socket listening for connections");
-
+#endif
     // Set the file descriptor and events for the epoll entry
     this->set_fd(fd);
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
@@ -90,19 +93,24 @@ bool EpollSocketEntry::handleEvent(uint32_t events) {
             socketLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
             return false;
         }
+#ifdef SOCKET_LOGGER
         socketLogger.info("Socket accepted connection [FD%d]", connFd);
-
+#endif
         // Set the connection fd to non-blocking mode
         int flags = fcntl(connFd, F_GETFL, 0);
         if (flags == -1 || fcntl(connFd, F_SETFL, flags | O_NONBLOCK) == -1) {
             close(connFd);
+#ifdef SOCKET_LOGGER
             socketLogger.error("Failed to set connection non-blocking: %s", std::string(strerror(errno)));
+#endif
             return false;
         }
 
         auto conn = std::make_unique<EpollConnectEntry>(connFd);
         epollInstance.registerEpollEntry(std::move(conn));
+#ifdef SOCKET_LOGGER
         socketLogger.debug("Socket registered connection (%d)", connFd);
+#endif
     }
 
     return true; // The listening socket should remain active

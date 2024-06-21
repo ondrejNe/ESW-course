@@ -2,11 +2,16 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
+//#define PROTO_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
+#define STATS_LOGGER
+PrefixedLogger statsLogger = PrefixedLogger("[STATISTICS]", true);
 
 // Class definition -------------------------------------------------------------------------------
 void Grid::processWalk(const esw::Walk &walk) {
+#ifdef PROTO_LOGGER
     protoLogger.debug("Processing Walk message");
+#endif
     walk_count++;
 
     const auto &locations = walk.locations();
@@ -39,11 +44,13 @@ void Grid::processWalk(const esw::Walk &walk) {
         addEdge(originCellId, destinationCellId, len);
     }
 
-//    logGridGraph();
+    logGridGraph();
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
+#ifdef PROTO_LOGGER
     protoLogger.info("Processing OneToOne message");
+#endif
     oneToOne_count++;
 
     const auto &location1 = oneToOne.origin();
@@ -56,17 +63,20 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     uint64_t destinationCellId = getPointCellId(destination);
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
-    protoLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId,
+#ifdef STATS_LOGGER
+    statsLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId,
                      destinationCellId, cells.size(), edges_count);
-    protoLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
+    statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
-
-//    logGridGraph();
+#endif
+    logGridGraph();
     return shortestPath;
 }
 
 uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
+#ifdef PROTO_LOGGER
     protoLogger.info("Processing OneToAll message");
+#endif
     oneToAll_count++;
 
     const auto &location1 = oneToAll.origin();
@@ -75,12 +85,13 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     uint64_t originCellId = getPointCellId(origin);
 
     uint64_t shortestPath = allDijkstra(originCellId);
-    protoLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
+#ifdef STATS_LOGGER
+    statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
                      edges_count);
-    protoLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
+    statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
-
-//    logGridGraph();
+#endif
+    logGridGraph();
     return shortestPath;
 }
 

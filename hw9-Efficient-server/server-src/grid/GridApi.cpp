@@ -2,7 +2,8 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", false);
+//#define GRID_LOGGER
+PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
 
 // Class definition -------------------------------------------------------------------------------
 const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
@@ -75,6 +76,7 @@ void Grid::resetGrid() {
 }
 
 void Grid::logGridGraph() {
+#ifdef GRID_LOGGER
     // Log information about cells
     gridLogger.info("Grid contains %lu cells:", cells.size());
     for (const auto& [cellId, cell] : cells) {
@@ -98,4 +100,5 @@ void Grid::logGridGraph() {
                             originCellId, destinationCellId, distance);
         }
     }
+#endif
 }
