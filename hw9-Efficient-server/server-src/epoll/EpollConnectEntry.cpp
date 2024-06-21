@@ -51,7 +51,7 @@ void EpollConnectEntry::readEvent() {
     // New message
     inProgressMessageSize = readMessageSize();
     if (inProgressMessageSize < 0) {
-        connectLogger.error("Failed to read message size on connection [FD%d]", this->get_fd());
+        connectLogger.warn("Failed to read message size on connection [FD%d]", this->get_fd());
         shutdown(this->get_fd(), SHUT_RDWR);
         return;
     }
