@@ -26,6 +26,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 #endif
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
     tsl::robin_map <uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
+    tsl::robin_map <uint64_t, uint64_t> &originDistances = distances[originCellId];
 
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
@@ -56,7 +57,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 #ifdef SEARCH_LOGGER
             searchLogger.debug("Current to neighbor %llu", currentNeighbor);
 #endif
-            uint64_t originCurrent = distances[originCellId][currentCellId];
+            uint64_t originCurrent = originDistances[currentCellId];
 #ifdef SEARCH_LOGGER
             searchLogger.debug("Origin to current %llu", originCurrent);
 #endif
@@ -64,12 +65,12 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
 #ifdef SEARCH_LOGGER
             searchLogger.debug("Possible origin to neighbor %llu", possibleOriginNeighbor);
 #endif
-            uint64_t originNeighbor = distances[originCellId][neighborCellId];
+            uint64_t originNeighbor = originDistances[neighborCellId];
 #ifdef SEARCH_LOGGER
             searchLogger.debug("Origin to neighbor %llu", originNeighbor);
 #endif
             if (originNeighbor == 0 || possibleOriginNeighbor < originNeighbor) {
-                distances[originCellId][neighborCellId] = possibleOriginNeighbor;
+                originDistances[neighborCellId] = possibleOriginNeighbor;
                 pq.push(make_pair(possibleOriginNeighbor, neighborCellId));
 #ifdef SEARCH_LOGGER
                 searchLogger.debug("Origin to neighbor %llu updated to %llu", neighborCellId, possibleOriginNeighbor);
@@ -78,6 +79,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
         }
     }
 
-    uint64_t shortestPath = distances[originCellId][destinationCellId];
+    uint64_t shortestPath = originDistances[destinationCellId];
     return shortestPath;
 }
