@@ -14,8 +14,11 @@ public:
     ReentrantSharedLocker() = default;
 
     void uniqueLock();
+
     void uniqueUnlock();
+
     void sharedLock();
+
     void sharedUnlock();
 };
 

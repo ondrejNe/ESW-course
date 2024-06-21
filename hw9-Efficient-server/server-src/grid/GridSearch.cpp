@@ -1,12 +1,14 @@
 
 #include "GridModel.hh"
 
+// Global variables -------------------------------------------------------------------------------
+PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
+
+// Class definition -------------------------------------------------------------------------------
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
-    cout << "All Dijkstra's Algorithm" << endl;
     uint64_t sum = 0;
 
     for (const auto &entry: cells) {
-        cout << "Destination cell: " << entry.first << endl;
         uint64_t destinationCellId = entry.first;
         uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
         if (shortestPath != numeric_limits<uint64_t>::max()) {
@@ -14,12 +16,10 @@ uint64_t Grid::allDijkstra(uint64_t &originCellId) {
         }
     }
 
-    cout << "Total sum: " << sum << endl;
     return sum;
 }
 
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
-    cout << "Dijkstra's Algorithm" << endl;
     priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
 
     if (distances.find(originCellId) == distances.end()) {
@@ -33,7 +33,6 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     uint64_t pointX = cells[destinationCellId].pointX;
     uint64_t pointY = cells[destinationCellId].pointY;
 
-    searchLogger.debug("Dijkstra's Algorithm from %llu to %llu", originCellId, destinationCellId);
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
@@ -85,7 +84,5 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     }
 
     uint64_t shortestPath = distances[originCellId][destinationCellId];
-    searchLogger.debug("Shortest path: %llu", shortestPath);
-    cout << "Shortest path: " << shortestPath << endl;
     return shortestPath;
 }

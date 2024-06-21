@@ -1,6 +1,10 @@
 
 #include "GridModel.hh"
 
+// Global variables -------------------------------------------------------------------------------
+PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
+
+// Class definition -------------------------------------------------------------------------------
 void Grid::processWalk(const esw::Walk &walk) {
     protoLogger.debug("Processing Walk message");
 
@@ -47,9 +51,9 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     uint64_t destinationCellId = getPointCellId(destination);
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
-    apiLogger.warn("Shortest path: %llu", shortestPath);
-    apiLogger.warn("Total cells: %llu", cells.size());
-    apiLogger.warn("Total edges: %llu", edges_count);
+    protoLogger.warn("Shortest path: %llu", shortestPath);
+    protoLogger.warn("Total cells: %llu", cells.size());
+    protoLogger.warn("Total edges: %llu", edges_count);
     return shortestPath;
 }
 
@@ -61,9 +65,9 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     uint64_t originCellId = getPointCellId(origin);
 
     uint64_t shortestPath = allDijkstra(originCellId);
-    apiLogger.warn("Total length: %llu", shortestPath);
-    apiLogger.warn("Total cells: %d", cells.size());
-    apiLogger.warn("Total edges: %llu", edges_count);
+    protoLogger.warn("Total length: %llu", shortestPath);
+    protoLogger.warn("Total cells: %d", cells.size());
+    protoLogger.warn("Total edges: %llu", edges_count);
     return shortestPath;
 }
 

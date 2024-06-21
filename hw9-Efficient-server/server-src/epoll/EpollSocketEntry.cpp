@@ -1,14 +1,13 @@
 
-#include "EpollModel.hh"
+#include "EpollSocketEntry.hh"
 
-EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections, Grid &grid, ThreadPool &resourcePool) :
+// Global variables -------------------------------------------------------------------------------
+PrefixedLogger socketLogger = PrefixedLogger("[EPOLL SOCK]", true);
+
+// Class definition -------------------------------------------------------------------------------
+EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollInstance &eConnections) :
     eSocket(eSocket),
-    eConnections(eConnections),
-    grid(grid),
-    resourcePool(resourcePool),
-    socketLogger("[EPOLL SOCK]", DEBUG),
-    connectLogger("[EPOLL CONN]", DEBUG),
-    processLogger("[EPOLL PROC]", DEBUG)
+    eConnections(eConnections)
 {
     int fd;
     struct sockaddr_in addr;
@@ -20,10 +19,6 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
     if (fd == -1) {
         throw runtime_error("Socket creation failed: " + string(strerror(errno)));
     }
-    std::ostringstream oss;
-    oss << "[FD: " << fd << "]";
-    string fdPrefix = oss.str();
-    socketLogger.addPrefix(fdPrefix);
     socketLogger.info("Socket created (%d)", fd);
 
     /**
@@ -74,20 +69,18 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &eSocket, EpollI
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
-bool EpollSocketEntry::handleEvent(uint32_t events)
-{
+bool EpollSocketEntry::handleEvent(uint32_t events) {
     /**
-     * EPOLLERR indicates that an error occurred on the associated file descriptor. 
+     * EPOLLERR indicates that an error occurred on the associated file descriptor.
      * EPOLLHUP indicates that a hang-up occurred on the associated file descriptor.
      * EPOLLIN indicates that the associated file descriptor is ready for reading.
     */
-    if ((events & EPOLLERR) || (events & EPOLLHUP) ) { // An incoming connection should only trigger EPOLLIN
+    if ((events & EPOLLERR) || (events & EPOLLHUP)) { // An incoming connection should only trigger EPOLLIN
         return false; // Something went wrong, remove the socket
     }
 
     // fcntl can trigger the epoll event other than EPOLLIN, but we don't want to handle it
     if (events & EPOLLIN) {
-
         int connFd;
         struct sockaddr_in clientAddr;
         socklen_t clientAddrLen = sizeof(clientAddr);
@@ -108,9 +101,8 @@ bool EpollSocketEntry::handleEvent(uint32_t events)
             return false;
         }
 
-        // Create a new EpollConnection and register it
-        EpollConnectEntry *conn = new EpollConnectEntry(connFd, grid, resourcePool, eConnections, connectLogger, processLogger);
-        eConnections.registerEpollEntry(*conn);
+        auto conn = std::make_unique<EpollConnectEntry>(connFd, eConnections);
+        eConnections.registerEpollEntry(std::move(conn));
         socketLogger.debug("Socket registered connection (%d)", connFd);
     }
 

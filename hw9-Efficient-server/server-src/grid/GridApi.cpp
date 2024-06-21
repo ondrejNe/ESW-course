@@ -1,5 +1,9 @@
+
 #include "GridModel.hh"
 
+// Global variables -------------------------------------------------------------------------------
+
+// Class definition -------------------------------------------------------------------------------
 const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
         {-1, -1},
         {-1, 0},
@@ -69,6 +73,6 @@ void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t
 
 void Grid::resetGrid() {
     cells.clear();
-    distances.clear();
     edges.clear();
+    distances.clear();
 }

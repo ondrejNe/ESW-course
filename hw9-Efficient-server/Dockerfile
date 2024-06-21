@@ -11,6 +11,7 @@ RUN apt-get update && \
         build-essential \
         netcat-openbsd \
         pkg-config \
+        valgrind \
         make  \
         wget \
         curl \

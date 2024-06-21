@@ -20,14 +20,19 @@
 
 #include "scheme.pb.h"
 #include "robin_hood.h"
-#include "ReentrantSharedLocker.hh"
+
 #include "Logger.hh"
 #include "ThreadPool.hh"
+#include "ReentrantSharedLocker.hh"
 
-#define ACTIVE_LOGGER_API       false
-#define ACTIVE_LOGGER_PROTO     false
-#define ACTIVE_LOGGER_SEARCH    false
+// Global variables -------------------------------------------------------------------------------
+extern PrefixedLogger gridLogger;
+extern PrefixedLogger protoLogger;
+extern PrefixedLogger searchLogger;
 
+extern ThreadPool resourcePool;
+
+// Class definition -------------------------------------------------------------------------------
 using namespace std;
 
 struct Point {
@@ -48,54 +53,42 @@ class Grid {
 private:
     // Graph structure
     unordered_map <uint64_t, Cell>                              cells;
+
     // Search structure
     // originCellId -> destinationCellId -> distance (adjacency list)
     unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  distances;
     unordered_map <uint64_t, unordered_map<uint64_t, uint64_t>>  edges;
 
-    // Logging
-    PrefixedLogger  apiLogger;
-    PrefixedLogger  protoLogger;
-    PrefixedLogger  searchLogger;
     // Workers
-    ThreadPool      &resourcePool;
     uint64_t        edges_count;
 
-    // Distance metric between points
-    uint64_t euclideanDistance(Point &p1, Point &p2);
-
 public:
-    Grid(ThreadPool &resourcePool) :
-            apiLogger("[GRID-API  ]", ACTIVE_LOGGER_API),
-            protoLogger("[GRID-PROTO]", ACTIVE_LOGGER_PROTO),
-            searchLogger("[GRIDSEARCH]", ACTIVE_LOGGER_SEARCH),
-            resourcePool(resourcePool) {
+    Grid() {
         edges_count = 0;
     }
 
-    /* Point API */
+    void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
+
     void addPoint(Point &point, uint64_t &cellId);
 
     uint64_t getPointCellId(Point &point);
 
-    void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
-
-    /* Grid API */
     void resetGrid();
 
     uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId);
 
     uint64_t allDijkstra(uint64_t &originCellId);
 
-    /* Input processing API */
 
     void processWalk(const esw::Walk &walk);
+
+    void processReset(const esw::Reset &reset);
 
     uint64_t processOneToOne(const esw::OneToOne &oneToOne);
 
     uint64_t processOneToAll(const esw::OneToAll &oneToAll);
-
-    void processReset(const esw::Reset &reset);
 };
+
+extern Grid grid;
 
 #endif //GRID_MODEL_HH

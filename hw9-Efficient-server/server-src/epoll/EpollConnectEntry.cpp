@@ -1,6 +1,11 @@
 
-#include "EpollModel.hh"
+#include "EpollConnectEntry.hh"
 
+// Global variables -------------------------------------------------------------------------------
+PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
+PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
+
+// Class definition -------------------------------------------------------------------------------
 bool EpollConnectEntry::handleEvent(uint32_t events) {
     if (!this->is_fd_valid()) {
         connectLogger.error("Invalid file descriptor");
