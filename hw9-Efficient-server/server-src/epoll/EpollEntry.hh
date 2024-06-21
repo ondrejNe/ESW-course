@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <sstream>
 
-#define EPOLL_MAX_EVENTS 1024
+#define EPOLL_MAX_EVENTS 20248
 
 // Class definition -------------------------------------------------------------------------------
 class EpollEntry

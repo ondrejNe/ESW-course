@@ -12,7 +12,14 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
         return false;
     }
     else if (events & EPOLLERR) {
-        connectLogger.error("EPOLLERR received on connection FD%d", this->get_fd());
+        // Retrieve the specific error code
+        int err = 0;
+        socklen_t len = sizeof(err);
+        if (getsockopt(this->get_fd(), SOL_SOCKET, SO_ERROR, &err, &len) == 0) {
+            connectLogger.error("EPOLLERR received on connection FD%d: %s", this->get_fd(), strerror(err));
+        } else {
+            connectLogger.error("EPOLLERR received on connection FD%d: Unable to retrieve error code", this->get_fd());
+        }
         return false;
     }
     else if (events & EPOLLHUP) {
@@ -119,7 +126,7 @@ int EpollConnectEntry::readMessageSize() {
     memcpy(&msgSize, sizeBytes, sizeof(int));
     // Converts u_long from TCP/IP network order to host byte order
     msgSize = ntohl(msgSize);
-    connectLogger.debug("Message size: %d on connection FD%d", msgSize, this->get_fd());
+    connectLogger.debug("Expecting: %d on connection FD%d", msgSize, this->get_fd());
     return msgSize;
 }
 
