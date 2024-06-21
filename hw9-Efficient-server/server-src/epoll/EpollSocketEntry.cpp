@@ -90,7 +90,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events) {
             socketLogger.error("Failed to accept connection: %s", std::string(strerror(errno)));
             return false;
         }
-        socketLogger.info("Socket accepted connection FD%d", connFd);
+        socketLogger.info("Socket accepted connection [FD%d]", connFd);
 
         // Set the connection fd to non-blocking mode
         int flags = fcntl(connFd, F_GETFL, 0);
