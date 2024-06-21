@@ -13,6 +13,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <pair>
 
 #include "Logger.hh"
 
@@ -22,16 +23,18 @@ using namespace std;
 class ThreadPool {
 private:
     bool                            stop;
-    deque<function<void()>>         tasks;
+    deque<pair<function<void()>, int>>         tasks;
     vector<thread>                  threads;
     mutex                           synchMutex;
     condition_variable              synchCondition;
     PrefixedLogger                  threadpoolLogger;
+    int                             counter;
 
 public:
     ThreadPool(size_t numThreads) :
     stop(false),
-    threadpoolLogger("[THREADPOOL]", ACTIVE_LOGGER_THREADPOOL) {
+    threadpoolLogger("[THREADPOOL]", ACTIVE_LOGGER_THREADPOOL),
+    counter(0) {
         for (size_t i = 0; i < numThreads; ++i) {
             // For logging purposes perform suspensions
             this_thread::sleep_for(chrono::milliseconds(1));
@@ -44,11 +47,13 @@ public:
 
                     if (stop && tasks.empty()) return;
 
-                    auto task = move(tasks.front());
+                    pair<function<void()>, int> task = move(tasks.front());
                     tasks.pop_front();;
                     lock.unlock();
 
-                    task();
+                    threadpoolLogger.info("Task retrieved from queue %d", task.second);
+                    task.first();
+                    threadpoolLogger.info("Task executed %d", task.second);
                 }
             });
         }
@@ -67,7 +72,9 @@ public:
     void run(function<void()> task) {
         {
             lock_guard<mutex> lock(synchMutex);
-            tasks.push_back(move(task));
+            int id = counter++;
+            tasks.push_back(make_pair(move(task), id));
+            threadpoolLogger.info("Task added to the queue %d", id);
         }
         synchCondition.notify_one();
     }
