@@ -50,7 +50,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        std::unordered_map <uint64_t, Edge> newEdges = std::unordered_map<uint64_t, Edge>();
+        tsl::robin_map <uint64_t, Edge> newEdges = tsl:robin_map<uint64_t, Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;

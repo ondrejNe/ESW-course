@@ -88,13 +88,13 @@ struct Cell {
     uint64_t coordY;
     uint64_t pointX;
     uint64_t pointY;
-    std::unordered_map<uint64_t, Edge> edges;
+    tsl::robin_map<uint64_t, Edge> edges;
 };
 
 class GridData {
 private:
 public:
-    std::unordered_map<uint64_t, Cell> cells;
+    tsl::robin_map<uint64_t, Cell> cells;
 
     GridData() {
         cells.reserve(115000);
