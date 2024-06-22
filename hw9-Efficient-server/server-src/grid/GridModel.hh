@@ -15,6 +15,7 @@
 #include <string>
 #include <future>
 #include <utility>
+#include <mutex>
 
 #include "scheme.pb.h"
 #include "robin_map.h"
@@ -24,6 +25,8 @@
 // Global variables -------------------------------------------------------------------------------
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
+
+extern std::shared_mutex rwLock;
 
 // Class definition -------------------------------------------------------------------------------
 using namespace std;

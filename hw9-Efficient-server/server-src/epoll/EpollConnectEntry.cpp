@@ -120,13 +120,9 @@ void EpollConnectEntry::readEvent() {
             this->processingInProgress = false;
         }, fd);
     } else {
-        GridData *gridDataCopy = new GridData(gridData);
-        GridStats *gridStatsCopy = new GridStats(gridStats);
-        resourcePool1.run([this, request, response, gridDataCopy, gridStatsCopy, fd]  {
+        resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
             processMessage(request, response, gridData, gridStats, fd);
             this->processingInProgress = false;
-            delete gridDataCopy;
-            delete gridStatsCopy;
         }, fd);
     }
 

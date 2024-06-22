@@ -6,8 +6,10 @@
 //#define PROTO_PROCESS_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 
+std::shared_mutex rwLock;
 // Class definition -------------------------------------------------------------------------------
 void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk) {
+    std::unique_lock<std::shared_mutex> lock(rwLock);
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processing Walk message");
 #endif
@@ -48,6 +50,7 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
 }
 
 uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::OneToOne &oneToOne) {
+    std::shared_lock<std::shared_mutex> lock(rwLock);
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToOne message");
 #endif
@@ -75,6 +78,7 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
 }
 
 uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::OneToAll &oneToAll) {
+    std::shared_lock<std::shared_mutex> lock(rwLock);
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToAll message");
 #endif
