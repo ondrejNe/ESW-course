@@ -52,7 +52,7 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t id = ((coordX << 32) | coordY);
 
         tsl::robin_map<uint64_t, uint64_t> newEdges = tsl::robin_map<uint64_t, uint64_t>();
-        newEdges.reserve(5);
+        newEdges.reserve(10);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
     }

@@ -115,7 +115,7 @@ void EpollConnectEntry::readEvent() {
     processingInProgress = true;
     int fd = this->get_fd();
 
-    if (request.has_walk() || request.has_reset()) {
+    if (request.has_walk() || request.has_reset() || request.has_onetoall()) {
         processMessage(request, response, fd);
         processingInProgress = false;
 //        resourcePool.run([this, request, response, fd] {

@@ -5,7 +5,7 @@
 //#define SEARCH_LOGGER
 PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
 #define SEARCH_STATS_LOGGER
-PrefixedLogger searchStatsLogger = PrefixedLogger("[SEARCH STATS]", true);
+PrefixedLogger searchStatsLogger = PrefixedLogger("[SEARCH STA]", true);
 
 // Class definition -------------------------------------------------------------------------------
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
