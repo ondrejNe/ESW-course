@@ -73,7 +73,7 @@ private:
 
 public:
     Grid() {
-        cells.reserve(100000);
+        cells.reserve(150000);
 
         edges_count = 0;
         edges_space = 0;

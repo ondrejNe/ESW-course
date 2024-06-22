@@ -26,9 +26,15 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
     }
 #endif
-    priority_queue < pair < uint64_t, uint64_t >, vector < pair < uint64_t, uint64_t >>, greater<>>
-    pq;
+    std::vector <std::pair<uint64_t, uint64_t>> vec;
+    vec.reserve(100000);
+    std::priority_queue <
+    std::pair < uint64_t, uint64_t >,
+            std::vector < std::pair < uint64_t, uint64_t >>,
+            std::greater<>
+            > pq(std::greater<>(), vec);
     tsl::robin_map<uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
+    visited.reserve(100000);
     tsl::robin_map<uint64_t, Stat> &originStats = cells[originCellId].stats;
 
     // Add the source cell to the priority queue
