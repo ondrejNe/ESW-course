@@ -27,14 +27,14 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
     }
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
-    vec.reserve(100000);
+    vec.reserve(10000);
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,
             std::vector < std::pair < uint64_t, uint64_t >>,
             std::greater<>
             > pq(std::greater<>(), vec);
     tsl::robin_map<uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
-    visited.reserve(100000);
+    visited.reserve(10000);
     tsl::robin_map<uint64_t, Stat> &originStats = cells[originCellId].stats;
 
     // Add the source cell to the priority queue

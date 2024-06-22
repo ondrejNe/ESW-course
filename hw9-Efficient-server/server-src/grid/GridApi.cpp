@@ -50,7 +50,7 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t id = ((coordX << 32) | coordY);
 
         tsl::robin_map<uint64_t, Stat> newStats = tsl::robin_map<uint64_t, Stat>();
-        newStats.reserve(10000);
+        newStats.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newStats};
         cells[id] = newCell;
     }
