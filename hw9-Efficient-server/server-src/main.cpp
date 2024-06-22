@@ -9,9 +9,9 @@
 #include "EpollSocketEntry.hh"
 #include "EpollInstance.hh"
 
+#include "Logger.hh"
 #include "GridModel.hh"
 #include "ThreadPool.hh"
-#include "Logger.hh"
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -21,7 +21,8 @@ PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
 
 ThreadPool resourcePool(1);
 ThreadPool resourcePool1(30);
-Grid grid = Grid();
+GridData gridData = GridData();
+GridStats gridStats = GridStats();
 
 // Main function -----------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
@@ -41,23 +42,17 @@ int main(int argc, char *argv[]) {
     uint64_t numThreads = thread::hardware_concurrency();
     logger.info("Available threads: " + to_string(numThreads));
 
-    // For logging purposes perform suspensions
-    this_thread::sleep_for(chrono::milliseconds(1));
-
+    // Epoll
     EpollInstance epollInstance;
 
-    // For logging purposes perform suspensions
-    this_thread::sleep_for(chrono::milliseconds(1));
-
-    // Socket events
     thread ep = thread([&epollInstance]() {
         while (true) epollInstance.waitAndHandleEvents();
     });
 
-    // Calculation logic
     std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollInstance);
     epollInstance.registerEpollEntry(std::move(serverSocket));
 
     resourcePool.waitAllThreads();
+    resourcePool1.waitAllThreads();
     return 0;
 }

@@ -7,8 +7,6 @@
 #include <set>
 #include <cmath>
 #include <iostream>
-#include <boost/algorithm/string.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <queue>
 #include <unordered_set>
 #include <limits>
@@ -22,63 +20,30 @@
 #include "robin_map.h"
 
 #include "Logger.hh"
-#include "ThreadPool.hh"
-#include "ReentrantSharedLocker.hh"
 
 // Global variables -------------------------------------------------------------------------------
-extern PrefixedLogger gridLogger;
-extern PrefixedLogger protoLogger;
-extern PrefixedLogger searchLogger;
-
-extern ThreadPool resourcePool;
-
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
 
 // Class definition -------------------------------------------------------------------------------
 using namespace std;
 
-struct Point {
-    uint64_t x;
-    uint64_t y;
-};
-
-struct Edge {
-    uint64_t length;
-    uint64_t samples;
-};
-
-struct Cell {
-    uint64_t    id;
-    uint64_t    coordX;
-    uint64_t    coordY;
-    uint64_t    pointX;
-    uint64_t    pointY;
-    tsl::robin_map <uint64_t, Edge>     edges;
-};
-
-
-class Grid {
+// model
+class GridStats {
 private:
-    // Graph structure
-    tsl::robin_map <uint64_t, Cell>         cells;
-
-    // Grid statistics
-    uint64_t                 edges_count;
-    pair<uint64_t, uint64_t> highestCoordX;
-    pair<uint64_t, uint64_t> highestCoordY;
-    pair<uint64_t, uint64_t> lowestCoordX;
-    pair<uint64_t, uint64_t> lowestCoordY;
-
-    uint64_t        walk_count;
-    uint64_t        oneToOne_count;
-    uint64_t        oneToAll_count;
-    uint64_t        location_count;
-
 public:
-    Grid() {
-        cells.reserve(115000);
+    uint64_t edges_count;
+    pair <uint64_t, uint64_t> highestCoordX;
+    pair <uint64_t, uint64_t> highestCoordY;
+    pair <uint64_t, uint64_t> lowestCoordX;
+    pair <uint64_t, uint64_t> lowestCoordY;
 
+    uint64_t walk_count;
+    uint64_t oneToOne_count;
+    uint64_t oneToAll_count;
+    uint64_t location_count;
+
+    GridStats() {
         edges_count = 0;
         highestCoordX = {numeric_limits<uint64_t>::min(), 0};
         highestCoordY = {0, numeric_limits<uint64_t>::min()};
@@ -91,29 +56,75 @@ public:
         location_count = 0;
     }
 
-    void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
+    GridStats(GridStats &other) {
+        edges_count = other.edges_count;
+        highestCoordX = other.highestCoordX;
+        highestCoordY = other.highestCoordY;
+        lowestCoordX = other.lowestCoordX;
+        lowestCoordY = other.lowestCoordY;
 
-    void addPoint(Point &point, uint64_t &cellId);
-
-    uint64_t getPointCellId(Point &point);
-
-    void resetGrid();
-
-    uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll);
-
-    void processWalk(const esw::Walk &walk);
-
-    void processReset();
-
-    uint64_t processOneToOne(const esw::OneToOne &oneToOne);
-
-    uint64_t processOneToAll(const esw::OneToAll &oneToAll);
-
-    void logGridGraph();
+        walk_count = other.walk_count;
+        oneToOne_count = other.oneToOne_count;
+        oneToAll_count = other.oneToAll_count;
+        location_count = other.location_count;
+    }
 
     void logGridStats();
 };
 
-extern Grid grid;
+struct Point {
+    uint64_t x;
+    uint64_t y;
+};
+
+struct Edge {
+    uint64_t length;
+    uint64_t samples;
+};
+
+struct Cell {
+    uint64_t id;
+    uint64_t coordX;
+    uint64_t coordY;
+    uint64_t pointX;
+    uint64_t pointY;
+    std::unordered_map<uint64_t, Edge> edges;
+};
+
+class GridData {
+private:
+public:
+    std::unordered_map<uint64_t, Cell> cells;
+
+    GridData() {
+        cells.reserve(115000);
+    }
+
+    GridData(GridData &other) {
+        cells = other.cells;
+    }
+
+    uint64_t getPointCellId(Point &point);
+
+    void addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
+
+    void addPoint(GridStats &gridStats, Point &point, uint64_t &cellId);
+
+    void resetGrid(GridStats &gridStats);
+
+    void logGridGraph();
+};
+
+// processing
+uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll);
+
+void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk);
+
+void processReset(GridData &gridData, GridStats &gridStats);
+
+uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::OneToOne &oneToOne);
+
+uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::OneToAll &oneToAll);
+
 
 #endif //GRID_MODEL_HH

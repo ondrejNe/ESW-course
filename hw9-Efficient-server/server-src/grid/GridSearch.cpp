@@ -2,14 +2,13 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-//#define SEARCH_LOGGER
-PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
 #define SEARCH_STATS_LOGGER
-PrefixedLogger searchStatsLogger = PrefixedLogger("[SEARCH STA]", true);
+//#define SEARCH_ALGO_LOGGER
+PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING ]", true);
 
 // Class definition -------------------------------------------------------------------------------
-uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
-#ifdef SEARCH_LOGGER
+uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
+#ifdef SEARCH_ALGO_LOGGER
     if (oneToAll) {
         searchLogger.debug("--- Dijkstra from %llu to all ---", originCellId);
     } else {
@@ -23,7 +22,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(500);
-    tsl::robin_map<uint64_t, uint64_t> visited;
+    std::unordered_map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
 
     std::priority_queue <
@@ -63,18 +62,18 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         }
 
 #ifdef SEARCH_STATS_LOGGER
-        if (cells[currentCellId].edges.size() > maxEdges) {
-            maxEdges = cells[currentCellId].edges.size();
+        if (gridData.cells[currentCellId].edges.size() > maxEdges) {
+            maxEdges = gridData.cells[currentCellId].edges.size();
         }
 #endif
-        for (const auto &[neighborCellId, edge]: cells[currentCellId].edges) {
+        for (const auto &[neighborCellId, edge]: gridData.cells[currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
             pq.push({originCurrent + (edge.length / edge.samples), neighborCellId});
         }
     }
 
 #ifdef SEARCH_STATS_LOGGER
-    searchStatsLogger.warn("Max sums: %lu Max edges: %lu Max PQ size: %lu", maxSums, maxEdges, maxPqSize);
+    searchLogger.warn("Max sums: %lu Max edges: %lu Max PQ size: %lu", maxSums, maxEdges, maxPqSize);
 #endif
     return sum;
 }

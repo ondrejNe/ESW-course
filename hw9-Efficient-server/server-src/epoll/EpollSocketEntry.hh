@@ -20,14 +20,8 @@
 #include "EpollConnectEntry.hh"
 
 #include "Logger.hh"
-#include "GridModel.hh"
-#include "ThreadPool.hh"
 
 // Global variables -------------------------------------------------------------------------------
-extern PrefixedLogger socketLogger;
-
-extern ThreadPool resourcePool;
-extern Grid grid;
 
 // Class definition -------------------------------------------------------------------------------
 class EpollSocketEntry : public EpollEntry

@@ -2,8 +2,6 @@
 #ifndef HW9_EFFICIENT_SERVER_EPOLLINSTANCE_H
 #define HW9_EFFICIENT_SERVER_EPOLLINSTANCE_H
 
-#include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -21,11 +19,8 @@
 #include "EpollEntry.hh"
 
 #include "Logger.hh"
-#include "GridModel.hh"
-#include "ThreadPool.hh"
 
 // Global variables -------------------------------------------------------------------------------
-extern PrefixedLogger epollLogger;
 
 // Class definition -------------------------------------------------------------------------------
 class EpollInstance

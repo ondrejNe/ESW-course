@@ -2,8 +2,6 @@
 #ifndef HW9_EFFICIENT_SERVER_EPOLLCONNECTENTRY_H
 #define HW9_EFFICIENT_SERVER_EPOLLCONNECTENTRY_H
 
-#include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -16,8 +14,6 @@
 #include <sstream>
 
 #include "EpollEntry.hh"
-#include "EpollInstance.hh"
-#include "EpollSocketEntry.hh"
 
 #include "Logger.hh"
 #include "GridModel.hh"
@@ -25,11 +21,12 @@
 
 // Global variables -------------------------------------------------------------------------------
 extern PrefixedLogger connectLogger;
-extern PrefixedLogger processLogger;
 
 extern ThreadPool resourcePool;
 extern ThreadPool resourcePool1;
-extern Grid grid;
+
+extern GridData gridData;
+extern GridStats gridStats;
 
 // Class definition -------------------------------------------------------------------------------
 class EpollConnectEntry : public EpollEntry
@@ -45,7 +42,7 @@ private:
 
     int readMessageSize();
 
-    void processMessage(esw::Request request, esw::Response response, int fd);
+    void processMessage(esw::Request request, esw::Response response, GridData &gridData, GridStats &gridStats, int fd);
 
     void writeResponse(esw::Response &response, int fd);
 

@@ -3,9 +3,8 @@
 
 // Global variables -------------------------------------------------------------------------------
 //#define CONNECT_LOGGER
-PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
 //#define PROCESS_LOGGER
-PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
+PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
 
 // Class definition -------------------------------------------------------------------------------
 bool EpollConnectEntry::handleEvent(uint32_t events) {
@@ -115,20 +114,22 @@ void EpollConnectEntry::readEvent() {
     processingInProgress = true;
     int fd = this->get_fd();
 
-    if (request.has_walk() || request.has_reset() || request.has_onetoall()) {
-        processMessage(request, response, fd);
+    if (request.has_walk() || request.has_reset()) {
+        processMessage(request, response, gridData, gridStats, fd);
         processingInProgress = false;
 //        resourcePool.run([this, request, response, fd] {
 //            processMessage(request, response, fd);
 //            this->processingInProgress = false;
 //        }, fd);
     } else {
-        processMessage(request, response, fd);
-        processingInProgress = false;
-//        resourcePool1.run([this, request, response, fd] {
-//            processMessage(request, response, fd);
-//            this->processingInProgress = false;
-//        }, fd);
+//        processMessage(request, response, fd);
+//        processingInProgress = false;
+
+        auto lambda = [this, request, response, gridData, gridStats, fd]  {
+            processMessage(request, response, gridData, gridStats, fd);
+            this->processingInProgress = false;
+        };
+        resourcePool1.run(std::move(lambda), fd);
     }
 
     messageInProgress = false;
@@ -165,45 +166,45 @@ int EpollConnectEntry::readMessageSize() {
     return msgSize;
 }
 
-void EpollConnectEntry::processMessage(esw::Request request, esw::Response response, int fd) {
+void EpollConnectEntry::processMessage(esw::Request request, esw::Response response, GridData &gridData, GridStats &gridStats, int fd) {
     if (request.has_walk()) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("Walk message received on connection [FD%d]", fd);
+        connectLogger.warn("Walk message received on connection [FD%d]", fd);
 #endif
         const esw::Walk &walk = request.walk();
-        grid.processWalk(walk);
+        processWalk(gridData, gridStats, walk);
 
     } else if (request.has_onetoone()) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("OneToOne message received on connection [FD%d]", fd);
+        connectLogger.warn("OneToOne message received on connection [FD%d]", fd);
 #endif
         const esw::OneToOne &oneToOne = request.onetoone();
-        uint64_t val = grid.processOneToOne(oneToOne);
+        uint64_t val = processOneToOne(gridData, gridStats, oneToOne);
 #ifdef PROCESS_LOGGER
-        processLogger.info("OneToOne response %llu on connection [FD%d]", val, fd);
+        connectLogger.info("OneToOne response %llu on connection [FD%d]", val, fd);
 #endif
         response.set_shortest_path_length(val);
 
     } else if (request.has_onetoall()) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("OneToAll message received on connection [FD%d]", fd);
+        connectLogger.warn("OneToAll message received on connection [FD%d]", fd);
 #endif
         const esw::OneToAll &oneToAll = request.onetoall();
-        uint64_t val = grid.processOneToAll(oneToAll);
+        uint64_t val = processOneToAll(gridData, gridStats, oneToAll);
 #ifdef PROCESS_LOGGER
-        processLogger.info("OneToAll response %llu on connection [FD%d]", val, fd);
+        connectLogger.info("OneToAll response %llu on connection [FD%d]", val, fd);
 #endif
         response.set_total_length(val);
 
     } else if (request.has_reset()) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("Reset message received on connection [FD%d]", fd);
+        connectLogger.warn("Reset message received on connection [FD%d]", fd);
 #endif
-        grid.processReset();
+        processReset(gridData, gridStats);
 
     } else {
 #ifdef PROCESS_LOGGER
-        processLogger.error("No valid message type detected on connection [FD%d]", fd);
+        connectLogger.error("No valid message type detected on connection [FD%d]", fd);
 #endif
         response.set_status(esw::Response_Status_ERROR);
     }
@@ -215,7 +216,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
     if (request.has_onetoall()) {
         shutdown(fd, SHUT_RDWR);
 #ifdef PROCESS_LOGGER
-        processLogger.info("Closing connection after OneToAll request on connection [FD%d]", fd);
+        connectLogger.info("Closing connection after OneToAll request on connection [FD%d]", fd);
 #endif
     }
 }
@@ -224,7 +225,7 @@ void EpollConnectEntry::writeResponse(esw::Response &response, int fd) {
     // Get the size of the serialized response
     size_t size = response.ByteSizeLong();
 #ifdef PROCESS_LOGGER
-    processLogger.debug("Response size: %d status: %d on connection [FD%d]", size, response.status(), fd);
+    connectLogger.debug("Response size: %d status: %d on connection [FD%d]", size, response.status(), fd);
 #endif
     // Convert the response size to network byte order
     int networkByteOrderSize = htonl(size);
@@ -232,7 +233,7 @@ void EpollConnectEntry::writeResponse(esw::Response &response, int fd) {
     int bytesSent = send(fd, (const char *) (&networkByteOrderSize), 4, 0);
     if (bytesSent < 0) {
 #ifdef PROCESS_LOGGER
-        processLogger.error("Failed to send response size on connection [FD%d]: %s", fd, string(strerror(errno)));
+        connectLogger.error("Failed to send response size on connection [FD%d]: %s", fd, string(strerror(errno)));
 #endif
     } else {
         response.SerializeToFileDescriptor(fd);

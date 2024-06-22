@@ -3,9 +3,8 @@
 
 // Global variables -------------------------------------------------------------------------------
 //#define THREAD_LOGGER
-PrefixedLogger threadLogger = PrefixedLogger("[THREADPOOL]", true);
 //#define THREAD_STATS_LOGGER
-PrefixedLogger threadStatsLogger = PrefixedLogger("[THREADPOOL STATS]", true);
+PrefixedLogger threadLogger = PrefixedLogger("[THREADPOOL]", true);
 
 #ifdef THREAD_STATS_LOGGER
 uint64_t taskCounter = 0;
@@ -64,7 +63,7 @@ void ThreadPool::run(function<void()> task, int id) {
         if (tasks.size() > maxTasks) {
             maxTasks = tasks.size();
         }
-        threadStatsLogger.info("Task counter: %lu max: %lu", taskCounter, maxTasks);
+        threadLogger.info("Task counter: %lu max: %lu", taskCounter, maxTasks);
 #endif
     }
     synchCondition.notify_one();
