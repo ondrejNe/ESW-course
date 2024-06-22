@@ -20,6 +20,7 @@ using boost::asio::ip::tcp;
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
 
 ThreadPool resourcePool(1);
+ThreadPool resourcePool1(1);
 Grid grid = Grid();
 
 // Main function -----------------------------------------------------------------------------------

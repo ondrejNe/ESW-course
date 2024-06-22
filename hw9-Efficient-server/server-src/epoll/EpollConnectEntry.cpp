@@ -114,14 +114,18 @@ void EpollConnectEntry::readEvent() {
 #endif
     processingInProgress = true;
     int fd = this->get_fd();
-//    processMessage(request, response, fd);
-//    processingInProgress = false;
-//    messageInProgress = false;
 
-    resourcePool.run([this, request, response, fd] {
-        processMessage(request, response, fd);
-        this->processingInProgress = false;
-    }, fd);
+    if (request.has_walk() || request.has_reset()) {
+        resourcePool.run([this, request, response, fd] {
+            processMessage(request, response, fd);
+            this->processingInProgress = false;
+        }, fd);
+    } else {
+        resourcePool1.run([this, request, response, fd] {
+            processMessage(request, response, fd);
+            this->processingInProgress = false;
+        }, fd);
+    }
 
     messageInProgress = false;
 }

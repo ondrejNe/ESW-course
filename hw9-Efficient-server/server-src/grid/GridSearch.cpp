@@ -21,8 +21,10 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
     }
 #endif
-    vec.clear();
-    visited.clear();
+    std::vector <std::pair<uint64_t, uint64_t>> vec;
+    vec.reserve(500);
+    tsl::robin_map<uint64_t, uint64_t> visited;
+    visited.reserve(115000);
 
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,

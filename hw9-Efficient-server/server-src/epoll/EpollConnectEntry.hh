@@ -28,6 +28,7 @@ extern PrefixedLogger connectLogger;
 extern PrefixedLogger processLogger;
 
 extern ThreadPool resourcePool;
+extern ThreadPool resourcePool1;
 extern Grid grid;
 
 // Class definition -------------------------------------------------------------------------------
