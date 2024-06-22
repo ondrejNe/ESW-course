@@ -21,8 +21,8 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     uint64_t maxPqSize = 0;
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
-    vec.reserve(300);
-    tsl::robin_map<uint64_t, uint64_t, hash<uint64_t>> visited;
+    vec.reserve(500);
+    tsl::robin_map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
 
     std::priority_queue <
@@ -62,11 +62,11 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
         }
 
 #ifdef SEARCH_STATS_LOGGER
-        if (gridData.buckets[bucketHash(currentCellId)][currentCellId].edges.size() > maxEdges) {
-            maxEdges = gridData.buckets[bucketHash(currentCellId)][currentCellId].edges.size();
+        if (gridData.cells[currentCellId].edges.size() > maxEdges) {
+            maxEdges = gridData.cells[currentCellId].edges.size();
         }
 #endif
-        for (const auto &[neighborCellId, edge]: gridData.buckets[bucketHash(currentCellId)][currentCellId].edges) {
+        for (const auto &[neighborCellId, edge]: gridData.cells[currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
             pq.push({originCurrent + (edge.length / edge.samples), neighborCellId});
         }

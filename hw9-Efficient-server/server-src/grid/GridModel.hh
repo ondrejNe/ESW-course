@@ -26,16 +26,10 @@
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
 
-#define BUCKET_NUM 50
-
 extern std::shared_mutex rwLock;
 
 // Class definition -------------------------------------------------------------------------------
 using namespace std;
-
-inline uint64_t bucketHash(uint64_t id) {
-    return id % BUCKET_NUM;
-}
 
 // model
 class GridStats {
@@ -84,20 +78,16 @@ struct Cell {
     uint64_t coordY;
     uint64_t pointX;
     uint64_t pointY;
-    tsl::robin_map<uint64_t, Edge, hash<uint64_t>> edges;
+    tsl::robin_map<uint64_t, Edge> edges;
 };
 
 class GridData {
 private:
 public:
-    vector <tsl::robin_map<uint64_t, Cell, hash<uint64_t>>> buckets;
+    tsl::robin_map<uint64_t, Cell> cells;
 
     GridData() {
-        for (int i = 0; i < BUCKET_NUM; i++) {
-            tsl::robin_map<uint64_t, Cell> newBucket;
-            newBucket.reserve(10000);
-            buckets.push_back(newBucket);
-        }
+        cells.reserve(115000);
     }
 
     uint64_t getPointCellId(Point &point);
