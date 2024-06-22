@@ -129,7 +129,7 @@ void EpollConnectEntry::readEvent() {
             processMessage(request, response, gridData, gridStats, fd);
             this->processingInProgress = false;
         };
-        resourcePool1.run(std::move(lambda), fd);
+        resourcePool1.run(lambda, fd);
     }
 
     messageInProgress = false;
