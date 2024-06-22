@@ -30,6 +30,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
 #endif
 #ifdef SEARCH_STATS_LOGGER
     uint64_t maxEdges = 0;
+    uint64_t maxPqSize = 0;
 #endif
     vec.clear();
     visited.clear();
@@ -66,6 +67,9 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         if (currentStats.size() > maxEdges) {
             maxEdges = currentStats.size();
         }
+        if (pq.size() > maxPqSize) {
+            maxPqSize = pq.size();
+        }
 #endif
         for (const auto &[neighborCellId, stats]: currentStats) {
             if (stats.edge == 0) continue;
@@ -101,8 +105,8 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
     }
 #ifdef SEARCH_STATS_LOGGER
     searchStatsLogger.info("Visited size: %lu", visited.size());
-    searchStatsLogger.info("Vec size: %lu", vec.size());
     searchStatsLogger.info("Max edges: %lu", maxEdges);
+    searchStatsLogger.info("Max PQ size: %lu", maxPqSize);
 #endif
     return originStats[destinationCellId].distance;
 }
