@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include <memory>
+#include <functional>
 
 #include "EpollEntry.hh"
 
