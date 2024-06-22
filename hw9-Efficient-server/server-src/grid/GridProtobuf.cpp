@@ -68,6 +68,7 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
                      location_count);
 #endif
     logGridGraph();
+    logGridStats();
     return shortestPath;
 }
 
@@ -90,6 +91,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
                      location_count);
 #endif
     logGridGraph();
+    logGridStats();
     return shortestPath;
 }
 

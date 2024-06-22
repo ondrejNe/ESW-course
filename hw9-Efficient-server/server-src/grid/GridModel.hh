@@ -112,6 +112,8 @@ public:
     uint64_t processOneToAll(const esw::OneToAll &oneToAll);
 
     void logGridGraph();
+
+    void logGridStats();
 };
 
 extern Grid grid;
