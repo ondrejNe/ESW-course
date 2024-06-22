@@ -7,7 +7,6 @@ PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
 //#define GRID_STATS_LOGGER
 PrefixedLogger gridStatsLogger = PrefixedLogger("[GRID STATS]", true);
 
-std::mutex gridMutex;
 // Class definition -------------------------------------------------------------------------------
 const std::vector <std::pair<int64_t, int64_t>> precomputedNeighbourPairs{
         {-1, -1},
@@ -52,15 +51,16 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        tsl::robin_map<uint64_t, uint64_t> newEdges = tsl::robin_map<uint64_t, uint64_t>();
-        Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
+        tsl::robin_map<uint64_t, Stat> newStats = tsl::robin_map<uint64_t, Stat>();
+        newStats.reserve(100);
+        Cell newCell = {id, coordX, coordY, point.x, point.y, newStats};
         cells[id] = newCell;
     }
 }
 
 void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
     Cell &originCell = cells[originCellId];
-    uint64_t &destinationEdge = originCell.edges[destinationCellId];
+    uint64_t &destinationEdge = originCell.stats[destinationCellId].edge;
 
     if (destinationEdge == 0) {
         destinationEdge = length;
@@ -88,8 +88,8 @@ void Grid::logGridGraph() {
     for (const auto& [cellId, cell] : cells) {
         gridLogger.info("Cell %lu: Coord(%lu, %lu), Point(%lu, %lu)",
                         cell.id, cell.coordX, cell.coordY, cell.pointX, cell.pointY);
-        for (const auto& [id, edge] : cell.stats) {
-            gridLogger.info("  with Stat to Cell %lu edge: %lu", id, stats.edge);
+        for (const auto& [id, stats] : cell.stats) {
+            gridLogger.info("  with Stat to Cell %lu edge: %lu, distance: %lu", id, stats.edge, stats.distance);
         }
     }
 #endif
@@ -99,8 +99,10 @@ void Grid::logGridStats() {
 #ifdef GRID_STATS_LOGGER
     size_t totalSize = sizeof(*this); // Start with the size of the Grid object itself.
     for (const auto& pair : cells) {
-        totalSize += sizeof(pair.first) + sizeof(pair.second) + pair.second.edges.size() * sizeof(uint64_t);
+        totalSize += sizeof(pair.first) + sizeof(pair.second) + pair.second.stats.size() * sizeof(uint64_t) + sizeof(Stat);
     }
+    totalSize += vec.capacity() * sizeof(decltype(vec)::value_type);
+    totalSize += visited.size() * (sizeof(uint64_t) + sizeof(uint64_t)); // Approximate, assuming flat storage.
 
     gridStatsLogger.info("Grid size: %lu bytes", totalSize);
 #endif

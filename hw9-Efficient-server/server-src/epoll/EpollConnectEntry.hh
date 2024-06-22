@@ -27,42 +27,24 @@
 extern PrefixedLogger connectLogger;
 extern PrefixedLogger processLogger;
 
-extern ThreadPool writePool;
-extern ThreadPool readPool;
+extern ThreadPool resourcePool;
 extern Grid grid;
 
 // Class definition -------------------------------------------------------------------------------
 class EpollConnectEntry : public EpollEntry
 {
 private:
-    // Connection state
     int             inProgressMessageSize;
     int             inProgressMessageOffset;
     char            messageBuffer[50000];
     bool            messageInProgress;
-
-    // Message content
-    esw::Request    request;
-    esw::Response   response;
-
-    // Message content state
-    std::mutex      inProgressWalksMutex;
-    int             inProgressWalks;
-    bool            waitingForWalksProcessed;
+    bool            processingInProgress;
 
     void readEvent();
 
     int readMessageSize();
 
-    void processWalk(esw::Request request, esw::Response response, int fd);
-
-    void processOneToOne(esw::Request request, esw::Response response, Grid grid, int fd);
-
-    void processOneToAll(esw::Request request, esw::Response response, Grid grid, int fd);
-
-    void processReset(esw::Response response, int fd);
-
-    void processError(esw::Response response, int fd);
+    void processMessage(esw::Request request, esw::Response response, int fd);
 
     void writeResponse(esw::Response &response, int fd);
 
@@ -72,10 +54,7 @@ public:
             inProgressMessageSize(0),
             inProgressMessageOffset(0),
             messageInProgress(false),
-            request(esw::Request()),
-            response(esw::Response()),
-            inProgressWalks(0),
-            waitingForWalksProcessed(false) {
+            processingInProgress(false) {
 
         // Assign the file descriptor of the accepted connection
         this->set_fd(fd);
