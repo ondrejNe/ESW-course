@@ -63,6 +63,10 @@ private:
     // Graph structure
     tsl::robin_map <uint64_t, Cell>                              cells;
 
+    // Graph search
+    std::vector <std::pair<uint64_t, uint64_t>>                    vec;
+    tsl::robin_map<uint64_t, uint64_t>                         visited;
+
     // Workers
     uint64_t        edges_count;
     uint64_t        edges_space;
@@ -73,7 +77,10 @@ private:
 
 public:
     Grid() {
-        cells.reserve(120000);
+        cells.reserve(115000);
+
+        vec.reserve(10000);
+        visited.reserve(10000);
 
         edges_count = 0;
         edges_space = 0;
