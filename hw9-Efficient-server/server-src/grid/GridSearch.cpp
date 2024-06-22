@@ -22,7 +22,7 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(300);
-    tsl::robin_map<uint64_t, uint64_t, hash<uint64_t>> visited;
+    tsl::robin_map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
 
     std::priority_queue <

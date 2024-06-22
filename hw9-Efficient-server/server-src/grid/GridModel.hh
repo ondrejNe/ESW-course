@@ -84,13 +84,13 @@ struct Cell {
     uint64_t coordY;
     uint64_t pointX;
     uint64_t pointY;
-    tsl::robin_map<uint64_t, Edge, hash<uint64_t>> edges;
+    tsl::robin_map<uint64_t, Edge> edges;
 };
 
 class GridData {
 private:
 public:
-    vector <tsl::robin_map<uint64_t, Cell, hash<uint64_t>>> buckets;
+    vector <tsl::robin_map<uint64_t, Cell>> buckets;
 
     GridData() {
         for (int i = 0; i < BUCKET_NUM; i++) {

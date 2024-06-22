@@ -50,7 +50,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        tsl::robin_map <uint64_t, Edge, hash<uint64_t>> newEdges = tsl::robin_map<uint64_t, Edge, hash<uint64_t>>();
+        tsl::robin_map <uint64_t, Edge> newEdges = tsl::robin_map<uint64_t, Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         buckets[bucketHash(cellId)][id] = newCell;
