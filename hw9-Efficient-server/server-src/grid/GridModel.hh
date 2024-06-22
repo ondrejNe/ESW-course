@@ -79,7 +79,7 @@ public:
     Grid() {
         cells.reserve(115000);
 
-        vec.reserve(115000);
+        vec.reserve(500);
         visited.reserve(115000);
 
         edges_count = 0;
