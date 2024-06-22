@@ -23,6 +23,7 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(500);
     map<uint64_t, uint64_t> visited;
+    visited.reserve(115000);
 
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,
