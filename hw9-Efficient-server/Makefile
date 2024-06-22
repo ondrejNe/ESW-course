@@ -24,7 +24,7 @@ clean-debug: clean debug
 
 ## Run the project ------------------------------------------------------------
 run-server:
-	./build/server-src/efficient_server 4321
+	./build/server-src/efficient_server 4444
 
 valgrind-server:
 	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/server-src/efficient_server
