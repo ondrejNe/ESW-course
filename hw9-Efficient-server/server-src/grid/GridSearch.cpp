@@ -49,20 +49,12 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         // Get the cell with the minimum distance from the priority queue
         uint64_t originCurrent = pq.top().first;
         uint64_t currentCellId = pq.top().second;
+        tsl::robin_map<uint64_t, Stat> &currentStats = cells[currentCellId].stats;
         visited[currentCellId] = 1;
-        pq.pop();
 #ifdef SEARCH_LOGGER
         searchLogger.debug("PQ popped current %llu", currentCellId);
         searchLogger.debug("Origin to current distance %llu", originCurrent);
 #endif
-        if (currentCellId == destinationCellId && !oneToAll) {
-#ifdef SEARCH_LOGGER
-            searchLogger.debug("Destination cell %llu reached with distance %llu", currentCellId, originCurrent);
-#endif
-            break;
-        }
-
-        tsl::robin_map<uint64_t, Stat> &currentStats = cells[currentCellId].stats;
 #ifdef SEARCH_STATS_LOGGER
         if (currentStats.size() > maxEdges) {
             maxEdges = currentStats.size();
@@ -71,6 +63,15 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
             maxPqSize = pq.size();
         }
 #endif
+        if (currentCellId == destinationCellId && !oneToAll) {
+#ifdef SEARCH_LOGGER
+            searchLogger.debug("Destination cell %llu reached with distance %llu", currentCellId, originCurrent);
+#endif
+            break;
+        }
+
+        pq.pop();
+
         for (const auto &[neighborCellId, stats]: currentStats) {
             if (stats.edge == 0) continue;
 
