@@ -4,6 +4,8 @@
 // Global variables -------------------------------------------------------------------------------
 //#define SEARCH_LOGGER
 PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
+#define SEARCH_STATS_LOGGER
+PrefixedLogger searchStatsLogger = PrefixedLogger("[SEARCH STATS]", true);
 
 // Class definition -------------------------------------------------------------------------------
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
@@ -89,6 +91,9 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
             }
         }
     }
-
+#ifdef SEARCH_STATS_LOGGER
+    searchStatsLogger.info("Visited size: %lu", visited.size());
+    searchStatsLogger.info("Vec size: %lu", vec.size());
+#endif
     return originStats[destinationCellId].distance;
 }
