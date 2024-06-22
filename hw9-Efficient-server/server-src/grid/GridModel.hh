@@ -26,7 +26,7 @@
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
 
-#define CHUNKS 20
+#define CHUNKS 10
 
 extern std::shared_mutex rwLock;
 
