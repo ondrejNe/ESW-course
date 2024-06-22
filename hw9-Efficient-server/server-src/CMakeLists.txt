@@ -20,7 +20,7 @@ target_link_libraries(efficient_server PRIVATE proto-lib)
 
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/epoll)
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/grid)
-target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/locker)
+target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/robin)
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/logger)
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/threadpool)
 target_include_directories(efficient_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/protobuf)
