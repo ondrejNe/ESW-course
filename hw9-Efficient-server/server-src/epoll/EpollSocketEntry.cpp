@@ -109,7 +109,7 @@ bool EpollSocketEntry::handleEvent(uint32_t events) {
         auto conn = std::make_unique<EpollConnectEntry>(connFd);
         epollInstance.registerEpollEntry(std::move(conn));
 #ifdef SOCKET_LOGGER
-        socketLogger.debug("Socket registered connection (%d)", connFd);
+        socketLogger.debug("Socket registered connection [FD%d]", connFd);
 #endif
     }
 
