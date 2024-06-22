@@ -25,8 +25,8 @@ uint64_t GridData::getPointCellId(Point &point) {
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
         uint64_t neighborCellId = ((probableCoordX + comb.first) << 32) | (probableCoordY + comb.second);
-        auto cellIt = cells.find(neighborCellId);
-        if (cellIt == cells.end()) continue; // The searched cell does not exist
+        auto cellIt = cells[neighborCellId % 4].find(neighborCellId);
+        if (cellIt == cells[neighborCellId % 4].end()) continue; // The searched cell does not exist
 
         const uint64_t &neighborPointX = cellIt->second.pointX;
         const uint64_t &neighborPointY = cellIt->second.pointY;
@@ -43,9 +43,9 @@ uint64_t GridData::getPointCellId(Point &point) {
 void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
     gridStats.location_count++;
 
-    auto it = cells.find(cellId);
+    auto it = cells[cellId % 4].find(cellId);
 
-    if (it == cells.end()) {
+    if (it == cells[cellId % 4].end()) {
         uint64_t coordX = point.x / 500;
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
@@ -53,7 +53,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         vector<Edge> newEdges = vector<Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
-        cells[id] = newCell;
+        cells[cellId % 4][id] = newCell;
 
         gridStats.quad[cellId % 4]++;
 
@@ -75,7 +75,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
 }
 
 void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    for (auto &[id, len, samples]: cells[originCellId].edges) {
+    for (auto &[id, len, samples]: cells[originCellId % 4][originCellId].edges) {
         if (id == destinationCellId) {
             len += length;
             samples++;
@@ -84,11 +84,14 @@ void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &d
     }
 
     gridStats.edges_count++;
-    cells[originCellId].edges.push_back({destinationCellId, length, 1});
+    cells[originCellId % 4][originCellId].edges.push_back({destinationCellId, length, 1});
 }
 
 void GridData::resetGrid(GridStats &gridStats) {
-    cells.clear();
+    for (int i = 0; i < 4; i++) {
+        cells[i].clear();
+        gridStats.quad[i] = 0;
+    }
 
     gridStats.edges_count = 0;
     gridStats.highestCoordX = {numeric_limits<uint64_t>::min(), 0};

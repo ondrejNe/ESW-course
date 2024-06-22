@@ -92,10 +92,14 @@ struct Cell {
 class GridData {
 private:
 public:
-    tsl::robin_map<uint64_t, Cell> cells;
+    vector<tsl::robin_map<uint64_t, Cell>> cells;
 
     GridData() {
-        cells.reserve(115000);
+        for (int i = 0; i < 4; i++) {
+            tsl::robin_map<uint64_t, Cell> newMap;
+            newMap.reserve(30000);
+            cells.push_back(newMap);
+        }
     }
 
     uint64_t getPointCellId(Point &point);
