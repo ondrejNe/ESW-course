@@ -55,6 +55,8 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
 
+        gridStats.quad[cellId % 4]++;
+
 #ifdef GRID_STATS_LOGGER
         if (coordX > gridStats.highestCoordX.first) {
             gridStats.highestCoordX = {coordX, coordY};
@@ -125,4 +127,5 @@ void GridStats::logGridStats() {
 #endif
     gridLogger.info("  Walks: %lu OneToOne: %lu OneToAll: %lu Locations: %lu", walk_count, oneToOne_count,
                     oneToAll_count, location_count);
+    gridLogger.info("  Quad 0: %lu Quad 1: %lu Quad 2: %lu Quad 3: %lu", quad[0], quad[1], quad[2], quad[3]);
 }

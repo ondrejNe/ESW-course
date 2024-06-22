@@ -41,6 +41,8 @@ public:
     pair <uint64_t, uint64_t> lowestCoordX;
     pair <uint64_t, uint64_t> lowestCoordY;
 
+    vector<uint64_t> quad;
+
     uint64_t walk_count;
     uint64_t oneToOne_count;
     uint64_t oneToAll_count;
@@ -52,6 +54,11 @@ public:
         highestCoordY = {0, numeric_limits<uint64_t>::min()};
         lowestCoordX = {numeric_limits<uint64_t>::max(), 0};
         lowestCoordY = {0, numeric_limits<uint64_t>::max()};
+
+        quad.push_back(0);
+        quad.push_back(0);
+        quad.push_back(0);
+        quad.push_back(0);
 
         walk_count = 0;
         oneToOne_count = 0;
