@@ -85,7 +85,7 @@ struct Cell {
 class GridData {
 private:
 public:
-    tsl::robin_map<uint64_t, Cell> cells;
+    map<uint64_t, Cell> cells;
 
     GridData() {
         cells.reserve(115000);
