@@ -29,6 +29,9 @@ run-server:
 valgrind-server:
 	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/server-src/efficient_server
 
+valgrind-mem-server:
+	valgrind --tool=massif ./build/server-src/efficient_server
+
 gdb-server:
 	gdb ./build/server-src/efficient_server
 
