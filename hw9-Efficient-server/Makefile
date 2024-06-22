@@ -38,8 +38,14 @@ gdb-server:
 perf-server:
 	perf record -g ./build/server-src/efficient_server
 
-perf-report:
+perf-cache-server:
+	perf stat -e cache-references,cache-misses ./build/server-src/efficient_server
+
+perf-hierarchy-report:
 	perf report --hierarchy
+
+perf-report:
+	perf report
 
 run-test-one:
 	nc localhost 4444 < test/walk1nodes3-2.pbf
