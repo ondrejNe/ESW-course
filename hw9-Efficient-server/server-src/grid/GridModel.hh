@@ -30,7 +30,10 @@ extern PrefixedLogger gridLogger;
 extern PrefixedLogger protoLogger;
 extern PrefixedLogger searchLogger;
 
-extern ThreadPool resourcePool;
+extern ThreadPool writePool;
+extern ThreadPool readPool;
+
+extern std::mutex gridMutex;
 
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
@@ -43,29 +46,19 @@ struct Point {
     uint64_t y;
 };
 
-struct Stat {
-    uint64_t edge;
-    uint64_t distance;
-};
-
 struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
     uint64_t    pointX;
     uint64_t    pointY;
-    tsl::robin_map<uint64_t, Stat> stats;
+    tsl::robin_map<uint64_t, uint64_t> edges;
 };
-
 
 class Grid {
 private:
     // Graph structure
     tsl::robin_map <uint64_t, Cell>                              cells;
-
-    // Graph search
-    std::vector <std::pair<uint64_t, uint64_t>>                    vec;
-    tsl::robin_map<uint64_t, uint64_t>                         visited;
 
     // Grid statistics
     uint64_t        edges_count;
@@ -79,15 +72,41 @@ public:
     Grid() {
         cells.reserve(115000);
 
-        vec.reserve(500);
-        visited.reserve(115000);
-
         edges_count = 0;
         edges_space = 0;
         location_count = 0;
         walk_count = 0;
         oneToOne_count = 0;
         oneToAll_count = 0;
+    }
+
+    // Copy constructor
+    Grid(const Grid& other) {
+        // Perform member-wise copy of data members
+        this->cells = other.cells;
+
+        this->edges_count = other.edges_count;
+        this->edges_space = other.edges_space;
+        this->location_count = other.location_count;
+        this->walk_count = other.walk_count;
+        this->oneToOne_count = other.oneToOne_count;
+        this->oneToAll_count = other.oneToAll_count;
+    }
+
+    // Assignment operator
+    Grid& operator=(const Grid& other) {
+        if (this != &other) { // avoid self-assignment
+            std::lock_guard<std::mutex> lock(gridMutex);
+            this->cells = other.cells;
+
+            this->edges_count = other.edges_count;
+            this->edges_space = other.edges_space;
+            this->location_count = other.location_count;
+            this->walk_count = other.walk_count;
+            this->oneToOne_count = other.oneToOne_count;
+            this->oneToAll_count = other.oneToAll_count;
+        }
+        return *this;
     }
 
     void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);
@@ -99,8 +118,6 @@ public:
     void resetGrid();
 
     uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll);
-
-    uint64_t allDijkstra(uint64_t &originCellId);
 
 
     void processWalk(const esw::Walk &walk);

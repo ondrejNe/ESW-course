@@ -19,7 +19,8 @@ using boost::asio::ip::tcp;
 // Global variables -------------------------------------------------------------------------------
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
 
-ThreadPool resourcePool(1);
+ThreadPool writePool(1);
+ThreadPool readPool(1);
 Grid grid = Grid();
 
 // Main function -----------------------------------------------------------------------------------
@@ -57,6 +58,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollInstance);
     epollInstance.registerEpollEntry(std::move(serverSocket));
 
-    resourcePool.waitAllThreads();
+    writePool.waitAllThreads();
+    readPool.waitAllThreads();
     return 0;
 }

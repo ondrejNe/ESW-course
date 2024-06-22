@@ -13,18 +13,6 @@ uint64_t maxPqSize = 0;
 #endif
 
 // Class definition -------------------------------------------------------------------------------
-uint64_t Grid::allDijkstra(uint64_t &originCellId) {
-    dijkstra(originCellId, originCellId, ONE_TO_ALL);
-
-    uint64_t sum = 0;
-
-    for (const auto &[destinationCellId, stats]: cells[originCellId].stats) {
-        sum += stats.distance;
-    }
-
-    return sum;
-}
-
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
 #ifdef SEARCH_LOGGER
     if (oneToAll) {
@@ -33,14 +21,15 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
     }
 #endif
-    vec.clear();
-    visited.clear();
+    std::vector<std::pair<uint64_t, uint64_t>> vec = std::vector<std::pair<uint64_t, uint64_t>>();
+    tsl::robin_map<uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
+    tsl::robin_map<uint64_t, uint64_t> distances = tsl::robin_map<uint64_t, uint64_t>();
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,
             std::vector < std::pair < uint64_t, uint64_t >>,
             std::greater<>
             > pq(std::greater<>(), vec);
-    tsl::robin_map<uint64_t, Stat> &originStats = cells[originCellId].stats;
+    tsl::robin_map<uint64_t, uint64_t> &originEdges = cells[originCellId].edges;
 
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
@@ -50,15 +39,15 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         // Get the cell with the minimum distance from the priority queue
         uint64_t originCurrent = pq.top().first;
         uint64_t currentCellId = pq.top().second;
-        tsl::robin_map<uint64_t, Stat> &currentStats = cells[currentCellId].stats;
+        tsl::robin_map<uint64_t, uint64_t> &currentEdges = cells[currentCellId].edges;
         visited[currentCellId] = 1;
 #ifdef SEARCH_LOGGER
         searchLogger.debug("PQ popped current %llu", currentCellId);
         searchLogger.debug("Origin to current distance %llu", originCurrent);
 #endif
 #ifdef SEARCH_STATS_LOGGER
-        if (currentStats.size() > maxEdges) {
-            maxEdges = currentStats.size();
+        if (currentEdges.size() > maxEdges) {
+            maxEdges = currentEdges.size();
         }
         if (pq.size() > maxPqSize) {
             maxPqSize = pq.size();
@@ -73,14 +62,14 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
 
         pq.pop();
 
-        for (const auto &[neighborCellId, stats]: currentStats) {
-            if (stats.edge == 0) continue;
+        for (const auto &[neighborCellId, edge]: currentEdges) {
+            if (edge == 0) continue;
 
-            uint64_t originNeighbor = originStats[neighborCellId].distance;
-            const uint64_t possibleOriginNeighbor = originCurrent + stats.edge;
+            uint64_t originNeighbor = distances[neighborCellId];
+            const uint64_t possibleOriginNeighbor = originCurrent + edge;
 #ifdef SEARCH_LOGGER
             searchLogger.debug("Neighbor cell %llu", neighborCellId);
-            searchLogger.debug("Current to neighbor edge %llu", stats.edge);
+            searchLogger.debug("Current to neighbor edge %llu", edge);
             searchLogger.debug("Origin to neighbor distance %llu", originNeighbor);
             searchLogger.debug("Possible new origin to neighbor distance %llu", possibleOriginNeighbor);
 #endif
@@ -90,7 +79,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
                                    possibleOriginNeighbor);
 #endif
                 originNeighbor = possibleOriginNeighbor;
-                originStats[neighborCellId].distance = originNeighbor;
+                distances[neighborCellId] = originNeighbor;
 
                 if (visited[neighborCellId] == 1) {
 #ifdef SEARCH_LOGGER
@@ -107,8 +96,20 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
     }
 #ifdef SEARCH_STATS_LOGGER
     searchStatsLogger.info("Visited size: %lu", visited.size());
+    searchStatsLogger.info("Distances size: %lu", distances.size());
     searchStatsLogger.info("Max edges: %lu", maxEdges);
     searchStatsLogger.info("Max PQ size: %lu", maxPqSize);
 #endif
-    return originStats[destinationCellId].distance;
+
+    if (oneToAll) {
+        uint64_t sum = 0;
+
+        for (const auto &[destinationCellId, edge]: originEdges) {
+            sum += edge;
+        }
+
+        return sum;
+    } else {
+        return distances[destinationCellId];
+    }
 }

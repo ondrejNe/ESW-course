@@ -2,7 +2,7 @@
 #include "ThreadPool.hh"
 
 // Global variables -------------------------------------------------------------------------------
-//#define THREAD_LOGGER
+#define THREAD_LOGGER
 PrefixedLogger threadLogger = PrefixedLogger("[THREADPOOL]", true);
 #define THREAD_STATS_LOGGER
 PrefixedLogger threadStatsLogger = PrefixedLogger("[THREADPOOL STATS]", true);

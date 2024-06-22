@@ -2,9 +2,9 @@
 #include "EpollConnectEntry.hh"
 
 // Global variables -------------------------------------------------------------------------------
-//#define CONNECT_LOGGER
+#define CONNECT_LOGGER
 PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
-//#define PROCESS_LOGGER
+#define PROCESS_LOGGER
 PrefixedLogger processLogger = PrefixedLogger("[PROCESSING]", true);
 
 // Class definition -------------------------------------------------------------------------------
@@ -55,9 +55,16 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
 }
 
 void EpollConnectEntry::readEvent() {
-    if (processingInProgress) {
+    // Read is waiting for walks to finish
+    if (waitingForWalksProcessed && inProgressWalks > 0) {
+#ifdef CONNECT_LOGGER
+        connectLogger.warn("Read waiting for walks to finish on connection [FD%d]", this->get_fd());
+#endif
         return;
     }
+#ifdef CONNECT_LOGGER
+    connectLogger.warn("New event on connection [FD%d]", this->get_fd());
+#endif
 
     // New message
     if (!messageInProgress) {
@@ -73,55 +80,123 @@ void EpollConnectEntry::readEvent() {
         inProgressMessageOffset = 0;
     }
 
-    // Read the message
-    int received = recv(this->get_fd(), messageBuffer + inProgressMessageOffset,
-                        inProgressMessageSize - inProgressMessageOffset, MSG_WAITALL);
+    // Read the message or continue reading
+    if (messageInProgress && !waitingForWalksProcessed) {
+        int received = recv(this->get_fd(), messageBuffer + inProgressMessageOffset,
+                            inProgressMessageSize - inProgressMessageOffset, MSG_WAITALL);
 #ifdef CONNECT_LOGGER
-    connectLogger.debug("Received: %d on connection [FD%d]", received, this->get_fd());
+        connectLogger.debug("Received: %d on connection [FD%d]", received, this->get_fd());
 #endif
-    if (received == 0) {
+        if (received == 0) {
 #ifdef CONNECT_LOGGER
-        connectLogger.debug("Connection closed by client on [FD%d]", this->get_fd());
+            connectLogger.debug("Connection closed by client on [FD%d]", this->get_fd());
 #endif
-        shutdown(this->get_fd(), SHUT_RDWR);
-        return;
-    }
+            shutdown(this->get_fd(), SHUT_RDWR);
+            return;
+        }
 
-    if (received < 0) {
+        if (received < 0) {
 #ifdef CONNECT_LOGGER
-        connectLogger.error("Failed to read message: %s on [FD%d]", string(strerror(errno)), this->get_fd());
+            connectLogger.error("Failed to read message: %s on [FD%d]", string(strerror(errno)), this->get_fd());
 #endif
-        shutdown(this->get_fd(), SHUT_RDWR);
-        return;
+            shutdown(this->get_fd(), SHUT_RDWR);
+            return;
+        }
+
+        inProgressMessageOffset += received;
     }
-    inProgressMessageOffset += received;
 
     if (inProgressMessageOffset != inProgressMessageSize) {
 #ifdef CONNECT_LOGGER
-        connectLogger.debug("Received %d of %d on connection [FD%d]", received, inProgressMessageSize, this->get_fd());
+        connectLogger.debug("Received %d of %d on connection [FD%d]", inProgressMessageOffset, inProgressMessageSize,
+                            this->get_fd());
 #endif
         return;
     }
 
-    // All the message was read
-    esw::Request request;
-    esw::Response response;
-    response.set_status(esw::Response_Status_OK);
-    request.ParseFromArray(messageBuffer, inProgressMessageSize);
+    if (!waitingForWalksProcessed) {
+        request = esw::Request();
+        response = esw::Response();
 
-#ifdef CONNECT_LOGGER
-    connectLogger.debug("Message handed to processing on connection [FD%d]", this->get_fd());
-#endif
-    processingInProgress = true;
+        response.set_status(esw::Response_Status_OK);
+        request.ParseFromArray(messageBuffer, inProgressMessageSize);
+    }
+
     int fd = this->get_fd();
-//    processMessage(request, response, fd);
-//    processingInProgress = false;
-//    messageInProgress = false;
 
-    resourcePool.run([this, request, response, fd] {
-        processMessage(request, response, fd);
-        this->processingInProgress = false;
-    }, fd);
+    if (request.has_walk()) {
+        {
+            std::lock_guard <std::mutex> lock(inProgressWalksMutex);
+            inProgressWalks++;
+        }
+        auto localRequest = request;
+        auto localResponse = response;
+        writePool.run([this, localRequest, localResponse, fd] {
+            processWalk(localRequest, localResponse, fd);
+            {
+                std::lock_guard <std::mutex> lock(this->inProgressWalksMutex);
+                this->inProgressWalks--;
+            }
+        }, fd);
+    } else if (request.has_onetoone()) {
+        if (inProgressWalks == 0) {
+            waitingForWalksProcessed = false;
+            auto localGrid = grid;
+            auto localRequest = request;
+            auto localResponse = response;
+            readPool.run([this, localGrid, localRequest, localResponse, fd] {
+                processOneToOne(localRequest, localResponse, localGrid, fd);
+            }, fd);
+        } else {
+            waitingForWalksProcessed = true;
+#ifdef CONNECT_LOGGER
+            connectLogger.warn("Waiting for walks to finish on connection [FD%d]", this->get_fd());
+#endif
+            return;
+        }
+    } else if (request.has_onetoall()) {
+        if (inProgressWalks == 0) {
+            waitingForWalksProcessed = false;
+            auto localGrid = grid;
+            auto localRequest = request;
+            auto localResponse = response;
+            readPool.run([this, localGrid, localRequest, localResponse, fd] {
+                processOneToAll(localRequest, localResponse, localGrid, fd);
+            }, fd);
+        } else {
+            waitingForWalksProcessed = true;
+#ifdef CONNECT_LOGGER
+            connectLogger.warn("Waiting for walks to finish on connection [FD%d]", this->get_fd());
+#endif
+            return;
+        }
+    } else if (request.has_reset()) {
+        {
+            std::lock_guard <std::mutex> lock(inProgressWalksMutex);
+            inProgressWalks++;
+        }
+        auto localResponse = response;
+        writePool.run([this, localResponse, fd] {
+            processReset(localResponse, fd);
+            {
+                std::lock_guard <std::mutex> lock(this->inProgressWalksMutex);
+                this->inProgressWalks--;
+            }
+        }, fd);
+    } else {
+        {
+            std::lock_guard <std::mutex> lock(inProgressWalksMutex);
+            inProgressWalks++;
+        }
+        auto localResponse = response;
+        writePool.run([this, localResponse, fd] {
+            processError(localResponse, fd);
+            {
+                std::lock_guard <std::mutex> lock(this->inProgressWalksMutex);
+                this->inProgressWalks--;
+            }
+        }, fd);
+    }
 
     messageInProgress = false;
 }
@@ -157,59 +232,71 @@ int EpollConnectEntry::readMessageSize() {
     return msgSize;
 }
 
-void EpollConnectEntry::processMessage(esw::Request request, esw::Response response, int fd) {
-    if (request.has_walk()) {
+void EpollConnectEntry::processWalk(esw::Request request, esw::Response response, int fd) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("Walk message received on connection [FD%d]", fd);
+    processLogger.warn("Walk message received on connection [FD%d]", fd);
 #endif
-        const esw::Walk &walk = request.walk();
-        grid.processWalk(walk);
+    const esw::Walk &walk = request.walk();
+    grid.processWalk(walk);
 
-    } else if (request.has_onetoone()) {
-#ifdef PROCESS_LOGGER
-        processLogger.warn("OneToOne message received on connection [FD%d]", fd);
-#endif
-        const esw::OneToOne &oneToOne = request.onetoone();
-        uint64_t val = grid.processOneToOne(oneToOne);
-#ifdef PROCESS_LOGGER
-        processLogger.info("OneToOne response %llu on connection [FD%d]", val, fd);
-#endif
-        response.set_shortest_path_length(val);
+    // Send the response
+    writeResponse(response, fd);
+}
 
-    } else if (request.has_onetoall()) {
+void EpollConnectEntry::processOneToOne(esw::Request request, esw::Response response, Grid grid, int fd) {
 #ifdef PROCESS_LOGGER
-        processLogger.warn("OneToAll message received on connection [FD%d]", fd);
+    processLogger.warn("OneToOne message received on connection [FD%d]", fd);
 #endif
-        const esw::OneToAll &oneToAll = request.onetoall();
-        uint64_t val = grid.processOneToAll(oneToAll);
+    const esw::OneToOne &oneToOne = request.onetoone();
+    uint64_t val = grid.processOneToOne(oneToOne);
 #ifdef PROCESS_LOGGER
-        processLogger.info("OneToAll response %llu on connection [FD%d]", val, fd);
+    processLogger.info("OneToOne response %llu on connection [FD%d]", val, fd);
 #endif
-        response.set_total_length(val);
+    response.set_shortest_path_length(val);
 
-    } else if (request.has_reset()) {
-#ifdef PROCESS_LOGGER
-        processLogger.warn("Reset message received on connection [FD%d]", fd);
-#endif
-        grid.processReset();
+    // Send the response
+    writeResponse(response, fd);
+}
 
-    } else {
+void EpollConnectEntry::processOneToAll(esw::Request request, esw::Response response, Grid grid, int fd) {
 #ifdef PROCESS_LOGGER
-        processLogger.error("No valid message type detected on connection [FD%d]", fd);
+    processLogger.warn("OneToAll message received on connection [FD%d]", fd);
 #endif
-        response.set_status(esw::Response_Status_ERROR);
-    }
+    const esw::OneToAll &oneToAll = request.onetoall();
+    uint64_t val = grid.processOneToAll(oneToAll);
+#ifdef PROCESS_LOGGER
+    processLogger.info("OneToAll response %llu on connection [FD%d]", val, fd);
+#endif
+    response.set_total_length(val);
 
     // Send the response
     writeResponse(response, fd);
 
     // Final request should close the connection
-    if (request.has_onetoall()) {
-        shutdown(fd, SHUT_RDWR);
+    shutdown(fd, SHUT_RDWR);
 #ifdef PROCESS_LOGGER
-        processLogger.info("Closing connection after OneToAll request on connection [FD%d]", fd);
+    processLogger.info("Closing connection after OneToAll request on connection [FD%d]", fd);
 #endif
-    }
+}
+
+void EpollConnectEntry::processReset(esw::Response response, int fd) {
+#ifdef PROCESS_LOGGER
+    processLogger.warn("Reset message received on connection [FD%d]", fd);
+#endif
+    grid.processReset();
+
+    // Send the response
+    writeResponse(response, fd);
+}
+
+void EpollConnectEntry::processError(esw::Response response, int fd) {
+#ifdef PROCESS_LOGGER
+    processLogger.error("No valid message type detected on connection [FD%d]", fd);
+#endif
+    response.set_status(esw::Response_Status_ERROR);
+
+    // Send the response
+    writeResponse(response, fd);
 }
 
 void EpollConnectEntry::writeResponse(esw::Response &response, int fd) {
