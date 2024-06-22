@@ -26,6 +26,8 @@
 #define ONE_TO_ONE  false
 #define ONE_TO_ALL  true
 
+#define CHUNKS 10
+
 extern std::shared_mutex rwLock;
 
 // Class definition -------------------------------------------------------------------------------
@@ -55,10 +57,9 @@ public:
         lowestCoordX = {numeric_limits<uint64_t>::max(), 0};
         lowestCoordY = {0, numeric_limits<uint64_t>::max()};
 
-        quad.push_back(0);
-        quad.push_back(0);
-        quad.push_back(0);
-        quad.push_back(0);
+        for (int i = 0; i < CHUNKS; i++) {
+            quad.push_back(0);
+        }
 
         walk_count = 0;
         oneToOne_count = 0;
@@ -95,9 +96,9 @@ public:
     vector<tsl::robin_map<uint64_t, Cell>> cells;
 
     GridData() {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < CHUNKS; i++) {
             tsl::robin_map<uint64_t, Cell> newMap;
-            newMap.reserve(30000);
+            newMap.reserve(120000 / CHUNKS);
             cells.push_back(newMap);
         }
     }

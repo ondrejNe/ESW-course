@@ -25,8 +25,8 @@ uint64_t GridData::getPointCellId(Point &point) {
     // Search whether there isn't a better match
     for (const auto &comb: precomputedNeighbourPairs) {
         uint64_t neighborCellId = ((probableCoordX + comb.first) << 32) | (probableCoordY + comb.second);
-        auto cellIt = cells[neighborCellId % 4].find(neighborCellId);
-        if (cellIt == cells[neighborCellId % 4].end()) continue; // The searched cell does not exist
+        auto cellIt = cells[neighborCellId % CHUNKS].find(neighborCellId);
+        if (cellIt == cells[neighborCellId % CHUNKS].end()) continue; // The searched cell does not exist
 
         const uint64_t &neighborPointX = cellIt->second.pointX;
         const uint64_t &neighborPointY = cellIt->second.pointY;
@@ -43,9 +43,9 @@ uint64_t GridData::getPointCellId(Point &point) {
 void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
     gridStats.location_count++;
 
-    auto it = cells[cellId % 4].find(cellId);
+    auto it = cells[cellId % CHUNKS].find(cellId);
 
-    if (it == cells[cellId % 4].end()) {
+    if (it == cells[cellId % CHUNKS].end()) {
         uint64_t coordX = point.x / 500;
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
@@ -53,9 +53,9 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         vector<Edge> newEdges = vector<Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
-        cells[cellId % 4][id] = newCell;
+        cells[cellId % CHUNKS][id] = newCell;
 
-        gridStats.quad[cellId % 4]++;
+        gridStats.quad[cellId % CHUNKS]++;
 
 #ifdef GRID_STATS_LOGGER
         if (coordX > gridStats.highestCoordX.first) {
@@ -75,7 +75,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
 }
 
 void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    for (auto &[id, len, samples]: cells[originCellId % 4][originCellId].edges) {
+    for (auto &[id, len, samples]: cells[originCellId % CHUNKS][originCellId].edges) {
         if (id == destinationCellId) {
             len += length;
             samples++;
@@ -84,11 +84,11 @@ void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &d
     }
 
     gridStats.edges_count++;
-    cells[originCellId % 4][originCellId].edges.push_back({destinationCellId, length, 1});
+    cells[originCellId % CHUNKS][originCellId].edges.push_back({destinationCellId, length, 1});
 }
 
 void GridData::resetGrid(GridStats &gridStats) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < CHUNKS; i++) {
         cells[i].clear();
         gridStats.quad[i] = 0;
     }
@@ -130,5 +130,4 @@ void GridStats::logGridStats() {
 #endif
     gridLogger.info("  Walks: %lu OneToOne: %lu OneToAll: %lu Locations: %lu", walk_count, oneToOne_count,
                     oneToAll_count, location_count);
-    gridLogger.info("  Quad 0: %lu Quad 1: %lu Quad 2: %lu Quad 3: %lu", quad[0], quad[1], quad[2], quad[3]);
 }
