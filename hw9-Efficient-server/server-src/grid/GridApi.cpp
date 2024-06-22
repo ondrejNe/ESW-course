@@ -3,7 +3,7 @@
 
 // Global variables -------------------------------------------------------------------------------
 //#define GRID_GRAPH_LOGGER
-//#define GRID_STATS_LOGGER
+#define GRID_STATS_LOGGER
 PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
 
 // Class definition -------------------------------------------------------------------------------
@@ -50,11 +50,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        tsl::robin_map<uint64_t, Edge,
-        std::hash < uint64_t > , std::equal_to < uint64_t >, std::allocator < pair < uint64_t, Edge >>,
-                true > newEdges = tsl::robin_map<uint64_t, Edge,
-                        std::hash < uint64_t>, std::equal_to < uint64_t >, std::allocator < pair < uint64_t, Edge >>,
-                true > ();
+        tsl::robin_map <uint64_t, Edge> newEdges = tsl::robin_map<uint64_t, Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;

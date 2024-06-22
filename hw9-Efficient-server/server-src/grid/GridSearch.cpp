@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-//#define SEARCH_STATS_LOGGER
+#define SEARCH_STATS_LOGGER
 //#define SEARCH_ALGO_LOGGER
 PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING ]", true);
 
@@ -21,9 +21,8 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     uint64_t maxPqSize = 0;
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
-    vec.reserve(300);
-    tsl::robin_map<uint64_t, uint64_t,
-    std::hash < uint64_t>, std::equal_to <uint64_t>, std::allocator <pair<uint64_t, uint64_t>>, true> visited;
+    vec.reserve(500);
+    tsl::robin_map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
 
     std::priority_queue <
