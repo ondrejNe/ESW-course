@@ -2,7 +2,6 @@
 #ifndef HW9_EFFICIENT_SERVER_EPOLLENTRY_H
 #define HW9_EFFICIENT_SERVER_EPOLLENTRY_H
 
-#include <boost/asio.hpp>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -13,6 +12,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include <fcntl.h>
+#include <sys/types.h>
 
 // Class definition -------------------------------------------------------------------------------
 class EpollEntry

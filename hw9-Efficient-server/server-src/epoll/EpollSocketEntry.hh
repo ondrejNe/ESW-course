@@ -2,8 +2,6 @@
 #ifndef HW9_EFFICIENT_SERVER_EPOLLSOCKETENTRY_H
 #define HW9_EFFICIENT_SERVER_EPOLLSOCKETENTRY_H
 
-#include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -14,6 +12,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include <fcntl.h>
+#include <sys/types.h>
 
 #include "EpollEntry.hh"
 #include "EpollInstance.hh"

@@ -14,7 +14,6 @@
 #include "ThreadPool.hh"
 
 using namespace std;
-using boost::asio::ip::tcp;
 
 // Global variables -------------------------------------------------------------------------------
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
