@@ -118,15 +118,18 @@ void EpollConnectEntry::readEvent() {
         resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
             processMessage(request, response, gridData, gridStats, fd);
             this->processingInProgress = false;
+            this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         }, fd);
     } else {
         resourcePool1.run([this, request, response, &gridData, &gridStats, fd] {
             processMessage(request, response, gridData, gridStats, fd);
             this->processingInProgress = false;
+            this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
         }, fd);
     }
 
     messageInProgress = false;
+    set_events(EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
 int EpollConnectEntry::readMessageSize() {
