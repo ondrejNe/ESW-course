@@ -67,7 +67,7 @@ private:
     std::vector <std::pair<uint64_t, uint64_t>>                    vec;
     tsl::robin_map<uint64_t, uint64_t>                         visited;
 
-    // Workers
+    // Grid statistics
     uint64_t        edges_count;
     uint64_t        edges_space;
     uint64_t        location_count;

@@ -70,6 +70,13 @@ void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t
 
 void Grid::resetGrid() {
     cells.clear();
+
+    edges_count = 0;
+    edges_space = 0;
+    location_count = 0;
+    walk_count = 0;
+    oneToOne_count = 0;
+    oneToAll_count = 0;
 }
 
 void Grid::logGridGraph() {
