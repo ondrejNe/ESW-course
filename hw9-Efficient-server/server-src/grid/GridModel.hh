@@ -68,6 +68,7 @@ struct Point {
 };
 
 struct Edge {
+    uint64_t id;
     uint64_t length;
     uint64_t samples;
 };
@@ -78,7 +79,7 @@ struct Cell {
     uint64_t coordY;
     uint64_t pointX;
     uint64_t pointY;
-    tsl::robin_map<uint64_t, Edge> edges;
+    vector<Edge> edges;
 };
 
 class GridData {

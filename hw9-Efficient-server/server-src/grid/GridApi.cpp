@@ -50,7 +50,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        tsl::robin_map <uint64_t, Edge> newEdges = tsl::robin_map<uint64_t, Edge>();
+        vector<Edge> newEdges = vector<Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
@@ -73,14 +73,16 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
 }
 
 void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    Edge &destinationEdge = cells[originCellId].edges[destinationCellId];
-
-    if (destinationEdge.length == 0) {
-        gridStats.edges_count++;
+    for (auto &[id, len, samples]: cells[originCellId].edges) {
+        if (id == destinationCellId) {
+            len += length;
+            samples++;
+            return;
+        }
     }
 
-    destinationEdge.length += length;
-    destinationEdge.samples++;
+    gridStats.edges_count++;
+    cells[originCellId].edges.push_back({destinationCellId, length, 1});
 }
 
 void GridData::resetGrid(GridStats &gridStats) {

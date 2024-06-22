@@ -66,9 +66,9 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
             maxEdges = gridData.cells[currentCellId].edges.size();
         }
 #endif
-        for (const auto &[neighborCellId, edge]: gridData.cells[currentCellId].edges) {
+        for (const auto &[neighborCellId, edge, samples]: gridData.cells[currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
-            pq.push({originCurrent + (edge.length / edge.samples), neighborCellId});
+            pq.push({originCurrent + (edge / samples), neighborCellId});
         }
     }
 
