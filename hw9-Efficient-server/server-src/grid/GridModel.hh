@@ -78,13 +78,16 @@ struct Cell {
     uint64_t coordY;
     uint64_t pointX;
     uint64_t pointY;
-    tsl::robin_map<uint64_t, Edge> edges;
+    tsl::robin_map<uint64_t, Edge,
+            std::hash < uint64_t>, std::equal_to <uint64_t>, std::allocator <pair<uint64_t, Edge>>, true> edges;
 };
 
 class GridData {
 private:
 public:
-    tsl::robin_map<uint64_t, Cell> cells;
+    tsl::robin_map<uint64_t, Cell,
+            std::hash < uint64_t>, std::equal_to <uint64_t>, std::allocator <pair<uint64_t, Cell>>, true>
+    cells;
 
     GridData() {
         cells.reserve(115000);
