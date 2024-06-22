@@ -49,31 +49,41 @@ struct Cell {
     uint64_t    coordY;
     uint64_t    pointX;
     uint64_t    pointY;
-    tsl::robin_map<uint64_t, uint64_t> edges;
+    tsl::robin_map <uint64_t, uint64_t>     edges;
 };
 
 
 class Grid {
 private:
     // Graph structure
-    tsl::robin_map <uint64_t, Cell> cells;
+    tsl::robin_map <uint64_t, Cell>         cells;
 
     // Grid statistics
-    uint64_t        edges_count;
-    uint64_t        location_count;
+    uint64_t                 edges_count;
+    pair<uint64_t, uint64_t> highestCoordX;
+    pair<uint64_t, uint64_t> highestCoordY;
+    pair<uint64_t, uint64_t> lowestCoordX;
+    pair<uint64_t, uint64_t> lowestCoordY;
+
     uint64_t        walk_count;
     uint64_t        oneToOne_count;
     uint64_t        oneToAll_count;
+    uint64_t        location_count;
 
 public:
     Grid() {
         cells.reserve(115000);
 
         edges_count = 0;
-        location_count = 0;
+        highestCoordX = {numeric_limits<uint64_t>::min(), 0};
+        highestCoordY = {0, numeric_limits<uint64_t>::min()};
+        lowestCoordX = {numeric_limits<uint64_t>::max(), 0};
+        lowestCoordY = {0, numeric_limits<uint64_t>::max()};
+
         walk_count = 0;
         oneToOne_count = 0;
         oneToAll_count = 0;
+        location_count = 0;
     }
 
     void addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);

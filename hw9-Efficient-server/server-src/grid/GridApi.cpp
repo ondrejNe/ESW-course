@@ -4,7 +4,7 @@
 // Global variables -------------------------------------------------------------------------------
 //#define GRID_LOGGER
 PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
-//#define GRID_STATS_LOGGER
+#define GRID_STATS_LOGGER
 PrefixedLogger gridStatsLogger = PrefixedLogger("[GRID STATS]", true);
 
 // Class definition -------------------------------------------------------------------------------
@@ -55,6 +55,21 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         newEdges.reserve(10);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
+
+#ifdef GRID_STATS_LOGGER
+        if (coordX > highestCoordX.first) {
+            highestCoordX = {coordX, coordY};
+        }
+        if (coordX < lowestCoordX.first) {
+            lowestCoordX = {coordX, coordY};
+        }
+        if (coordY > highestCoordY.second) {
+            highestCoordY = {coordX, coordY};
+        }
+        if (coordY < lowestCoordY.second) {
+            lowestCoordY = {coordX, coordY};
+        }
+#endif
     }
 }
 
@@ -94,7 +109,7 @@ void Grid::logGridGraph() {
 }
 
 void Grid::logGridStats() {
-#ifdef GRID_STATS_LOGGER
+#ifdef GRID_MEM_LOGGER
     size_t totalSize = sizeof(*this); // Start with the size of the Grid object itself.
     for (const auto& pair : cells) {
         totalSize += sizeof(pair.first) + sizeof(pair.second) + pair.second.edges.size() * sizeof(uint64_t) * 2;
