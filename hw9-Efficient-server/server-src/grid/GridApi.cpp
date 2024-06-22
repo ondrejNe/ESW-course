@@ -48,31 +48,27 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t coordX = point.x / 500;
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
-        Cell newCell = {id, coordX, coordY, point.x, point.y};
 
+        tsl::robin_map<uint64_t, Stat> newStats = tsl::robin_map<uint64_t, Stat>();
+        Cell newCell = {id, coordX, coordY, point.x, point.y, newStats};
         cells[id] = newCell;
-        edges[id] = tsl::robin_map<uint64_t, uint64_t>();
-        distances[id] = tsl::robin_map<uint64_t, uint64_t>();
-        distances[id][id] = 0;
     }
 }
 
 void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    // Edges
-    uint64_t edgeLength = edges[originCellId][destinationCellId];
-    if (edgeLength == 0) {
-        edgeLength = length;
+    Cell &originCell = cells[originCellId];
+    uint64_t &destinationEdge = originCell.stats[destinationCellId].edge;
+
+    if (destinationEdge == 0) {
+        destinationEdge = length;
         edges_count += 1;
     } else {
-        edgeLength = (edgeLength + length) / 2;
+        destinationEdge = (destinationEdge + length) / 2;
     }
-    edges[originCellId][destinationCellId] = edgeLength;
 }
 
 void Grid::resetGrid() {
     cells.clear();
-    edges.clear();
-    distances.clear();
 }
 
 void Grid::logGridGraph() {
@@ -82,22 +78,8 @@ void Grid::logGridGraph() {
     for (const auto& [cellId, cell] : cells) {
         gridLogger.info("Cell %lu: Coord(%lu, %lu), Point(%lu, %lu)",
                         cell.id, cell.coordX, cell.coordY, cell.pointX, cell.pointY);
-    }
-
-    // Log information about edges and distances
-    gridLogger.info("Grid contains %lu edges:", edges_count);
-    for (const auto& [originCellId, edgeMap] : edges) {
-        for (const auto& [destinationCellId, length] : edgeMap) {
-            gridLogger.info("Edge from Cell %lu to Cell %lu with length %lu",
-                            originCellId, destinationCellId, length);
-        }
-    }
-
-    gridLogger.info("Grid distances:");
-    for (const auto& [originCellId, distMap] : distances) {
-        for (const auto& [destinationCellId, distance] : distMap) {
-            gridLogger.info("Distance from Cell %lu to Cell %lu is %lu",
-                            originCellId, destinationCellId, distance);
+        for (const auto& [id, stats] : cell.stats) {
+            gridLogger.info("  with Stat to Cell %lu edge: %lu, distance: %lu", id, stats.edge, stats.distance);
         }
     }
 #endif

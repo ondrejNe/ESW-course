@@ -7,26 +7,29 @@ PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
 
 // Class definition -------------------------------------------------------------------------------
 uint64_t Grid::allDijkstra(uint64_t &originCellId) {
+    dijkstra(originCellId, originCellId, ONE_TO_ALL);
+
     uint64_t sum = 0;
 
-    for (const auto &entry: cells) {
-        uint64_t destinationCellId = entry.first;
-        uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
-        if (shortestPath != numeric_limits<uint64_t>::max()) {
-            sum += shortestPath;
-        }
+    for (const auto &[destinationCellId, stats]: cells[originCellId].stats) {
+        sum += stats.distance;
     }
 
     return sum;
 }
 
-uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
+uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
 #ifdef SEARCH_LOGGER
-    searchLogger.debug("Dijkstra from %llu to %llu", originCellId, destinationCellId);
+    if (oneToAll) {
+        searchLogger.debug("--- Dijkstra from %llu to all ---", originCellId);
+    } else {
+        searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
+    }
 #endif
-    priority_queue<pair<uint64_t, uint64_t>, vector<pair<uint64_t, uint64_t>>, greater<>> pq;
-    tsl::robin_map <uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
-    tsl::robin_map <uint64_t, uint64_t> &originDistances = distances[originCellId];
+    priority_queue < pair < uint64_t, uint64_t >, vector < pair < uint64_t, uint64_t >>, greater<>>
+    pq;
+    tsl::robin_map<uint64_t, uint64_t> visited = tsl::robin_map<uint64_t, uint64_t>();
+    tsl::robin_map<uint64_t, Stat> &originStats = cells[originCellId].stats;
 
     // Add the source cell to the priority queue
     pq.push(make_pair(0, originCellId));
@@ -34,51 +37,54 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId) {
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
         // Get the cell with the minimum distance from the priority queue
+        uint64_t originCurrent = pq.top().first;
         uint64_t currentCellId = pq.top().second;
+        visited[currentCellId] = 1;
         pq.pop();
 #ifdef SEARCH_LOGGER
-        searchLogger.debug("PQ popped current cell %llu", currentCellId);
+        searchLogger.debug("PQ popped current %llu", currentCellId);
+        searchLogger.debug("Origin to current distance %llu", originCurrent);
 #endif
-        if (visited[currentCellId] == 1) {
+        if (currentCellId == destinationCellId && !oneToAll) {
 #ifdef SEARCH_LOGGER
-            searchLogger.debug("Current cell %llu already visited", currentCellId);
+            searchLogger.debug("Destination cell %llu reached with distance %llu", currentCellId, originCurrent);
 #endif
-            continue;
+            break;
         }
-        visited[currentCellId] = 1;
 
-        // Iterate over the neighbors of the current cell if they exist
-        auto edgeIt = edges.find(currentCellId);
-        if (edgeIt == edges.end()) continue;
+        tsl::robin_map<uint64_t, Stat> &currentStats = cells[currentCellId].stats;
+        for (const auto &[neighborCellId, stats]: currentStats) {
+            if (stats.edge == 0) continue;
 
-        for (const auto &neighborEntry: edgeIt->second) {
-            const auto &neighborCellId = neighborEntry.first;
-            const auto &currentNeighbor = neighborEntry.second;
+            uint64_t originNeighbor = originStats[neighborCellId].distance;
+            const uint64_t possibleOriginNeighbor = originCurrent + stats.edge;
 #ifdef SEARCH_LOGGER
-            searchLogger.debug("Current to neighbor %llu", currentNeighbor);
-#endif
-            uint64_t originCurrent = originDistances[currentCellId];
-#ifdef SEARCH_LOGGER
-            searchLogger.debug("Origin to current %llu", originCurrent);
-#endif
-            const uint64_t possibleOriginNeighbor = originCurrent + currentNeighbor;
-#ifdef SEARCH_LOGGER
-            searchLogger.debug("Possible origin to neighbor %llu", possibleOriginNeighbor);
-#endif
-            uint64_t originNeighbor = originDistances[neighborCellId];
-#ifdef SEARCH_LOGGER
-            searchLogger.debug("Origin to neighbor %llu", originNeighbor);
+            searchLogger.debug("Neighbor cell %llu", neighborCellId);
+            searchLogger.debug("Current to neighbor edge %llu", stats.edge);
+            searchLogger.debug("Origin to neighbor distance %llu", originNeighbor);
+            searchLogger.debug("Possible new origin to neighbor distance %llu", possibleOriginNeighbor);
 #endif
             if (originNeighbor == 0 || possibleOriginNeighbor < originNeighbor) {
-                originDistances[neighborCellId] = possibleOriginNeighbor;
-                pq.push(make_pair(possibleOriginNeighbor, neighborCellId));
 #ifdef SEARCH_LOGGER
-                searchLogger.debug("Origin to neighbor %llu updated to %llu", neighborCellId, possibleOriginNeighbor);
+                searchLogger.debug("Existing origin to neighbor distance %llu update to %llu", originNeighbor,
+                                   possibleOriginNeighbor);
+#endif
+                originNeighbor = possibleOriginNeighbor;
+                originStats[neighborCellId].distance = originNeighbor;
+
+                if (visited[neighborCellId] == 1) {
+#ifdef SEARCH_LOGGER
+                    searchLogger.debug("Neighbor cell %llu already visited", currentCellId);
+#endif
+                    continue;
+                }
+                pq.push(make_pair(originNeighbor, neighborCellId));
+#ifdef SEARCH_LOGGER
+                searchLogger.debug("Added neighbor %llu to PQ", neighborCellId);
 #endif
             }
         }
     }
 
-    uint64_t shortestPath = originDistances[destinationCellId];
-    return shortestPath;
+    return originStats[destinationCellId].distance;
 }

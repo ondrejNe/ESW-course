@@ -32,6 +32,9 @@ extern PrefixedLogger searchLogger;
 
 extern ThreadPool resourcePool;
 
+#define ONE_TO_ONE  false
+#define ONE_TO_ALL  true
+
 // Class definition -------------------------------------------------------------------------------
 using namespace std;
 
@@ -40,12 +43,18 @@ struct Point {
     uint64_t y;
 };
 
+struct Stat {
+    uint64_t edge;
+    uint64_t distance;
+};
+
 struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
     uint64_t    pointX;
     uint64_t    pointY;
+    tsl::robin_map<uint64_t, Stat> stats;
 };
 
 
@@ -53,11 +62,6 @@ class Grid {
 private:
     // Graph structure
     tsl::robin_map <uint64_t, Cell>                              cells;
-
-    // Search structure
-    // originCellId -> destinationCellId -> distance (adjacency list)
-    tsl::robin_map <uint64_t, tsl::robin_map<uint64_t, uint64_t>>  distances;
-    tsl::robin_map <uint64_t, tsl::robin_map<uint64_t, uint64_t>>  edges;
 
     // Workers
     uint64_t        edges_count;
@@ -70,8 +74,6 @@ private:
 public:
     Grid() {
         cells.reserve(100000);
-        distances.reserve(100000);
-        edges.reserve(100000);
 
         edges_count = 0;
         edges_space = 0;
@@ -89,7 +91,7 @@ public:
 
     void resetGrid();
 
-    uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId);
+    uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll);
 
     uint64_t allDijkstra(uint64_t &originCellId);
 

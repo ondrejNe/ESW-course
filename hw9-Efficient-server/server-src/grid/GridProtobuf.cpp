@@ -43,8 +43,6 @@ void Grid::processWalk(const esw::Walk &walk) {
         addPoint(destination, destinationCellId);
         addEdge(originCellId, destinationCellId, len);
     }
-
-    logGridGraph();
 }
 
 uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
@@ -62,10 +60,10 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
     Point destination = {static_cast<uint64_t>(location2.x()), static_cast<uint64_t>(location2.y())};
     uint64_t destinationCellId = getPointCellId(destination);
 
-    uint64_t shortestPath = dijkstra(originCellId, destinationCellId);
+    uint64_t shortestPath = dijkstra(originCellId, destinationCellId, ONE_TO_ONE);
 #ifdef STATS_LOGGER
-    statsLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId,
-                     destinationCellId, cells.size(), edges_count);
+    statsLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d edge space %d", shortestPath, originCellId,
+                     destinationCellId, cells.size(), edges_count, edges_space);
     statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
 #endif
@@ -86,8 +84,8 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 
     uint64_t shortestPath = allDijkstra(originCellId);
 #ifdef STATS_LOGGER
-    statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
-                     edges_count);
+    statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d edge space: %d", shortestPath, originCellId, cells.size(),
+                     edges_count, edges_space);
     statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
 #endif
