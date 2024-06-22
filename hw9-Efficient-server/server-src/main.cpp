@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     unsigned short int port;
     if (argc != 2) {
         cout << "[ERROR] One argument required <port>" << endl;
-        port = 4321;
+        port = 4444;
     } else {
         port = atoi(argv[1]);
     }
