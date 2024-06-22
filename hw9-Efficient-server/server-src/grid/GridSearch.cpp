@@ -28,6 +28,9 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
     }
 #endif
+#ifdef SEARCH_STATS_LOGGER
+    uint64_t maxEdges = 0;
+#endif
     vec.clear();
     visited.clear();
     std::priority_queue <
@@ -59,6 +62,11 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
         }
 
         tsl::robin_map<uint64_t, Stat> &currentStats = cells[currentCellId].stats;
+#ifdef SEARCH_STATS_LOGGER
+        if (currentStats.size() > maxEdges) {
+            maxEdges = currentStats.size();
+        }
+#endif
         for (const auto &[neighborCellId, stats]: currentStats) {
             if (stats.edge == 0) continue;
 
@@ -94,6 +102,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
 #ifdef SEARCH_STATS_LOGGER
     searchStatsLogger.info("Visited size: %lu", visited.size());
     searchStatsLogger.info("Vec size: %lu", vec.size());
+    searchStatsLogger.info("Max edges: %lu", maxEdges);
 #endif
     return originStats[destinationCellId].distance;
 }

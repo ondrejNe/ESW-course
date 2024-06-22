@@ -79,8 +79,8 @@ public:
     Grid() {
         cells.reserve(115000);
 
-        vec.reserve(100000);
-        visited.reserve(100000);
+        vec.reserve(115000);
+        visited.reserve(115000);
 
         edges_count = 0;
         edges_space = 0;
