@@ -59,19 +59,6 @@ public:
         location_count = 0;
     }
 
-    GridStats(GridStats &other) {
-        edges_count = other.edges_count;
-        highestCoordX = other.highestCoordX;
-        highestCoordY = other.highestCoordY;
-        lowestCoordX = other.lowestCoordX;
-        lowestCoordY = other.lowestCoordY;
-
-        walk_count = other.walk_count;
-        oneToOne_count = other.oneToOne_count;
-        oneToAll_count = other.oneToAll_count;
-        location_count = other.location_count;
-    }
-
     void logGridStats();
 };
 
@@ -101,10 +88,6 @@ public:
 
     GridData() {
         cells.reserve(115000);
-    }
-
-    GridData(GridData &other) {
-        cells = other.cells;
     }
 
     uint64_t getPointCellId(Point &point);
