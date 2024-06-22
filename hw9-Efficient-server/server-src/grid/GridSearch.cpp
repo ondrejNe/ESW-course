@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-#define SEARCH_STATS_LOGGER
+//#define SEARCH_STATS_LOGGER
 //#define SEARCH_ALGO_LOGGER
 PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING ]", true);
 
