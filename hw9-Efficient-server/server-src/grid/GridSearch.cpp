@@ -69,7 +69,7 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
 #endif
         for (const auto &[neighborCellId, edge]: cells[currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
-            pq.push({originCurrent + edge, neighborCellId});
+            pq.push({originCurrent + (edge.length / edge.samples), neighborCellId});
         }
     }
 

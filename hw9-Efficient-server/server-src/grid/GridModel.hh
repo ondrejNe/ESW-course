@@ -43,13 +43,18 @@ struct Point {
     uint64_t y;
 };
 
+struct Edge {
+    uint64_t length;
+    uint64_t samples;
+};
+
 struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
     uint64_t    pointX;
     uint64_t    pointY;
-    tsl::robin_map <uint64_t, uint64_t>     edges;
+    tsl::robin_map <uint64_t, Edge>     edges;
 };
 
 

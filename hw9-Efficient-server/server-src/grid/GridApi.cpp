@@ -4,6 +4,7 @@
 // Global variables -------------------------------------------------------------------------------
 //#define GRID_LOGGER
 PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
+//#define GRID_MEM_LOGGER
 #define GRID_STATS_LOGGER
 PrefixedLogger gridStatsLogger = PrefixedLogger("[GRID STATS]", true);
 
@@ -51,8 +52,8 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        tsl::robin_map<uint64_t, uint64_t> newEdges = tsl::robin_map<uint64_t, uint64_t>();
-        newEdges.reserve(10);
+        tsl::robin_map<uint64_t, Edge> newEdges = tsl::robin_map<uint64_t, Edge>();
+        newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
 
@@ -74,24 +75,31 @@ void Grid::addPoint(Point &point, uint64_t &cellId) {
 }
 
 void Grid::addEdge(uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length) {
-    uint64_t &destinationEdge = cells[originCellId].edges[destinationCellId];
+    Edge &destinationEdge = cells[originCellId].edges[destinationCellId];
 
-    if (destinationEdge == 0) {
-        destinationEdge = length;
-        edges_count += 1;
-    } else {
-        destinationEdge = (destinationEdge + length) / 2;
+#ifdef GRID_STATS_LOGGER
+    if (destinationEdge.length == 0) {
+        edges_count++;
     }
+#endif
+
+    destinationEdge.length += length;
+    destinationEdge.samples++;
 }
 
 void Grid::resetGrid() {
     cells.clear();
 
     edges_count = 0;
-    location_count = 0;
+    highestCoordX = {numeric_limits<uint64_t>::min(), 0};
+    highestCoordY = {0, numeric_limits<uint64_t>::min()};
+    lowestCoordX = {numeric_limits<uint64_t>::max(), 0};
+    lowestCoordY = {0, numeric_limits<uint64_t>::max()};
+
     walk_count = 0;
     oneToOne_count = 0;
     oneToAll_count = 0;
+    location_count = 0;
 }
 
 void Grid::logGridGraph() {
@@ -102,13 +110,25 @@ void Grid::logGridGraph() {
         gridLogger.info("Cell %lu: Coord(%lu, %lu), Point(%lu, %lu)",
                         cell.id, cell.coordX, cell.coordY, cell.pointX, cell.pointY);
         for (const auto& [id, edge] : cell.edges) {
-            gridLogger.info("  with Edge to Cell %lu edge: %lu", id, edge);
+            gridLogger.info("  with Edge to Cell %lu edge: %lu", id, edge.length / edge.samples);
         }
     }
 #endif
 }
 
 void Grid::logGridStats() {
+#ifdef GRID_STATS_LOGGER
+    gridStatsLogger.info("Grid statistics:");
+    gridStatsLogger.info("  Edges count: %lu", edges_count);
+    gridStatsLogger.info("  Highest X: %lu, %lu", highestCoordX.first, highestCoordX.second);
+    gridStatsLogger.info("  Highest Y: %lu, %lu", highestCoordY.first, highestCoordY.second);
+    gridStatsLogger.info("  Lowest X: %lu, %lu", lowestCoordX.first, lowestCoordX.second);
+    gridStatsLogger.info("  Lowest Y: %lu, %lu", lowestCoordY.first, lowestCoordY.second);
+    gridStatsLogger.info("  Walks: %lu", walk_count);
+    gridStatsLogger.info("  OneToOne: %lu", oneToOne_count);
+    gridStatsLogger.info("  OneToAll: %lu", oneToAll_count);
+    gridStatsLogger.info("  Locations: %lu", location_count);
+#endif
 #ifdef GRID_MEM_LOGGER
     size_t totalSize = sizeof(*this); // Start with the size of the Grid object itself.
     for (const auto& pair : cells) {
