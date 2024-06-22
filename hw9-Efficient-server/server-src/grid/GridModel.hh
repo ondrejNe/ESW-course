@@ -56,11 +56,10 @@ struct Cell {
 class Grid {
 private:
     // Graph structure
-    tsl::robin_map <uint64_t, Cell>                              cells;
+    tsl::robin_map <uint64_t, Cell> cells;
 
     // Grid statistics
     uint64_t        edges_count;
-    uint64_t        edges_space;
     uint64_t        location_count;
     uint64_t        walk_count;
     uint64_t        oneToOne_count;
@@ -71,7 +70,6 @@ public:
         cells.reserve(115000);
 
         edges_count = 0;
-        edges_space = 0;
         location_count = 0;
         walk_count = 0;
         oneToOne_count = 0;

@@ -7,12 +7,6 @@ PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING]", true);
 #define SEARCH_STATS_LOGGER
 PrefixedLogger searchStatsLogger = PrefixedLogger("[SEARCH STATS]", true);
 
-#ifdef SEARCH_STATS_LOGGER
-uint64_t maxSums = 0;
-uint64_t maxEdges = 0;
-uint64_t maxPqSize = 0;
-#endif
-
 // Class definition -------------------------------------------------------------------------------
 uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
 #ifdef SEARCH_LOGGER
@@ -21,6 +15,11 @@ uint64_t Grid::dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, boo
     } else {
         searchLogger.debug("--- Dijkstra from %llu to %llu ---", originCellId, destinationCellId);
     }
+#endif
+#ifdef SEARCH_STATS_LOGGER
+    uint64_t maxSums = 0;
+    uint64_t maxEdges = 0;
+    uint64_t maxPqSize = 0;
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(500);

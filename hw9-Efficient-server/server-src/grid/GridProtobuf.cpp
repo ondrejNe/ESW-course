@@ -62,8 +62,8 @@ uint64_t Grid::processOneToOne(const esw::OneToOne &oneToOne) {
 
     uint64_t shortestPath = dijkstra(originCellId, destinationCellId, ONE_TO_ONE);
 #ifdef PROTO_STATS_LOGGER
-    statsLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d edge space %d", shortestPath, originCellId,
-                     destinationCellId, cells.size(), edges_count, edges_space);
+    statsLogger.warn("Shortest path: %llu from: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId,
+                     destinationCellId, cells.size(), edges_count);
     statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
 #endif
@@ -85,8 +85,8 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
 
     uint64_t shortestPath = dijkstra(originCellId, originCellId, ONE_TO_ALL);
 #ifdef PROTO_STATS_LOGGER
-    statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d edge space: %d", shortestPath, originCellId, cells.size(),
-                     edges_count, edges_space);
+    statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d", shortestPath, originCellId, cells.size(),
+                     edges_count);
     statsLogger.warn("Walks: %d OneToOne: %d OneToAll: %d locations: %d", walk_count, oneToOne_count, oneToAll_count,
                      location_count);
 #endif
