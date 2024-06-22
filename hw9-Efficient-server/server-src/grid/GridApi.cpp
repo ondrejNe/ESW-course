@@ -50,7 +50,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         uint64_t coordY = point.y / 500;
         uint64_t id = ((coordX << 32) | coordY);
 
-        std::unordered_map<uint64_t, Edge> newEdges = std::unordered_map<uint64_t, Edge>();
+        std::unordered_map <uint64_t, Edge> newEdges = std::unordered_map<uint64_t, Edge>();
         newEdges.reserve(5);
         Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
         cells[id] = newCell;
@@ -120,9 +120,7 @@ void GridStats::logGridStats() {
     gridLogger.info("  Highest Y: %lu, %lu", highestCoordY.first, highestCoordY.second);
     gridLogger.info("  Lowest X: %lu, %lu", lowestCoordX.first, lowestCoordX.second);
     gridLogger.info("  Lowest Y: %lu, %lu", lowestCoordY.first, lowestCoordY.second);
-    gridLogger.info("  Walks: %lu", walk_count);
-    gridLogger.info("  OneToOne: %lu", oneToOne_count);
-    gridLogger.info("  OneToAll: %lu", oneToAll_count);
-    gridLogger.info("  Locations: %lu", location_count);
 #endif
+    gridLogger.info("  Walks: %lu OneToOne: %lu OneToAll: %lu Locations: %lu", walk_count, oneToOne_count,
+                    oneToAll_count, location_count);
 }

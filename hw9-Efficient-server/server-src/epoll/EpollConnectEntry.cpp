@@ -115,16 +115,11 @@ void EpollConnectEntry::readEvent() {
     int fd = this->get_fd();
 
     if (request.has_walk() || request.has_reset()) {
-        processMessage(request, response, gridData, gridStats, fd);
-        processingInProgress = false;
-//        resourcePool.run([this, request, response, fd] {
-//            processMessage(request, response, fd);
-//            this->processingInProgress = false;
-//        }, fd);
+        resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
+            processMessage(request, response, gridData, gridStats, fd);
+            this->processingInProgress = false;
+        }, fd);
     } else {
-//        processMessage(request, response, fd);
-//        processingInProgress = false;
-
         GridData *gridDataCopy = new GridData(gridData);
         GridStats *gridStatsCopy = new GridStats(gridStats);
         resourcePool1.run([this, request, response, gridDataCopy, gridStatsCopy, fd]  {
