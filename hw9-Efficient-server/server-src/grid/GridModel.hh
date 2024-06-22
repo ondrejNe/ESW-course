@@ -88,7 +88,7 @@ public:
     map<uint64_t, Cell> cells;
 
     GridData() {
-        cells.reserve(115000);
+
     }
 
     uint64_t getPointCellId(Point &point);
