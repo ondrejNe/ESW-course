@@ -43,18 +43,13 @@ struct Point {
     uint64_t y;
 };
 
-struct Stat {
-    uint64_t edge;
-    uint64_t distance;
-};
-
 struct Cell {
     uint64_t    id;
     uint64_t    coordX;
     uint64_t    coordY;
     uint64_t    pointX;
     uint64_t    pointY;
-    tsl::robin_map<uint64_t, Stat> stats;
+    tsl::robin_map<uint64_t, uint64_t> edges;
 };
 
 
@@ -99,9 +94,6 @@ public:
     void resetGrid();
 
     uint64_t dijkstra(uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll);
-
-    uint64_t allDijkstra(uint64_t &originCellId);
-
 
     void processWalk(const esw::Walk &walk);
 

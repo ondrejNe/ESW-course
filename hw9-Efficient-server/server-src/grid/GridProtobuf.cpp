@@ -83,7 +83,7 @@ uint64_t Grid::processOneToAll(const esw::OneToAll &oneToAll) {
     Point origin = {static_cast<uint64_t>(location1.x()), static_cast<uint64_t>(location1.y())};
     uint64_t originCellId = getPointCellId(origin);
 
-    uint64_t shortestPath = allDijkstra(originCellId);
+    uint64_t shortestPath = dijkstra(originCellId, originCellId, ONE_TO_ALL);
 #ifdef PROTO_STATS_LOGGER
     statsLogger.warn("Total distance: %llu to: %llu cells: %d edges: %d edge space: %d", shortestPath, originCellId, cells.size(),
                      edges_count, edges_space);
