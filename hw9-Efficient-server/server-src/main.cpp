@@ -19,7 +19,7 @@ using namespace std;
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
 
 ThreadPool resourcePool(1);
-ThreadPool resourcePool1(10);
+ThreadPool resourcePool1(1);
 GridData gridData = GridData();
 GridStats gridStats = GridStats();
 
