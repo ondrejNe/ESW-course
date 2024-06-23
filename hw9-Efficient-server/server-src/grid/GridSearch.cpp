@@ -4,7 +4,7 @@
 
 // Global variables -------------------------------------------------------------------------------
 //#define SEARCH_STATS_LOGGER
-//#define SEARCH_ALGO_LOGGER
+#define SEARCH_ALGO_LOGGER
 #define SEARCH_TIME_LOGGER
 PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING ]", true);
 
