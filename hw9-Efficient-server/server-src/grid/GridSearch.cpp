@@ -24,8 +24,6 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     vec.reserve(300);
     ankerl::unordered_dense::map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
-    ankerl::unordered_dense::map<uint64_t, uint64_t> distances;
-    distances.reserve(115000);
 
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,
@@ -70,13 +68,7 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
 #endif
         for (const auto &[neighborCellId, edge, samples]: gridData.cells[currentCellId % CHUNKS][currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
-            uint64_t newDistance = originCurrent + (edge / samples);
-            if (distances[neighborCellId] == 0 || newDistance < distances[neighborCellId]) {
-                distances[neighborCellId] = newDistance;
-            } else {
-                continue;
-            }
-            pq.push({newDistance, neighborCellId});
+            pq.push({originCurrent + (edge / samples), neighborCellId});
         }
     }
 
