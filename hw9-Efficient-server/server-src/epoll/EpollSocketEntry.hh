@@ -33,7 +33,7 @@ public:
     EpollSocketEntry(uint16_t port, EpollInstance &epollInstance);
 
     // Accept connections and create epoll connection entries
-    bool handleEvent(uint32_t events, GridData &gridData, GridStats &gridStats) override;
+    bool handleEvent(uint32_t events) override;
 };
 
 #endif //HW9_EFFICIENT_SERVER_EPOLLSOCKETENTRY_H

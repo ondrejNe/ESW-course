@@ -24,7 +24,6 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     uint64_t maxSums = 0;
     uint64_t maxEdges = 0;
     uint64_t maxPqSize = 0;
-    uint64_t visitedSkipped = 0;
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(300);
@@ -54,19 +53,13 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
         uint64_t currentCellId = pq.top().second;
         pq.pop();
 
-        if (visited[currentCellId] == 1) {
-#ifdef SEARCH_STATS_LOGGER
-            visitedSkipped++;
-#endif
-            continue;
-        }
+        if (visited[currentCellId] == 1) continue;
         visited[currentCellId] = 1;
 
         if (currentCellId == destinationCellId && !oneToAll) {
             sum = originCurrent;
             break;
-        }
-        if (oneToAll) {
+        } else {
             sum += originCurrent;
 #ifdef SEARCH_STATS_LOGGER
             maxSums++;
@@ -79,19 +72,13 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
         }
 #endif
         for (const auto &[neighborCellId, edge, samples]: gridData.cells[currentCellId % CHUNKS][currentCellId].edges) {
-            if (visited[neighborCellId] == 1) {
-#ifdef SEARCH_STATS_LOGGER
-                visitedSkipped++;
-#endif
-                continue;
-            }
+            if (visited[neighborCellId] == 1) continue;
             pq.push({originCurrent + (edge / samples), neighborCellId});
         }
     }
 
 #ifdef SEARCH_STATS_LOGGER
     searchLogger.warn("Max sums: %lu Max edges: %lu Max PQ size: %lu", maxSums, maxEdges, maxPqSize);
-    searchLogger.warn("Visited skipped: %lu", visitedSkipped);
 #endif
 #ifdef SEARCH_TIME_LOGGER
     auto stop = std::chrono::high_resolution_clock::now();

@@ -18,8 +18,11 @@ using namespace std;
 // Global variables -------------------------------------------------------------------------------
 PrefixedLogger logger = PrefixedLogger("[SERVER APP]", true);
 
-ThreadPool resourcePool1(0);
-ThreadPool resourcePool2(20);
+ThreadPool resourcePool(1);
+ThreadPool resourcePool1(20);
+GridData gridData = GridData();
+GridStats gridStats = GridStats();
+
 // Main function -----------------------------------------------------------------------------------
 int main(int argc, char *argv[]) {
     unsigned short int port;
@@ -50,7 +53,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollInstance);
     epollInstance.registerEpollEntry(std::move(serverSocket));
 
+    resourcePool.waitAllThreads();
     resourcePool1.waitAllThreads();
-    resourcePool2.waitAllThreads();
     return 0;
 }

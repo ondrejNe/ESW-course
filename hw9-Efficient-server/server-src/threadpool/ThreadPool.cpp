@@ -19,16 +19,10 @@ ThreadPool::ThreadPool(size_t numThreads) :
         // For logging purposes perform suspensions
         this_thread::sleep_for(chrono::milliseconds(1));
 
-        threads.emplace_back([this, i] { // lambda function
+        threads.emplace_back([this] { // lambda function
 #ifdef THREAD_LOGGER
             threadLogger.info("Thread created");
 #endif
-            // Set affinity to the CPU with the same id as the thread index
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
-            CPU_SET(i, &cpuset);
-            pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-
             while (true) {
                 unique_lock<mutex> lock(synchMutex);
                 synchCondition.wait(lock, [this]() { return stop || !tasks.empty(); });

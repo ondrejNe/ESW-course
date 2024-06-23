@@ -13,7 +13,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <pthread.h>
 
 #include "Logger.hh"
 

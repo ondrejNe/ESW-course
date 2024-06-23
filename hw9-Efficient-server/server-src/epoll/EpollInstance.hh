@@ -19,8 +19,6 @@
 #include "EpollEntry.hh"
 
 #include "Logger.hh"
-#include "GridModel.hh"
-#include "ThreadPool.hh"
 
 // Global variables -------------------------------------------------------------------------------
 
@@ -30,13 +28,9 @@ class EpollInstance
 private:
     int fd;
     std::map<int, std::unique_ptr<EpollEntry>> entries;
-    GridData gridData;
-    GridStats gridStats;
 
 public:
-    EpollInstance():
-        gridData(GridData()),
-        gridStats(GridStats()) {
+    EpollInstance() {
         this->fd = epoll_create1(EPOLL_CLOEXEC);
         if (this->fd == -1) {
             throw runtime_error(string("epoll_create1: ") + strerror(errno));

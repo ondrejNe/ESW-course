@@ -24,8 +24,11 @@
 // Global variables -------------------------------------------------------------------------------
 extern PrefixedLogger connectLogger;
 
+extern ThreadPool resourcePool;
 extern ThreadPool resourcePool1;
-extern ThreadPool resourcePool2;
+
+extern GridData gridData;
+extern GridStats gridStats;
 
 // Class definition -------------------------------------------------------------------------------
 class EpollConnectEntry : public EpollEntry
@@ -37,7 +40,7 @@ private:
     bool            messageInProgress;
     bool            processingInProgress;
 
-    void readEvent(GridData &gridData, GridStats &gridStats);
+    void readEvent();
 
     int readMessageSize();
 
@@ -69,7 +72,7 @@ public:
     }
 
     // Handle incoming data or errors for the connection
-    bool handleEvent(uint32_t events, GridData &gridData, GridStats &gridStats);
+    bool handleEvent(uint32_t events);
 
     // Cleanup on disconnect
     void Cleanup();
