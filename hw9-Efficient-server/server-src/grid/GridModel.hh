@@ -89,6 +89,7 @@ struct Cell {
     uint64_t pointX;
     uint64_t pointY;
     vector<Edge> edges;
+    vector<Edge> inEdges;
 };
 
 class GridData {

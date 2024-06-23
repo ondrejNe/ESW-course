@@ -53,7 +53,9 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
 
         vector<Edge> newEdges = vector<Edge>();
         newEdges.reserve(5);
-        Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges};
+        vector<Edge> newInEdges = vector<Edge>();
+        newInEdges.reserve(5);
+        Cell newCell = {id, coordX, coordY, point.x, point.y, newEdges, newInEdges};
         cells[cellId % CHUNKS][id] = newCell;
 
         gridStats.quad[cellId % CHUNKS]++;
@@ -83,9 +85,17 @@ void GridData::addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &d
             return;
         }
     }
+    for (auto &[id, len, samples]: cells[destinationCellId % CHUNKS][destinationCellId].inEdges) {
+        if (id == originCellId) {
+            len += length;
+            samples++;
+            return;
+        }
+    }
 
     gridStats.edges_count++;
     cells[originCellId % CHUNKS][originCellId].edges.push_back({destinationCellId, length, 1});
+    cells[destinationCellId % CHUNKS][destinationCellId].inEdges.push_back({originCellId, length, 1});
 }
 
 void GridData::resetGrid(GridStats &gridStats) {
@@ -119,26 +129,22 @@ void GridData::logGridGraph() {
     }
 #endif
 #ifdef GRID_EDGE_LOGGER
-    std::map<uint64_t, uint64_t> edgeStats;
+    std::map<pair<uint64_t, uint64_t>, uint64_t> edgeStats;
     for (const auto& batch : cells) {
         for (const auto& [cellId, cell] : batch) {
-            uint64_t edgeCount = cell.edges.size();
-            if (edgeStats.find(edgeCount) == edgeStats.end()) {
-                edgeStats[edgeCount] = 1;
-            } else {
-                edgeStats[edgeCount]++;
-            }
+            uint64_t in = cell.edges.size();
+            uint64_t out = cell.inEdges.size();
+            edgeStats[{in, out}]++;
         }
     }
-    for (const auto& [edgeCount, count] : edgeStats) {
-        gridLogger.info("Cells with %lu edges: %lu", edgeCount, count);
+    for (const auto& [type, count] : edgeStats) {
+        gridLogger.info("  Cells with in: %lu out: %lu num: %lu", type.first, type.second, count);
     }
 #endif
 }
 
 void GridStats::logGridStats() {
 #ifdef GRID_STATS_LOGGER
-    gridLogger.info("Grid statistics:");
     gridLogger.info("  Edges count: %lu", edges_count);
     gridLogger.info("  Highest X: %lu, %lu", highestCoordX.first, highestCoordX.second);
     gridLogger.info("  Highest Y: %lu, %lu", highestCoordY.first, highestCoordY.second);
