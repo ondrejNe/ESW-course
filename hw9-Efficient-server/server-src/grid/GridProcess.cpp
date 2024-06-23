@@ -76,8 +76,6 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processed OneToOne message");
 #endif
-    gridData.logGridGraph();
-    gridStats.logGridStats();
     rwLock.unlock_shared();
     return shortestPath;
 }

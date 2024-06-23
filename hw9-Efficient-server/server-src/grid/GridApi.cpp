@@ -4,6 +4,7 @@
 // Global variables -------------------------------------------------------------------------------
 //#define GRID_GRAPH_LOGGER
 //#define GRID_STATS_LOGGER
+#define GRID_EDGE_LOGGER
 PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
 
 // Class definition -------------------------------------------------------------------------------
@@ -115,6 +116,22 @@ void GridData::logGridGraph() {
         for (const auto& [id, edge] : cell.edges) {
             gridLogger.info("  with Edge to Cell %lu edge: %lu", id, edge.length / edge.samples);
         }
+    }
+#endif
+#ifdef GRID_EDGE_LOGGER
+    std::map<uint64_t, uint64_t> edgeStats;
+    for (const auto& batch : cells) {
+        for (const auto& [cellId, cell] : batch) {
+            uint64_t edgeCount = cell.edges.size();
+            if (edgeStats.find(edgeCount) == edgeStats.end()) {
+                edgeStats[edgeCount] = 1;
+            } else {
+                edgeStats[edgeCount]++;
+            }
+        }
+    }
+    for (const auto& [edgeCount, count] : edgeStats) {
+        gridLogger.info("Cells with %lu edges: %lu", edgeCount, count);
     }
 #endif
 }
