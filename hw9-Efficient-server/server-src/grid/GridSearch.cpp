@@ -24,28 +24,33 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     uint64_t maxEdges = 0;
     uint64_t maxPqSize = 0;
 #endif
-    std::vector <std::pair<uint64_t, uint64_t>> pq;
-    pq.reserve(300);
+    std::vector <std::pair<uint64_t, uint64_t>> vec;
+    vec.reserve(300);
     ankerl::unordered_dense::map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
+
+    std::priority_queue <
+    std::pair < uint64_t, uint64_t >,
+            std::vector < std::pair < uint64_t, uint64_t >>,
+            std::greater<>
+            > pq(std::greater<>(), vec);
 
     uint64_t sum = 0;
 
     // Add the source cell to the priority queue
-    pq.push_back({0, originCellId});
+    pq.push({0, originCellId});
 
     // Main loop of Dijkstra's Algorithm
     while (!pq.empty()) {
-        std::sort(pq.begin(), pq.end(), greater<>());
 #ifdef SEARCH_STATS_LOGGER
         if (pq.size() > maxPqSize) {
             maxPqSize = pq.size();
         }
 #endif
         // Get the cell with the minimum distance from the priority queue
-        uint64_t originCurrent = pq.back().first;
-        uint64_t currentCellId = pq.back().second;
-        pq.pop_back();
+        uint64_t originCurrent = pq.top().first;
+        uint64_t currentCellId = pq.top().second;
+        pq.pop();
 
         if (visited[currentCellId] == 1) continue;
         visited[currentCellId] = 1;
@@ -67,7 +72,7 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
 #endif
         for (const auto &[neighborCellId, edge, samples]: gridData.cells[currentCellId % CHUNKS][currentCellId].edges) {
             if (visited[neighborCellId] == 1) continue;
-            pq.push_back({originCurrent + (edge / samples), neighborCellId});
+            pq.push({originCurrent + (edge / samples), neighborCellId});
         }
     }
 

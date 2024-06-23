@@ -9,7 +9,7 @@ PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 std::shared_mutex rwLock;
 // Class definition -------------------------------------------------------------------------------
 void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk) {
-    std::unique_lock<std::shared_mutex> lock(rwLock);
+    rwLock.lock();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processing Walk message");
 #endif
@@ -18,7 +18,10 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
     const auto &locations = walk.locations();
     const auto &lengths = walk.lengths();
 
-    if (locations.size() < 2 || lengths.size() < 1) return;
+    if (locations.size() < 2 || lengths.size() < 1) {
+        rwLock.unlock();
+        return;
+    }
 
     auto &location1 = locations.Get(0);
     auto &location2 = locations.Get(1);
@@ -47,10 +50,11 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processed Walk message");
 #endif
+    rwLock.unlock();
 }
 
 uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::OneToOne &oneToOne) {
-    std::shared_lock<std::shared_mutex> lock(rwLock);
+    rwLock.lock_shared();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToOne message");
 #endif
@@ -74,11 +78,12 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
 #endif
     gridData.logGridGraph();
     gridStats.logGridStats();
+    rwLock.unlock_shared();
     return shortestPath;
 }
 
 uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::OneToAll &oneToAll) {
-    std::shared_lock<std::shared_mutex> lock(rwLock);
+    rwLock.lock_shared();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToAll message");
 #endif
@@ -98,9 +103,12 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
 #endif
     gridData.logGridGraph();
     gridStats.logGridStats();
+    rwLock.unlock_shared();
     return shortestPath;
 }
 
 void processReset(GridData &gridData, GridStats &gridStats) {
+    rwLock.lock();
     gridData.resetGrid(gridStats);
+    rwLock.unlock();
 }
