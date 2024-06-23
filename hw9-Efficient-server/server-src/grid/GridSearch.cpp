@@ -1,6 +1,6 @@
 
 #include "GridModel.hh"
-
+#include <chrono>
 // Global variables -------------------------------------------------------------------------------
 //#define SEARCH_STATS_LOGGER
 //#define SEARCH_ALGO_LOGGER
@@ -8,6 +8,7 @@ PrefixedLogger searchLogger = PrefixedLogger("[SEARCHING ]", true);
 
 // Class definition -------------------------------------------------------------------------------
 uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinationCellId, bool oneToAll) {
+    auto start = std::chrono::high_resolution_clock::now();
 #ifdef SEARCH_ALGO_LOGGER
     if (oneToAll) {
         searchLogger.debug("--- Dijkstra from %llu to all ---", originCellId);
@@ -75,5 +76,10 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
 #ifdef SEARCH_STATS_LOGGER
     searchLogger.warn("Max sums: %lu Max edges: %lu Max PQ size: %lu", maxSums, maxEdges, maxPqSize);
 #endif
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    searchLogger.debug("Function took %llu milliseconds to execute.", duration.count());
+
     return sum;
 }
