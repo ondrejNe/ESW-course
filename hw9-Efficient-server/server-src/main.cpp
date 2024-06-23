@@ -40,6 +40,8 @@ int main(int argc, char *argv[]) {
 
     uint64_t numThreads = thread::hardware_concurrency();
     logger.info("Available threads: " + to_string(numThreads));
+    uint64_t numCores = sysconf(_SC_NPROCESSORS_ONLN);
+    logger.info("Available cores: " + to_string(numCores));
 
     // Epoll
     EpollInstance epollInstance;
