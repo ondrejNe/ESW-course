@@ -19,6 +19,7 @@
 
 #include "scheme.pb.h"
 #include "robin_map.h"
+#include "unordered_dense.h"
 
 #include "Logger.hh"
 
@@ -93,11 +94,11 @@ struct Cell {
 class GridData {
 private:
 public:
-    vector<tsl::robin_map<uint64_t, Cell>> cells;
+    vector<ankerl::unordered_dense::map<uint64_t, Cell>> cells;
 
     GridData() {
         for (int i = 0; i < CHUNKS; i++) {
-            tsl::robin_map<uint64_t, Cell> newMap;
+            ankerl::unordered_dense::map<uint64_t, Cell> newMap;
             newMap.reserve(120000 / CHUNKS);
             cells.push_back(newMap);
         }
