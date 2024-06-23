@@ -36,7 +36,7 @@ gdb-server:
 	gdb ./build/server-src/efficient_server
 
 perf-server:
-	perf record -F 1000 -g ./build/server-src/efficient_server
+	perf record -F 1000 -a -g ./build/server-src/efficient_server
 
 perf-cache-server:
 	perf stat -e cache-references,cache-misses ./build/server-src/efficient_server
