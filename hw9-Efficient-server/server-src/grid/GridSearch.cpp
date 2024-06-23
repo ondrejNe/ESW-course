@@ -22,12 +22,8 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
 #endif
     std::vector <std::pair<uint64_t, uint64_t>> vec;
     vec.reserve(300);
-    vector<ankerl::unordered_dense::map<uint64_t, uint64_t>> visited;
-    for (int i = 0; i < CHUNKS; i++) {
-        ankerl::unordered_dense::map<uint64_t, uint64_t> m;
-        m.reserve(120000 / CHUNKS);
-        visited.push_back(m);
-    }
+    ankerl::unordered_dense::map<uint64_t, uint64_t> visited;
+    visited.reserve(115000);
 
     std::priority_queue <
     std::pair < uint64_t, uint64_t >,
@@ -52,8 +48,8 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
         uint64_t currentCellId = pq.top().second;
         pq.pop();
 
-        if (visited[currentCellId % CHUNKS][currentCellId] == 1) continue;
-        visited[currentCellId % CHUNKS][currentCellId] = 1;
+        if (visited[currentCellId] == 1) continue;
+        visited[currentCellId] = 1;
 
         if (currentCellId == destinationCellId && !oneToAll) {
             sum = originCurrent;
@@ -71,7 +67,7 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
         }
 #endif
         for (const auto &[neighborCellId, edge, samples]: gridData.cells[currentCellId % CHUNKS][currentCellId].edges) {
-            if (visited[currentCellId % CHUNKS][neighborCellId] == 1) continue;
+            if (visited[neighborCellId] == 1) continue;
             pq.push({originCurrent + (edge / samples), neighborCellId});
         }
     }
