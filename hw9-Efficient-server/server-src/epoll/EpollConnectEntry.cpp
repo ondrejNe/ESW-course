@@ -122,12 +122,12 @@ void EpollConnectEntry::readEvent(GridData &gridData, GridStats &gridStats) {
 //            this->processingInProgress = false;
 //        }, fd);
     } else {
-        processMessage(request, response, gridData, gridStats, fd);
-        this->processingInProgress = false;
-//        resourcePool2.run([this, request, response, &gridData, &gridStats, fd] {
-//            processMessage(request, response, gridData, gridStats, fd);
-//            this->processingInProgress = false;
-//        }, fd);
+//        processMessage(request, response, gridData, gridStats, fd);
+//        this->processingInProgress = false;
+        resourcePool2.run([this, request, response, &gridData, &gridStats, fd] {
+            processMessage(request, response, gridData, gridStats, fd);
+            this->processingInProgress = false;
+        }, fd);
     }
 
     messageInProgress = false;
