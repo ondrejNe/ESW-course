@@ -1,6 +1,8 @@
 
 #include "GridModel.hh"
 #include <chrono>
+#include <boost/heap/priority_queue.hpp>
+
 // Global variables -------------------------------------------------------------------------------
 //#define SEARCH_STATS_LOGGER
 //#define SEARCH_ALGO_LOGGER
@@ -24,16 +26,15 @@ uint64_t dijkstra(GridData &gridData, uint64_t &originCellId, uint64_t &destinat
     uint64_t maxEdges = 0;
     uint64_t maxPqSize = 0;
 #endif
-    std::vector <std::pair<uint64_t, uint64_t>> vec;
-    vec.reserve(300);
+
     ankerl::unordered_dense::map<uint64_t, uint64_t> visited;
     visited.reserve(115000);
 
-    std::priority_queue <
-    std::pair < uint64_t, uint64_t >,
-            std::vector < std::pair < uint64_t, uint64_t >>,
-            std::greater<>
-            > pq(std::greater<>(), vec);
+    boost::heap::priority_queue<
+            pair<uint64_t, uint64_t>,
+            boost::heap::compare<greater<pair<uint64_t, uint64_t>>>
+    > pq;
+    pq.reserve(300);
 
     uint64_t sum = 0;
 

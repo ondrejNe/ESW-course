@@ -69,6 +69,7 @@ void EpollInstance::waitAndHandleEvents() {
         if (e->handleEvent(events[i].events) == false) {
             this->unregisterEpollEntry(e->get_fd());
         } else {
+            events[i].events = e->get_events();
             if (epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &events[i]) == -1) {
                 throw std::runtime_error(std::string("epoll_ctl: ") + strerror(errno));
             }
