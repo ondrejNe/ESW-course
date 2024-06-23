@@ -38,6 +38,7 @@ using namespace std;
 class GridStats {
 private:
 public:
+    uint64_t cells_count;
     uint64_t edges_count;
     pair <uint64_t, uint64_t> highestCoordX;
     pair <uint64_t, uint64_t> highestCoordY;
@@ -52,6 +53,7 @@ public:
     uint64_t location_count;
 
     GridStats() {
+        cells_count = 0;
         edges_count = 0;
         highestCoordX = {numeric_limits<uint64_t>::min(), 0};
         highestCoordY = {0, numeric_limits<uint64_t>::min()};

@@ -66,7 +66,7 @@ void EpollInstance::waitAndHandleEvents() {
 
     for (int i = 0; i < n; i++) {
         EpollEntry *e = static_cast<EpollEntry *>(events[i].data.ptr);
-        if (e->handleEvent(events[i].events) == false) {
+        if (e->handleEvent(events[i].events, gridData, gridStats) == false) {
             this->unregisterEpollEntry(e->get_fd());
         } else {
             if (epoll_ctl(this->fd, EPOLL_CTL_MOD, e->get_fd(), &events[i]) == -1) {

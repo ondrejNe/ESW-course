@@ -56,6 +56,7 @@ void GridData::addPoint(GridStats &gridStats, Point &point, uint64_t &cellId) {
         cells[cellId % CHUNKS][id] = newCell;
 
         gridStats.quad[cellId % CHUNKS]++;
+        gridStats.cells_count++;
 
 #ifdef GRID_STATS_LOGGER
         if (coordX > gridStats.highestCoordX.first) {
@@ -93,6 +94,7 @@ void GridData::resetGrid(GridStats &gridStats) {
         gridStats.quad[i] = 0;
     }
 
+    gridStats.cells_count = 0;
     gridStats.edges_count = 0;
     gridStats.highestCoordX = {numeric_limits<uint64_t>::min(), 0};
     gridStats.highestCoordY = {0, numeric_limits<uint64_t>::min()};
@@ -122,6 +124,7 @@ void GridData::logGridGraph() {
 void GridStats::logGridStats() {
 #ifdef GRID_STATS_LOGGER
     gridLogger.info("Grid statistics:");
+    gridLogger.info("  Cells count: %lu", cells_count);
     gridLogger.info("  Edges count: %lu", edges_count);
     gridLogger.info("  Highest X: %lu, %lu", highestCoordX.first, highestCoordX.second);
     gridLogger.info("  Highest Y: %lu, %lu", highestCoordY.first, highestCoordY.second);

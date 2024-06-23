@@ -71,7 +71,7 @@ EpollSocketEntry::EpollSocketEntry(uint16_t port, EpollInstance &epollInstance) 
     this->set_events(EPOLLIN | EPOLLET | EPOLLHUP | EPOLLRDHUP | EPOLLONESHOT);
 }
 
-bool EpollSocketEntry::handleEvent(uint32_t events) {
+bool EpollSocketEntry::handleEvent(uint32_t events, GridData &gridData, GridStats &gridStats) {
     /**
      * EPOLLERR indicates that an error occurred on the associated file descriptor.
      * EPOLLHUP indicates that a hang-up occurred on the associated file descriptor.

@@ -7,7 +7,7 @@
 PrefixedLogger connectLogger = PrefixedLogger("[CONNECTION]", true);
 
 // Class definition -------------------------------------------------------------------------------
-bool EpollConnectEntry::handleEvent(uint32_t events) {
+bool EpollConnectEntry::handleEvent(uint32_t events, GridData &gridData, GridStats &gridStats) {
     if (!this->is_fd_valid()) {
 #ifdef CONNECT_LOGGER
         connectLogger.error("Invalid file descriptor [FD%d]", this->get_fd());
@@ -40,7 +40,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
         return false;
     } else if (events & EPOLLIN) {
         try {
-            readEvent();
+            readEvent(gridData, gridStats);
         }
         catch (exception &e) {
 #ifdef CONNECT_LOGGER
@@ -53,7 +53,7 @@ bool EpollConnectEntry::handleEvent(uint32_t events) {
     return true; // Keep the connection going
 }
 
-void EpollConnectEntry::readEvent() {
+void EpollConnectEntry::readEvent(GridData &gridData, GridStats &gridStats) {
     if (processingInProgress) {
         return;
     }
@@ -117,14 +117,14 @@ void EpollConnectEntry::readEvent() {
     if (request.has_walk() || request.has_reset()) {
         processMessage(request, response, gridData, gridStats, fd);
         this->processingInProgress = false;
-//        resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
+//        resourcePool1.run([this, request, response, &gridData, &gridStats, fd] {
 //            processMessage(request, response, gridData, gridStats, fd);
 //            this->processingInProgress = false;
 //        }, fd);
     } else {
 //        processMessage(request, response, gridData, gridStats, fd);
 //        this->processingInProgress = false;
-        resourcePool1.run([this, request, response, &gridData, &gridStats, fd] {
+        resourcePool2.run([this, request, response, &gridData, &gridStats, fd] {
             processMessage(request, response, gridData, gridStats, fd);
             this->processingInProgress = false;
         }, fd);

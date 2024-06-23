@@ -15,6 +15,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
+#include "GridModel.hh"
+
 // Class definition -------------------------------------------------------------------------------
 class EpollEntry
 {
@@ -22,7 +24,7 @@ private:
     int fd;
     uint32_t events;
 public:
-    virtual bool handleEvent(uint32_t events) = 0;
+    virtual bool handleEvent(uint32_t events, GridData &gridData, GridStats &gridStats) = 0;
 
     void set_fd(int i) {
         this->fd = i;
