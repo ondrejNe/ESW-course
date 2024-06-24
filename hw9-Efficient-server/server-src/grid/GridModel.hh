@@ -35,7 +35,7 @@ extern std::shared_mutex rwLock;
 using namespace std;
 
 // model
-class GridStats {
+volatile class GridStats {
 private:
 public:
     uint64_t edges_count;
@@ -92,7 +92,7 @@ struct Cell {
     vector<Edge> inEdges;
 };
 
-class GridData {
+volatile class GridData {
 private:
 public:
     vector<ankerl::unordered_dense::map<uint64_t, Cell>> cells;
