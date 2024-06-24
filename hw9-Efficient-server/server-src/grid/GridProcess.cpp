@@ -2,7 +2,7 @@
 #include "GridModel.hh"
 
 // Global variables -------------------------------------------------------------------------------
-//#define PROTO_STATS_LOGGER
+#define PROTO_STATS_LOGGER
 //#define PROTO_PROCESS_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 
