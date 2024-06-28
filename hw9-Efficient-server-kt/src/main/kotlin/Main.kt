@@ -31,8 +31,10 @@ object Application : ILoggable {
         val job = launch(dispatcher) {
             while (isActive) {
                 val clientSocket = serverSocket.accept()
+                val clientId = clientIdCounter.getAndIncrement()
+                appLogger.info("Client connected: $clientId")
                 launch(dispatcher) {
-                    handleClient(clientSocket,  clientIdCounter.getAndIncrement())
+                    handleClient(clientSocket, clientId)
                 }
             }
         }
