@@ -3,6 +3,7 @@ package necasond
 import esw.Scheme.Request
 import esw.Scheme.Response
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -34,6 +35,7 @@ object Application : ILoggable {
                 val clientSocket = serverSocket.accept()
                 val clientId = clientIdCounter.getAndIncrement()
                 appLogger.info("Client connected: $clientId")
+                delay(1)
                 launch(dispatcher) {
                     handleClient(clientSocket, clientId)
                 }
