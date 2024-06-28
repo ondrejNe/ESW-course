@@ -18,29 +18,22 @@ application {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-
-    implementation("com.google.protobuf:protobuf-java:4.27.2")
+    // Protobuf
+    implementation(libs.protobuf.java)
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.13")
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+    implementation(libs.slf4j.api)
+    implementation(libs.logback.classic)
+    implementation(libs.logstash.logback.encoder)
 
     // Coroutines for asynchronous programming
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation(libs.coroutines.core)
 
     // Serialization library
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.7.1")
-
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
+    implementation(libs.serialization.core)
+    implementation(libs.serialization.protobuf)
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }

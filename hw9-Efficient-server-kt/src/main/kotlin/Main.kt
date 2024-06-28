@@ -18,19 +18,31 @@ import java.util.concurrent.atomic.AtomicInteger
 object Application : ILoggable {
     private val appLogger = MarkedLogger.markedLogger(javaClass)
 
+    /**
+     * Main entry point for the application
+     * - Create a thead pool for concurrent processing
+     * - Create a server socket
+     * - Accept incoming connections
+     * - Handle incoming messages
+     * - Close the connection
+     */
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
+        // Concurrent processing pool
         val threadCount = Runtime.getRuntime().availableProcessors()
         val executor = Executors.newFixedThreadPool(threadCount)
         val dispatcher = executor.asCoroutineDispatcher()
 
+        // Server setup
         val serverSocket = ServerSocket(4321)
         val clientIdCounter = AtomicInteger(1)
         appLogger.info("Dispatcher created with $threadCount threads")
         appLogger.info("Server is running on port ${serverSocket.localPort}")
-        
+
+        // Server start
         val job = launch(dispatcher) {
             while (isActive) {
+                // Connection handling
                 val clientSocket = serverSocket.accept()
                 val clientId = clientIdCounter.getAndIncrement()
                 appLogger.info("Client connected: $clientId")
@@ -40,24 +52,27 @@ object Application : ILoggable {
             }
         }
 
+        // Cleanup
         job.join()
         serverSocket.close()
         executor.shutdown()
     }
 
     private fun handleClient(clientSocket: Socket, id: Int) {
+        // IO
         val input = DataInputStream(clientSocket.getInputStream())
         val output = DataOutputStream(clientSocket.getOutputStream())
 
         try {
             while (true) {
-                // Read the size of the upcoming message
+                // Incoming message size
                 val size = input.readInt()
                 if (size <= 0) {
                     appLogger.info("[$id] Invalid data size received: $size")
                     break
                 }
 
+                // Read the complete message
                 val dataBuffer = ByteArrayOutputStream(size)
                 var totalRead = 0
 
@@ -71,15 +86,18 @@ object Application : ILoggable {
                     totalRead += bytesRead
                 }
 
-                // Decode the complete Protobuf message
-                val data = Request.parseFrom(dataBuffer.toByteArray())
-                val response = processRequest(data, id)
+                // Decode & Process
+                val request = Request.parseFrom(dataBuffer.toByteArray())
+                val response = processRequest(request, id)
                 val responseBytes = response.toByteArray()
+
+                // Send response
                 output.writeInt(responseBytes.size)
                 output.write(responseBytes)
                 output.flush()
 
-                if (data.hasOneToAll()) {
+                // Close connection if OneToAll
+                if (request.hasOneToAll()) {
                     appLogger.info("[$id] Closing connection after OneToAll")
                     break
                 }
@@ -92,26 +110,26 @@ object Application : ILoggable {
         }
     }
 
-    private fun processRequest(data: Request, id: Int): Response = when {
-        data.hasWalk() -> {
-            data.walk.process()
+    private fun processRequest(request: Request, id: Int): Response = when {
+        request.hasWalk() -> {
+            request.walk.process()
             Response.newBuilder().build()
         }
-        data.hasOneToOne() -> {
+        request.hasOneToOne() -> {
             appLogger.info("[$id] OneToOne received")
-            val result = data.oneToOne.process()
+            val result = request.oneToOne.process()
             appLogger.info("[$id] Shortest path length: $result")
             Response.newBuilder().setShortestPathLength(result).build()
         }
-        data.hasOneToAll() -> {
+        request.hasOneToAll() -> {
             appLogger.info("[$id] OneToAll received")
-            val result = data.oneToAll.process()
+            val result = request.oneToAll.process()
             appLogger.info("[$id] Total length: $result")
             Response.newBuilder().setTotalLength(result).build()
         }
-        data.hasReset() -> {
+        request.hasReset() -> {
             appLogger.info("[$id] Reset received")
-            data.reset.process()
+            request.reset.process()
             Response.newBuilder().build()
         }
         else -> {

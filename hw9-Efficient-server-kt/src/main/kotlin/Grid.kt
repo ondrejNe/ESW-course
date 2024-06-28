@@ -8,11 +8,23 @@ import java.util.PriorityQueue
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
+/**
+ * @param length Cumulative length of the path from samples
+ * @param samples Number of samples
+ */
 data class Edge(
     val length: Long,
-    val samples: Long
+    val samples: Long,
 )
 
+/**
+ * @param id Unique identifier for the cell
+ * @param coordX
+ * @param coordY
+ * @param pointX Root point
+ * @param pointY Root point
+ * @param edges Neighbouring cells
+ */
 data class Cell(
     val id: Long,
     val coordX: Long,
@@ -22,17 +34,29 @@ data class Cell(
     val edges: ConcurrentHashMap<Long, Edge> = ConcurrentHashMap(5)
 )
 
+/**
+ * Grid data structure for storing the grid cells
+ *
+ * @property cells Main data structure for storing the grid cells
+ */
 @Suppress("unused")
 object GridData {
     private val precomputedNeighbourPairs = listOf(
-        Pair(-1L, -1L), Pair(-1L, 0L), Pair(-1L, 1L),
-        Pair(0L, -1L), Pair(0L, 1L), Pair(1L, -1L),
-        Pair(1L, 0L), Pair(1L, 1L)
+        Pair(-1L, -1L),
+        Pair(-1L, 0L),
+        Pair(-1L, 1L),
+        Pair(0L, -1L),
+        Pair(0L, 1L),
+        Pair(1L, -1L),
+        Pair(1L, 0L),
+        Pair(1L, 1L)
     )
 
+    // Most Valuable Player
     private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap(115000)
 
-    fun getPointCellId(pointX: Long, pointY: Long): Long {
+    // Get the cell id for a given point
+    private fun getPointCellId(pointX: Long, pointY: Long): Long {
         val probableCoordX = pointX / 500
         val probableCoordY = pointY / 500
 
@@ -53,7 +77,8 @@ object GridData {
         return ((probableCoordX shl 32) or probableCoordY)
     }
 
-    fun addEdge(originCellId: Long, destinationCellId: Long, length: Long) {
+    // Add an edge between two cells
+    private fun addEdge(originCellId: Long, destinationCellId: Long, length: Long) {
         cells.getValue(originCellId).edges.compute(destinationCellId) { _, oldValue ->
             when {
                 oldValue == null -> Edge(length, 1L)
@@ -65,7 +90,8 @@ object GridData {
         }
     }
 
-    fun addPoint(pointX: Long, pointY: Long, cellId: Long) {
+    // Add a point to the grid
+    private fun addPoint(pointX: Long, pointY: Long, cellId: Long) {
         cells.getOrPut(cellId) {
             Cell(
                 id = cellId,
@@ -78,10 +104,12 @@ object GridData {
         }
     }
 
-    fun resetGrid() {
+    // Reset the grid
+    private fun resetGrid() {
         cells.clear()
     }
 
+    // Djikstra algorithm for the shortest paths
     private fun djikstra(originCellId: Long, destinationCellId: Long, oneToAll: Boolean = false): Long {
         val visited = HashSet<Long>(115000)
         var sum = 0L
@@ -115,10 +143,16 @@ object GridData {
         return sum
     }
 
+    /**
+     * Shared public API methods for the grid
+     */
     fun Reset.process() {
         resetGrid()
     }
 
+    /**
+     * Shared public API methods for the grid
+     */
     fun Walk.process() {
         (1..lengthsCount).forEach { index ->
             val origin = getLocations(index - 1)
@@ -134,6 +168,9 @@ object GridData {
         }
     }
 
+    /**
+     * Shared public API methods for the grid
+     */
     fun OneToOne.process(): Long {
         val originCellId = getPointCellId(origin.x.toLong(), origin.y.toLong())
         val destinationCellId = getPointCellId(destination.x.toLong(), destination.y.toLong())
@@ -143,6 +180,9 @@ object GridData {
         return shortestPath
     }
 
+    /**
+     * Shared public API methods for the grid
+     */
     fun OneToAll.process(): Long {
         val originCellId = getPointCellId(origin.x.toLong(), origin.y.toLong())
 
