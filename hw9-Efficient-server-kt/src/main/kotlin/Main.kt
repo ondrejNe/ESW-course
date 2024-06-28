@@ -93,11 +93,13 @@ fun processRequest(data: Request): Response {
         data.hasOneToOne() -> {
             println("OneToOne received")
             val result = data.oneToOne.process()
+            println("Shortest path length: $result")
             Response.newBuilder().setShortestPathLength(result).build()
         }
         data.hasOneToAll() -> {
             println("OneToAll received")
             val result = data.oneToAll.process()
+            println("Total length: $result")
             Response.newBuilder().setTotalLength(result).build()
         }
         data.hasReset() -> {
