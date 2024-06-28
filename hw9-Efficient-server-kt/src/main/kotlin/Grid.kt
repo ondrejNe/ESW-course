@@ -30,7 +30,7 @@ object GridData {
         Pair(1L, 0L), Pair(1L, 1L)
     )
 
-    private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap(115000)
+    private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap(115000,0.9f, 32)
 
     fun getPointCellId(pointX: Long, pointY: Long): Long {
         val probableCoordX = pointX / 500
