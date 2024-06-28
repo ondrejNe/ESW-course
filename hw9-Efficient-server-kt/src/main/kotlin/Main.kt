@@ -20,7 +20,7 @@ object Application : ILoggable {
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val threadCount = 4
+        val threadCount = 10
         val executor = Executors.newFixedThreadPool(threadCount)
         val dispatcher = executor.asCoroutineDispatcher()
 
