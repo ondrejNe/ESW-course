@@ -3,6 +3,7 @@ package necasond
 import esw.Scheme.Request
 import esw.Scheme.Response
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -20,12 +21,13 @@ object Application : ILoggable {
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
-        val threadCount = 10
+        val threadCount = Runtime.getRuntime().availableProcessors()
         val executor = Executors.newFixedThreadPool(threadCount)
         val dispatcher = executor.asCoroutineDispatcher()
 
         val serverSocket = ServerSocket(4321)
         val clientIdCounter = AtomicInteger(1)
+        appLogger.info("Dispatcher created with $threadCount threads")
         appLogger.info("Server is running on port ${serverSocket.localPort}")
         
         val job = launch(dispatcher) {
