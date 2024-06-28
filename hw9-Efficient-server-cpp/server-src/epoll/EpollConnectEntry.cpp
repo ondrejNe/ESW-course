@@ -122,6 +122,7 @@ void EpollConnectEntry::readEvent() {
 //            this->processingInProgress = false;
 //        }, fd);
         walks++;
+        writeResponse(response, fd);
     } else if (request.has_onetoone()) {
         oneToOne++;
     } else if (request.has_onetoall()) {
