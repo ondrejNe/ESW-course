@@ -17,9 +17,6 @@ ThreadPool::ThreadPool(size_t numThreads) :
         stop(false)
 {
     for (size_t i = 0; i < numThreads; ++i) {
-        // For logging purposes perform suspensions
-        this_thread::sleep_for(chrono::milliseconds(1));
-
         threads.emplace_back([this, i] { // lambda function
 #ifdef THREAD_LOGGER
             threadLogger.info("Thread created");
