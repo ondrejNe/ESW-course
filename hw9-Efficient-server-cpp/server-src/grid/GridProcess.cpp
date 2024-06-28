@@ -3,15 +3,18 @@
 #include <chrono>
 
 // Global variables -------------------------------------------------------------------------------
-#define PROTO_TIME_LOGGER
-#define PROTO_STATS_LOGGER
+//#define PROTO_TIME_LOGGER
+//#define PROTO_STATS_LOGGER
 //#define PROTO_PROCESS_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 
 std::shared_mutex rwLock;
+
+#ifdef PROTO_TIME_LOGGER
 uint64_t walkTime = 0;
 uint64_t oneToOneTime = 0;
 uint64_t oneToAllTime = 0;
+#endif
 
 // Class definition -------------------------------------------------------------------------------
 void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk) {
