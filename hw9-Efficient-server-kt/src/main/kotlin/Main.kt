@@ -15,7 +15,7 @@ import java.net.Socket
 import java.util.concurrent.Executors
 
 fun main() = runBlocking {
-    val threadCount = 5
+    val threadCount = 4
     val executor = Executors.newFixedThreadPool(threadCount)
     val dispatcher = executor.asCoroutineDispatcher()
 
