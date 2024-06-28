@@ -46,9 +46,9 @@ int main(int argc, char *argv[]) {
     // Epoll
     EpollInstance epollInstance;
 
-    thread ep = thread([&epollInstance]() {
+    resourcePool1.run([&epollInstance]() {
         while (true) epollInstance.waitAndHandleEvents();
-    });
+    }, -1);
 
     std::unique_ptr<EpollSocketEntry> serverSocket = std::make_unique<EpollSocketEntry>(port, epollInstance);
     epollInstance.registerEpollEntry(std::move(serverSocket));
