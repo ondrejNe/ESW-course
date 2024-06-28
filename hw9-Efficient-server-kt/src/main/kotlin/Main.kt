@@ -54,7 +54,7 @@ object Application : ILoggable {
                 // Read the size of the upcoming message
                 val size = input.readInt()
                 if (size <= 0) {
-                    appLogger.info("[$id] Invalid data size received: $size")
+                    appLogger.debug("[$id] Invalid data size received: $size")
                     break
                 }
 
@@ -80,14 +80,14 @@ object Application : ILoggable {
                 output.flush()
 
                 if (data.hasOneToAll()) {
-                    appLogger.info("[$id] Closing connection after OneToAll")
+                    appLogger.debug("[$id] Closing connection after OneToAll")
                     break
                 }
             }
         } catch (e: Exception) {
-            appLogger.info("[$id] Exception handling client: ${e.message}")
+            appLogger.debug("[$id] Exception handling client: ${e.message}")
         } finally {
-            appLogger.info("[$id] Closing client socket")
+            appLogger.debug("[$id] Closing client socket")
             clientSocket.close()
         }
     }
@@ -98,24 +98,24 @@ object Application : ILoggable {
             Response.newBuilder().build()
         }
         data.hasOneToOne() -> {
-            appLogger.info("[$id] OneToOne received")
+            appLogger.debug("[$id] OneToOne received")
             val result = data.oneToOne.process()
-            appLogger.info("[$id] Shortest path length: $result")
+            appLogger.debug("[$id] Shortest path length: $result")
             Response.newBuilder().setShortestPathLength(result).build()
         }
         data.hasOneToAll() -> {
-            appLogger.info("[$id] OneToAll received")
+            appLogger.debug("[$id] OneToAll received")
             val result = data.oneToAll.process()
-            appLogger.info("[$id] Total length: $result")
+            appLogger.debug("[$id] Total length: $result")
             Response.newBuilder().setTotalLength(result).build()
         }
         data.hasReset() -> {
-            appLogger.info("[$id] Reset received")
+            appLogger.debug("[$id] Reset received")
             data.reset.process()
             Response.newBuilder().build()
         }
         else -> {
-            appLogger.info("[$id] Unknown message")
+            appLogger.debug("[$id] Unknown message")
             Response.newBuilder().build()
         }
     }
