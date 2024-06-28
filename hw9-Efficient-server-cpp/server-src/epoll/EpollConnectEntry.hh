@@ -39,9 +39,6 @@ private:
     char            messageBuffer[50000];
     bool            messageInProgress;
     bool            processingInProgress;
-    int             walks;
-    int             oneToOne;
-    int             oneToAll;
 
     void readEvent();
 
@@ -57,10 +54,7 @@ public:
             inProgressMessageSize(0),
             inProgressMessageOffset(0),
             messageInProgress(false),
-            processingInProgress(false),
-            walks(0),
-            oneToOne(0),
-            oneToAll(0) {
+            processingInProgress(false) {
 
         // Assign the file descriptor of the accepted connection
         this->set_fd(fd);
