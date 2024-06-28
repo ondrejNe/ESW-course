@@ -4,6 +4,7 @@
 
 // Global variables -------------------------------------------------------------------------------
 //#define PROTO_TIME_LOGGER
+#define PROTO_LOCK_LOGGER
 //#define PROTO_STATS_LOGGER
 //#define PROTO_PROCESS_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
@@ -77,7 +78,15 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
 #ifdef PROTO_TIME_LOGGER
     auto start = std::chrono::high_resolution_clock::now();
 #endif
+#ifdef PROTO_LOCK_LOGGER
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
     rwLock.lock_shared();
+#ifdef PROTO_LOCK_LOGGER
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    protoLogger.debug("Read lock took %llu milliseconds to execute.", duration.count());
+#endif
     gridStats.oneToOne_count++;
 
     const auto &location1 = oneToOne.origin();
@@ -114,7 +123,15 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
 #ifdef PROTO_TIME_LOGGER
     auto start = std::chrono::high_resolution_clock::now();
 #endif
+#ifdef PROTO_LOCK_LOGGER
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
     rwLock.lock_shared();
+#ifdef PROTO_LOCK_LOGGER
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    protoLogger.debug("Read lock took %llu milliseconds to execute.", duration.count());
+#endif
     gridStats.oneToAll_count++;
 
     const auto &location1 = oneToAll.origin();
