@@ -3,7 +3,6 @@ package necasond
 import esw.Scheme.Request
 import esw.Scheme.Response
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -35,7 +34,6 @@ object Application : ILoggable {
                 val clientSocket = serverSocket.accept()
                 val clientId = clientIdCounter.getAndIncrement()
                 appLogger.info("Client connected: $clientId")
-                delay(1)
                 launch(dispatcher) {
                     handleClient(clientSocket, clientId)
                 }
@@ -56,7 +54,7 @@ object Application : ILoggable {
                 // Read the size of the upcoming message
                 val size = input.readInt()
                 if (size <= 0) {
-                    appLogger.debug("[$id] Invalid data size received: $size")
+                    appLogger.info("[$id] Invalid data size received: $size")
                     break
                 }
 
@@ -82,14 +80,14 @@ object Application : ILoggable {
                 output.flush()
 
                 if (data.hasOneToAll()) {
-                    appLogger.debug("[$id] Closing connection after OneToAll")
+                    appLogger.info("[$id] Closing connection after OneToAll")
                     break
                 }
             }
         } catch (e: Exception) {
-            appLogger.debug("[$id] Exception handling client: ${e.message}")
+            appLogger.info("[$id] Exception handling client: ${e.message}")
         } finally {
-            appLogger.debug("[$id] Closing client socket")
+            appLogger.info("[$id] Closing client socket")
             clientSocket.close()
         }
     }
@@ -100,24 +98,24 @@ object Application : ILoggable {
             Response.newBuilder().build()
         }
         data.hasOneToOne() -> {
-            appLogger.debug("[$id] OneToOne received")
+            appLogger.info("[$id] OneToOne received")
             val result = data.oneToOne.process()
-            appLogger.debug("[$id] Shortest path length: $result")
+            appLogger.info("[$id] Shortest path length: $result")
             Response.newBuilder().setShortestPathLength(result).build()
         }
         data.hasOneToAll() -> {
-            appLogger.debug("[$id] OneToAll received")
+            appLogger.info("[$id] OneToAll received")
             val result = data.oneToAll.process()
-            appLogger.debug("[$id] Total length: $result")
+            appLogger.info("[$id] Total length: $result")
             Response.newBuilder().setTotalLength(result).build()
         }
         data.hasReset() -> {
-            appLogger.debug("[$id] Reset received")
+            appLogger.info("[$id] Reset received")
             data.reset.process()
             Response.newBuilder().build()
         }
         else -> {
-            appLogger.debug("[$id] Unknown message")
+            appLogger.info("[$id] Unknown message")
             Response.newBuilder().build()
         }
     }
