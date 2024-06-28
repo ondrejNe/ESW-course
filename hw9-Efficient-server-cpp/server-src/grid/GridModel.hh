@@ -105,6 +105,13 @@ public:
         }
     }
 
+    GridData(const GridData &gridData) {
+        cells.resize(gridData.cells.size());
+        for (size_t i = 0; i < gridData.cells.size(); ++i) {
+            cells[i] = gridData.cells[i];
+        }
+    }
+
     uint64_t getPointCellId(Point &point);
 
     void addEdge(GridStats &gridStats, uint64_t &originCellId, uint64_t &destinationCellId, uint64_t length);

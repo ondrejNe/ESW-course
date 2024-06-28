@@ -25,7 +25,7 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
 #ifdef PROTO_TIME_LOGGER
     auto start = std::chrono::high_resolution_clock::now();
 #endif
-//    rwLock.lock();
+    rwLock.lock();
     gridStats.walk_count++;
 
     const auto &locations = walk.locations();
@@ -60,7 +60,7 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
         gridData.addPoint(gridStats, destination, destinationCellId);
         gridData.addEdge(gridStats, originCellId, destinationCellId, len);
     }
-//    rwLock.unlock();
+    rwLock.unlock();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processed Walk message");
 #endif
@@ -81,7 +81,7 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
 #ifdef PROTO_LOCK_LOGGER
     auto start = std::chrono::high_resolution_clock::now();
 #endif
-//    rwLock.lock_shared();
+    rwLock.lock_shared();
 #ifdef PROTO_LOCK_LOGGER
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -99,7 +99,7 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
     uint64_t destinationCellId = gridData.getPointCellId(destination);
 
     uint64_t shortestPath = dijkstra(gridData, originCellId, destinationCellId, ONE_TO_ONE);
-//    rwLock.unlock_shared();
+    rwLock.unlock_shared();
 
 #ifdef PROTO_STATS_LOGGER
     protoLogger.warn("Shortest path: %llu from: %llu to: %llu", shortestPath, originCellId, destinationCellId);
@@ -126,7 +126,7 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
 #ifdef PROTO_LOCK_LOGGER
     auto start = std::chrono::high_resolution_clock::now();
 #endif
-//    rwLock.lock_shared();
+    rwLock.lock_shared();
 #ifdef PROTO_LOCK_LOGGER
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
@@ -140,7 +140,7 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
     uint64_t originCellId = gridData.getPointCellId(origin);
 
     uint64_t shortestPath = dijkstra(gridData, originCellId, originCellId, ONE_TO_ALL);
-//    rwLock.unlock_shared();
+    rwLock.unlock_shared();
 
     gridData.logGridGraph();
     gridStats.logGridStats();
@@ -163,7 +163,7 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
 }
 
 void processReset(GridData &gridData, GridStats &gridStats) {
-//    rwLock.lock();
+    rwLock.lock();
     gridData.resetGrid(gridStats);
-//    rwLock.unlock();
+    rwLock.unlock();
 }
