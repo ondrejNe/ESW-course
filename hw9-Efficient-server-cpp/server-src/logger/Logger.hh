@@ -26,6 +26,7 @@
 #include <thread>
 #include <functional>
 #include <unordered_map>
+#include <sched.h>
 
 using namespace std;
 
@@ -143,6 +144,9 @@ private:
         }
         fullPrefix << "[TID: " << threadIDMap[this_id] << "]";
 #endif
+        int cpu_core = sched_getcpu(); // Get current CPU core
+        fullPrefix << "[CPU: " << cpu_core << "]"; // Append CPU core to prefix
+
         fullPrefix << toString(level);
         for (auto& p : additionalPrefixes) {
             fullPrefix << p;
