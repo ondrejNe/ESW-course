@@ -7,6 +7,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import necasond.GridData.process
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
@@ -39,48 +40,75 @@ fun handleClient(clientSocket: Socket) {
     val input = DataInputStream(clientSocket.getInputStream())
     val output = DataOutputStream(clientSocket.getOutputStream())
 
-    while (true) {
-        val size = input.readInt()
-        val byteArray = ByteArray(size)
-        input.readFully(byteArray)  // Read the Protobuf message
+    try {
+        while (true) {
+            // Read the size of the upcoming message
+            val size = input.readInt()
+            if (size <= 0) {
+                println("Invalid data size received: $size")
+                break
+            }
 
-        // Decode the Protobuf message
-        val data = Request.parseFrom(byteArray)
+            val dataBuffer = ByteArrayOutputStream(size)
+            var totalRead = 0
 
-        val response = when {
-            data.hasWalk() -> {
-                data.walk.process()
-                Response.newBuilder().build()
+            while (totalRead < size) {
+                val buffer = ByteArray(size - totalRead)
+                val bytesRead = input.read(buffer)
+                if (bytesRead == -1) { // End of stream reached unexpectedly
+                    throw RuntimeException("Stream ended before expected")
+                }
+                dataBuffer.write(buffer, 0, bytesRead)
+                totalRead += bytesRead
             }
-            data.hasOneToOne() -> {
-                println("OneToOne received")
-                val result = data.oneToOne.process()
-                Response.newBuilder().setShortestPathLength(result).build()
-            }
-            data.hasOneToAll() -> {
-                println("OneToAll received")
-                val result = data.oneToAll.process()
-                Response.newBuilder().setTotalLength(result).build()
-            }
-            data.hasReset() -> {
-                println("Reset received")
-                data.reset.process()
-                Response.newBuilder().build()
-            }
-            else -> {
-                println("Unknown message")
-                Response.newBuilder().build()
+
+            // Decode the complete Protobuf message
+            val data = Request.parseFrom(dataBuffer.toByteArray())
+            val response = processRequest(data)
+            val responseBytes = response.toByteArray()
+            output.writeInt(responseBytes.size)
+            output.write(responseBytes)
+            output.flush()
+
+            if (data.hasOneToAll()) {
+                println("Closing connection after OneToAll")
+                break
             }
         }
+    } catch (e: Exception) {
+        println("Exception handling client: ${e.message}")
+    } finally {
+        println("Closing client socket")
+        clientSocket.close()
+    }
+}
 
-        val responseBytes = response.toByteArray()
-        output.writeInt(responseBytes.size)
-        output.write(responseBytes)
-        output.flush()
-
-        if (data.hasOneToAll()) {
-            clientSocket.close()
-            break
+fun processRequest(data: Request): Response {
+    // Handle the request based on its type
+    return when {
+        data.hasWalk() -> {
+            data.walk.process()
+            Response.newBuilder().build()
+        }
+        data.hasOneToOne() -> {
+            println("OneToOne received")
+            val result = data.oneToOne.process()
+            Response.newBuilder().setShortestPathLength(result).build()
+        }
+        data.hasOneToAll() -> {
+            println("OneToAll received")
+            val result = data.oneToAll.process()
+            Response.newBuilder().setTotalLength(result).build()
+        }
+        data.hasReset() -> {
+            println("Reset received")
+            data.reset.process()
+            Response.newBuilder().build()
+        }
+        else -> {
+            println("Unknown message")
+            Response.newBuilder().build()
         }
     }
 }
+
