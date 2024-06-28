@@ -119,10 +119,8 @@ void EpollConnectEntry::readEvent() {
 //        this->processingInProgress = false;
         resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
             processMessage(request, response, gridData, gridStats, fd);
-//            this->processingInProgress = false;
+            this->processingInProgress = false;
         }, fd);
-        writeResponse(response, fd);
-        processingInProgress = false;
     } else {
 //        processMessage(request, response, gridData, gridStats, fd);
 //        this->processingInProgress = false;
@@ -173,7 +171,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
 #endif
         const esw::Walk &walk = request.walk();
         processWalk(gridData, gridStats, walk);
-        return;
+
     } else if (request.has_onetoone()) {
 #ifdef PROCESS_LOGGER
         connectLogger.warn("OneToOne message received on connection [FD%d]", fd);
@@ -201,7 +199,7 @@ void EpollConnectEntry::processMessage(esw::Request request, esw::Response respo
         connectLogger.warn("Reset message received on connection [FD%d]", fd);
 #endif
         processReset(gridData, gridStats);
-        return;
+
     } else {
 #ifdef PROCESS_LOGGER
         connectLogger.error("No valid message type detected on connection [FD%d]", fd);
