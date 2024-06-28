@@ -33,3 +33,7 @@ cd ./src/main/resources && mkdir -p ./java && protoc -I=./ --java_out=./java ./s
 ```shell
 cd test && nc localhost 4321 < test/walk3000.pbf
 ```
+
+## Known issues
+The dependency synchronization on the OneTo* requests is non-existent. The OneToAll requests are sometimes not 
+processed correctly as they are being computed much sooner than the last Walk request has been processed.
