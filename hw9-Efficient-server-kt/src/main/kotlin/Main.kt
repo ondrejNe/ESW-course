@@ -18,8 +18,8 @@ fun main() = runBlocking {
     val executor = Executors.newFixedThreadPool(threadCount)
     val dispatcher = executor.asCoroutineDispatcher()
 
-    val serverSocket = ServerSocket(4444)
-    println("Server is running on port 4444")
+    val serverSocket = ServerSocket(4321)
+    println("Server is running on port 4321")
 
     val job = launch(dispatcher) {
         while (isActive) {
