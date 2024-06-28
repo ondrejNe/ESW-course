@@ -10,8 +10,10 @@ The Dijkstra algorithm is used to find the shortest path between two nodes. Whol
 managed by Gradle.
 
 ## Compile & run instructions
+Tested and run on OpenJDK 17 & OpenJDK 21. Gradle version 8.7. Kotlin version 1.9.22
 ```shell
 java --version
+gradle --version
 ```
 
 To run the server on port 4321
@@ -20,9 +22,14 @@ To run the server on port 4321
 ```
 
 ## Used libraries
-See `libs.versions.toml`
+See gradle/`libs.versions.toml`
 
 ## Protobuf resource
 ```shell
 cd ./src/main/resources && mkdir -p ./java && protoc -I=./ --java_out=./java ./scheme.proto
+```
+
+## Testing
+```shell
+cd test && nc localhost 4321 < test/walk3000.pbf
 ```
