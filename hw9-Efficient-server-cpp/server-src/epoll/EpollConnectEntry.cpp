@@ -117,19 +117,26 @@ void EpollConnectEntry::readEvent() {
     if (request.has_walk() || request.has_reset()) {
 //        processMessage(request, response, gridData, gridStats, fd);
 //        this->processingInProgress = false;
-        resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
-            processMessage(request, response, gridData, gridStats, fd);
-            this->processingInProgress = false;
-        }, fd);
+//        resourcePool.run([this, request, response, &gridData, &gridStats, fd] {
+//            processMessage(request, response, gridData, gridStats, fd);
+//            this->processingInProgress = false;
+//        }, fd);
+        walks++;
+    } else if (request.has_onetoone()) {
+        oneToOne++;
+    } else if (request.has_onetoall()) {
+        oneToAll++;
+        connectLogger.info("Walks: %d OneToOne: %d OneToAll: %d on connection [FD%d]", walks, oneToOne, oneToAll, fd);
     } else {
 //        processMessage(request, response, gridData, gridStats, fd);
 //        this->processingInProgress = false;
-        resourcePool1.run([this, request, response, &gridData, &gridStats, fd] {
-            processMessage(request, response, gridData, gridStats, fd);
-            this->processingInProgress = false;
-        }, fd);
+//        resourcePool1.run([this, request, response, &gridData, &gridStats, fd] {
+//            processMessage(request, response, gridData, gridStats, fd);
+//            this->processingInProgress = false;
+//        }, fd);
     }
 
+    processingInProgress = false;
     messageInProgress = false;
 }
 
