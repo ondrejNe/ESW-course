@@ -4,7 +4,7 @@
 // Global variables -------------------------------------------------------------------------------
 //#define GRID_GRAPH_LOGGER
 //#define GRID_STATS_LOGGER
-#define GRID_EDGE_LOGGER
+//#define GRID_EDGE_LOGGER
 PrefixedLogger gridLogger = PrefixedLogger("[GRID      ]", true);
 
 // Class definition -------------------------------------------------------------------------------

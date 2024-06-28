@@ -1,18 +1,27 @@
 
 #include "GridModel.hh"
+#include <chrono>
 
 // Global variables -------------------------------------------------------------------------------
+#define PROTO_TIME_LOGGER
 #define PROTO_STATS_LOGGER
 //#define PROTO_PROCESS_LOGGER
 PrefixedLogger protoLogger = PrefixedLogger("[PROTOBUF  ]", true);
 
 std::shared_mutex rwLock;
+uint64_t walkTime = 0;
+uint64_t oneToOneTime = 0;
+uint64_t oneToAllTime = 0;
+
 // Class definition -------------------------------------------------------------------------------
 void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk) {
-    rwLock.lock();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processing Walk message");
 #endif
+#ifdef PROTO_TIME_LOGGER
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+    rwLock.lock();
     gridStats.walk_count++;
 
     const auto &locations = walk.locations();
@@ -47,17 +56,25 @@ void processWalk(GridData &gridData, GridStats &gridStats, const esw::Walk &walk
         gridData.addPoint(gridStats, destination, destinationCellId);
         gridData.addEdge(gridStats, originCellId, destinationCellId, len);
     }
+    rwLock.unlock();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.debug("Processed Walk message");
 #endif
-    rwLock.unlock();
+#ifdef PROTO_TIME_LOGGER
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    walkTime += duration.count();
+#endif
 }
 
 uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::OneToOne &oneToOne) {
-    rwLock.lock_shared();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToOne message");
 #endif
+#ifdef PROTO_TIME_LOGGER
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+    rwLock.lock_shared();
     gridStats.oneToOne_count++;
 
     const auto &location1 = oneToOne.origin();
@@ -70,21 +87,31 @@ uint64_t processOneToOne(GridData &gridData, GridStats &gridStats, const esw::On
     uint64_t destinationCellId = gridData.getPointCellId(destination);
 
     uint64_t shortestPath = dijkstra(gridData, originCellId, destinationCellId, ONE_TO_ONE);
+    rwLock.unlock_shared();
+
 #ifdef PROTO_STATS_LOGGER
     protoLogger.warn("Shortest path: %llu from: %llu to: %llu", shortestPath, originCellId, destinationCellId);
 #endif
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processed OneToOne message");
 #endif
-    rwLock.unlock_shared();
+#ifdef PROTO_TIME_LOGGER
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    oneToOneTime += duration.count();
+    protoLogger.debug("Cumulative oneToOne took %llu milliseconds to execute.", oneToOneTime);
+#endif
     return shortestPath;
 }
 
 uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::OneToAll &oneToAll) {
-    rwLock.lock_shared();
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processing OneToAll message");
 #endif
+#ifdef PROTO_TIME_LOGGER
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+    rwLock.lock_shared();
     gridStats.oneToAll_count++;
 
     const auto &location1 = oneToAll.origin();
@@ -93,15 +120,25 @@ uint64_t processOneToAll(GridData &gridData, GridStats &gridStats, const esw::On
     uint64_t originCellId = gridData.getPointCellId(origin);
 
     uint64_t shortestPath = dijkstra(gridData, originCellId, originCellId, ONE_TO_ALL);
+    rwLock.unlock_shared();
+
+    gridData.logGridGraph();
+    gridStats.logGridStats();
+
 #ifdef PROTO_STATS_LOGGER
     protoLogger.warn("Total path: %llu from: %llu", shortestPath, originCellId);
 #endif
 #ifdef PROTO_PROCESS_LOGGER
     protoLogger.info("Processed OneToAll message");
 #endif
-    gridData.logGridGraph();
-    gridStats.logGridStats();
-    rwLock.unlock_shared();
+#ifdef PROTO_TIME_LOGGER
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    oneToAllTime += duration.count();
+    protoLogger.debug("Cumulative walk took %llu milliseconds to execute.", walkTime);
+    protoLogger.debug("Cumulative oneToOne took %llu milliseconds to execute.", oneToOneTime);
+    protoLogger.debug("Cumulative oneToAll took %llu milliseconds to execute.", oneToAllTime);
+#endif
     return shortestPath;
 }
 
