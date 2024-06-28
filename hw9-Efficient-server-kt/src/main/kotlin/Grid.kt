@@ -19,7 +19,7 @@ data class Cell(
     val coordY: Long,
     val pointX: Long,
     val pointY: Long,
-    val edges: ConcurrentHashMap<Long, Edge> = ConcurrentHashMap()
+    val edges: ConcurrentHashMap<Long, Edge> = ConcurrentHashMap(5)
 )
 
 @Suppress("unused")
@@ -30,7 +30,7 @@ object GridData {
         Pair(1L, 0L), Pair(1L, 1L)
     )
 
-    private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap()
+    private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap(115000)
 
     fun getPointCellId(pointX: Long, pointY: Long): Long {
         val probableCoordX = pointX / 500
@@ -83,9 +83,9 @@ object GridData {
     }
 
     private fun djikstra(originCellId: Long, destinationCellId: Long, oneToAll: Boolean = false): Long {
-        val visited = HashSet<Long>()
+        val visited = HashSet<Long>(115000)
         var sum = 0L
-        val pq = PriorityQueue<Pair<Long, Long>> { a, b -> a.first.compareTo(b.first) }
+        val pq = PriorityQueue<Pair<Long, Long>>(300) { a, b -> a.first.compareTo(b.first) }
 
         pq.add(0L to originCellId)
 

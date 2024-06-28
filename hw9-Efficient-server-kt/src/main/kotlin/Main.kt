@@ -3,7 +3,6 @@ package necasond
 import esw.Scheme.Request
 import esw.Scheme.Response
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
