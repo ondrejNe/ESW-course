@@ -83,34 +83,31 @@ fun handleClient(clientSocket: Socket) {
     }
 }
 
-fun processRequest(data: Request): Response {
-    // Handle the request based on its type
-    return when {
-        data.hasWalk() -> {
-            data.walk.process()
-            Response.newBuilder().build()
-        }
-        data.hasOneToOne() -> {
-            println("OneToOne received")
-            val result = data.oneToOne.process()
-            println("Shortest path length: $result")
-            Response.newBuilder().setShortestPathLength(result).build()
-        }
-        data.hasOneToAll() -> {
-            println("OneToAll received")
-            val result = data.oneToAll.process()
-            println("Total length: $result")
-            Response.newBuilder().setTotalLength(result).build()
-        }
-        data.hasReset() -> {
-            println("Reset received")
-            data.reset.process()
-            Response.newBuilder().build()
-        }
-        else -> {
-            println("Unknown message")
-            Response.newBuilder().build()
-        }
+fun processRequest(data: Request): Response = when {
+    data.hasWalk() -> {
+        data.walk.process()
+        Response.newBuilder().build()
+    }
+    data.hasOneToOne() -> {
+        println("OneToOne received")
+        val result = data.oneToOne.process()
+        println("Shortest path length: $result")
+        Response.newBuilder().setShortestPathLength(result).build()
+    }
+    data.hasOneToAll() -> {
+        println("OneToAll received")
+        val result = data.oneToAll.process()
+        println("Total length: $result")
+        Response.newBuilder().setTotalLength(result).build()
+    }
+    data.hasReset() -> {
+        println("Reset received")
+        data.reset.process()
+        Response.newBuilder().build()
+    }
+    else -> {
+        println("Unknown message")
+        Response.newBuilder().build()
     }
 }
 

@@ -8,11 +8,6 @@ import java.util.PriorityQueue
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
-data class Point(
-    val x: Long,
-    val y: Long
-)
-
 data class Edge(
     val length: Long,
     val samples: Long
@@ -27,23 +22,19 @@ data class Cell(
     val edges: ConcurrentHashMap<Long, Edge> = ConcurrentHashMap()
 )
 
+@Suppress("unused")
 object GridData {
     private val precomputedNeighbourPairs = listOf(
-        Pair(-1L, -1L),
-        Pair(-1L, 0L),
-        Pair(-1L, 1L),
-        Pair(0L, -1L),
-        Pair(0L, 1L),
-        Pair(1L, -1L),
-        Pair(1L, 0L),
-        Pair(1L, 1L)
+        Pair(-1L, -1L), Pair(-1L, 0L), Pair(-1L, 1L),
+        Pair(0L, -1L), Pair(0L, 1L), Pair(1L, -1L),
+        Pair(1L, 0L), Pair(1L, 1L)
     )
 
     private val cells: ConcurrentHashMap<Long, Cell> = ConcurrentHashMap()
 
-    fun getPointCellId(point: Point): Long {
-        val probableCoordX = point.x / 500
-        val probableCoordY = point.y / 500
+    fun getPointCellId(pointX: Long, pointY: Long): Long {
+        val probableCoordX = pointX / 500
+        val probableCoordY = pointY / 500
 
         // Search whether there isn't a better match
         for (comb in precomputedNeighbourPairs) {
@@ -51,8 +42,8 @@ object GridData {
             val cell = cells[neighborCellId]
 
             cell?.let {
-                val dx = abs(point.x - it.pointX)
-                val dy = abs(point.y - it.pointY)
+                val dx = abs(pointX - it.pointX)
+                val dy = abs(pointY - it.pointY)
                 if ((dx * dx + dy * dy) <= 250000) {
                     return neighborCellId
                 }
@@ -74,14 +65,14 @@ object GridData {
         }
     }
 
-    fun addPoint(point: Point, cellId: Long) {
+    fun addPoint(pointX: Long, pointY: Long, cellId: Long) {
         cells.getOrPut(cellId) {
             Cell(
                 id = cellId,
-                pointX = point.x,
-                pointY = point.y,
-                coordX = point.x / 500,
-                coordY = point.y / 500,
+                pointX = pointX,
+                pointY = pointY,
+                coordX = pointX / 500,
+                coordY = pointY / 500,
                 edges = ConcurrentHashMap()
             )
         }
@@ -114,8 +105,9 @@ object GridData {
 
             cells.getValue(currentCellId).edges.forEach { (neighborCellId, edge) ->
                 if (visited.contains(neighborCellId)) return@forEach
+                val neighborDistance = (originCurrent + (edge.length / edge.samples))
 
-                pq.add((originCurrent + edge.length / edge.samples) to neighborCellId)
+                pq.add(neighborDistance to neighborCellId)
             }
 
         }
@@ -129,13 +121,13 @@ object GridData {
 
     fun Walk.process() {
         (1..lengthsCount).forEach { index ->
-            val origin = getLocations(index-1).let { Point(it.x.toLong(), it.y.toLong()) }
-            val originCellId = getPointCellId(origin)
-            addPoint(origin, originCellId)
+            val origin = getLocations(index - 1)
+            val originCellId = getPointCellId(origin.x.toLong(), origin.y.toLong())
+            addPoint(origin.x.toLong(), origin.y.toLong(), originCellId)
 
-            val destination = getLocations(index).let { Point(it.x.toLong(), it.y.toLong()) }
-            val destinationCellId = getPointCellId(destination)
-            addPoint(destination, destinationCellId)
+            val destination = getLocations(index)
+            val destinationCellId = getPointCellId(destination.x.toLong(), destination.y.toLong())
+            addPoint(destination.x.toLong(), destination.y.toLong(), destinationCellId)
 
             val length = getLengths(index - 1).toLong()
             addEdge(originCellId, destinationCellId, length)
@@ -143,8 +135,8 @@ object GridData {
     }
 
     fun OneToOne.process(): Long {
-        val originCellId = getPointCellId(Point(origin.x.toLong(), origin.y.toLong()))
-        val destinationCellId = getPointCellId(Point(destination.x.toLong(), destination.y.toLong()))
+        val originCellId = getPointCellId(origin.x.toLong(), origin.y.toLong())
+        val destinationCellId = getPointCellId(destination.x.toLong(), destination.y.toLong())
 
         val shortestPath = djikstra(originCellId, destinationCellId)
 
@@ -152,7 +144,7 @@ object GridData {
     }
 
     fun OneToAll.process(): Long {
-        val originCellId = getPointCellId(Point(origin.x.toLong(), origin.y.toLong()))
+        val originCellId = getPointCellId(origin.x.toLong(), origin.y.toLong())
 
         val shortestPath = djikstra(originCellId, originCellId, true)
 
