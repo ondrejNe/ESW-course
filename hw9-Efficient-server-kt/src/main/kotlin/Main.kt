@@ -1,16 +1,86 @@
 package necasond
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
+import esw.Scheme.Request
+import esw.Scheme.Response
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import necasond.GridData.process
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.net.ServerSocket
+import java.net.Socket
+import java.util.concurrent.Executors
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+fun main() = runBlocking {
+    val threadCount = 30
+    val executor = Executors.newFixedThreadPool(threadCount)
+    val dispatcher = executor.asCoroutineDispatcher()
+
+    val serverSocket = ServerSocket(4444)
+    println("Server is running on port 4444")
+
+    val job = launch(dispatcher) {
+        while (isActive) {
+            val clientSocket = serverSocket.accept()
+            launch(dispatcher) {
+                handleClient(clientSocket)
+            }
+        }
+    }
+
+    job.join()
+    serverSocket.close()
+    executor.shutdown()
+}
+
+fun handleClient(clientSocket: Socket) {
+    val input = DataInputStream(clientSocket.getInputStream())
+    val output = DataOutputStream(clientSocket.getOutputStream())
+
+    while (true) {
+        val size = input.readInt()
+        val byteArray = ByteArray(size)
+        input.readFully(byteArray)  // Read the Protobuf message
+
+        // Decode the Protobuf message
+        val data = Request.parseFrom(byteArray)
+
+        val response = when {
+            data.hasWalk() -> {
+                data.walk.process()
+                Response.newBuilder().build()
+            }
+            data.hasOneToOne() -> {
+                println("OneToOne received")
+                val result = data.oneToOne.process()
+                Response.newBuilder().setShortestPathLength(result).build()
+            }
+            data.hasOneToAll() -> {
+                println("OneToAll received")
+                val result = data.oneToAll.process()
+                Response.newBuilder().setTotalLength(result).build()
+            }
+            data.hasReset() -> {
+                println("Reset received")
+                data.reset.process()
+                Response.newBuilder().build()
+            }
+            else -> {
+                println("Unknown message")
+                Response.newBuilder().build()
+            }
+        }
+
+        val responseBytes = response.toByteArray()
+        output.writeInt(responseBytes.size)
+        output.write(responseBytes)
+        output.flush()
+
+        if (data.hasOneToAll()) {
+            clientSocket.close()
+            break
+        }
     }
 }
